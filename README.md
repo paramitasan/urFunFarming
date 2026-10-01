@@ -11,7 +11,7 @@ This README describes the planned application and division of work for Checkpoin
 | Resource | Link or status |
 | --- | --- |
 | Shared Git repository | https://github.com/paramitasan/urFunFarming/ |
-| Figma design | To be added during the design stage. |
+| Figma design | https://www.figma.com/design/rDovEM0bwhNE0xkgKZhwV4/Farmerzz?node-id=0-1&t=uf8tBdtybxcNt5PB-1 |
 | Deployed application | To be added with the first deployment to PWS. |
 
 ## Application Description and Problem
@@ -57,7 +57,7 @@ Every module will support creating, viewing, updating, and deleting its own appl
 | No. | Module | Records and responsibilities |
 | --- | --- | --- |
 | **1** | **Landing Page, Authentication & User Profiles** | Landing page as entry point: choose Farmer or Buyer registration (one account can be both). Profile management: display name, photo, bio, location, contact, password change. |
-| **2** | **Gardens and Plantings** | Growers create and manage their growing locations and planted crops. Records include a garden name, approximate location, growing method, crop, and planting date. Public summaries introduce the grower and garden; precise location details and private notes remain restricted to the owner. |
+| **2** | **Gardens and Plantings** | Growers create and manage their growing locations and planted crops. Every plant records include a garden name, location, growing method, crop, and planting date. Public summaries introduce the grower and garden; private notes remain restricted to the owner. |
 | **3** | **Plant Progress Journal** | Growers create dated progress entries linked to their own plantings, with observations, optional photographs, and a visibility setting. They can edit or delete entries and review a planting's timeline. Private entries remain visible only to their owner. This module documents progress; open questions and answers belong to Module 6. |
 | **4** | **Harvest Marketplace** | Growers create and manage produce listings with a title, crop category, quantity, unit, price, availability, and collection area. Visitors can browse and filter available offers. Members can access the permitted contact details, while only the listing owner can change or delete an offer. A price of zero can represent produce offered for free. |
 | **5** | **Care Planning and Weather** | Growers create and manage care tasks linked to their plantings, including an activity, planned date, notes, and completion status. They can inspect weather conditions when choosing a time and filter forecast periods using their own thresholds. Tasks are private to their owner. The editable care tasks provide the module's CRUD functionality. |
