@@ -12,7 +12,7 @@ This README describes the planned application and division of work for Checkpoin
 | --- | --- |
 | Shared Git repository | https://github.com/paramitasan/urFunFarming/ |
 | Figma design | https://www.figma.com/design/rDovEM0bwhNE0xkgKZhwV4/Farmerzz?node-id=0-1&t=uf8tBdtybxcNt5PB-1 |
-| Deployed application | To be added with the first deployment to PWS. |
+| Deployed application | https://paramita-santoso-urfunfarming.pws.cs.ui.ac.id/ |
 
 ## Application Description and Problem
 
