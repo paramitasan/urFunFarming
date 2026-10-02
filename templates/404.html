@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block title %}Page not found - UrFunFarming{% endblock title %}
+
+{% block content %}
+<section class="hero">
+    <h1 class="hero-title">404</h1>
+    <p class="hero-text">We couldn't find that page.</p>
+    <div class="hero-buttons">
+        <a class="button" href="{% url 'main:show_main' %}">Back to home</a>
+    </div>
+</section>
+{% endblock content %}

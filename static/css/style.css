@@ -1,0 +1,233 @@
+/* UrFunFarming styles. Colours are taken from the Figma homepage skeleton. */
+
+
+:root {
+    --bg: #F5FAF6;
+    --green-dark: #0B2E1D;
+    --green: #125133;
+    --green-footer: #145236;
+    --green-text: #2F5C45;
+    --green-logo: #638D43;
+    --mint: #21C37E;
+    --mint-hover: #1BAE70;
+    --white: #ffffff;
+    --green-dark-faded: rgba(11, 46, 29, 0.12);
+}
+
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--bg);
+    font-family: 'Poppins', sans-serif;
+    color: var(--green);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+ul {
+    list-style: none;
+}
+
+/* Navbar */
+
+.header {
+    position: sticky;
+    top: 0;
+    padding: 24px 24px 0 24px;
+    background-color: var(--bg);
+    z-index: 10;
+}
+
+.navbar {
+    max-width: 1290px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--white);
+    border-radius: 16px;
+    padding: 10px 10px 10px 16px;
+    box-shadow: 0 3px 4px rgba(0, 0, 0, 0.25);
+}
+
+.logo img {
+    height: 56px;
+    display: block;
+}
+
+.nav-links {
+    display: flex;
+    gap: 40px;
+}
+
+.nav-links a {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--green);
+}
+
+.nav-links a.active {
+    font-weight: 700;
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.nav-login {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--green);
+}
+
+/* Green pill button with the arrow circle */
+
+.button {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 5px 5px 5px 20px;
+    border-radius: 999px;
+    background-color: var(--mint);
+    color: var(--green-dark);
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.button:hover {
+    background-color: var(--mint-hover);
+}
+
+.button-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--green-dark-faded);
+    font-size: 16px;
+}
+
+/* Hero */
+
+.hero {
+    max-width: 1290px;
+    margin: 0 auto;
+    padding: 70px 24px 100px 24px;
+}
+
+.hero-title {
+    font-size: 80px;
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--green);
+}
+
+.hero-text {
+    margin-top: 32px;
+    max-width: 620px;
+    font-size: 20px;
+    line-height: 1.45;
+    color: var(--green-text);
+}
+
+.hero-buttons {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    margin-top: 40px;
+}
+
+.text-link {
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--green);
+    text-decoration: underline;
+    text-underline-offset: 5px;
+}
+
+/* Footer */
+
+.footer {
+    background-color: var(--green-footer);
+    color: var(--white);
+    padding: 40px 24px;
+    font-size: 14px;
+}
+
+.footer-inner {
+    max-width: 1290px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.footer-inner img {
+    height: 60px;
+    display: block;
+    background-color: var(--bg);
+    border-radius: 8px;
+    padding: 4px 8px;
+}
+
+.footer-inner a {
+    text-decoration: underline;
+}
+
+/* Smaller screens */
+@media (max-width: 900px) {
+    .header {
+        padding: 12px 16px 0 16px;
+    }
+
+    .navbar {
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .nav-links {
+        gap: 20px;
+    }
+
+    .nav-right {
+        gap: 10px;
+    }
+
+    .hero {
+        padding: 50px 20px 80px 20px;
+    }
+
+    .hero-title {
+        font-size: 44px;
+    }
+
+    .hero-buttons {
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .footer-inner {
+        flex-direction: column;
+        text-align: center;
+    }
+}
