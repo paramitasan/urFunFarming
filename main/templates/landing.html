@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ app_name }} - Some of us grow. Some of us eat.{% endblock title %}
+
+{% block content %}
+<section class="hero">
+    <h1 class="hero-title">
+        Some of us grow.<br>
+        Some of us eat.<br>
+        Most of us do both.
+    </h1>
+
+    <p class="hero-text">
+        Keep a plant journal, plan around the forecast, and offer
+        your surplus harvest for local pickup.
+    </p>
+
+    <div class="hero-buttons">
+        <a class="button" href="#">
+            Start growing
+            <span class="button-icon">&#8599;</span>
+        </a>
+        <a class="text-link" href="#">Browse the market &rarr;</a>
+    </div>
+</section>
+{% endblock content %}

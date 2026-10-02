@@ -1,0 +1,22 @@
+{% load static %}
+<header class="header">
+    <nav class="navbar">
+        <a class="logo" href="{% url 'main:show_main' %}">
+            <img src="{% static 'img/main-logo-with-text.png' %}" alt="UrFunFarming">
+        </a>
+
+        <ul class="nav-links">
+            <li><a class="active" href="{% url 'main:show_main' %}">Home</a></li>
+            <li><a href="#">Forum</a></li>
+            <li><a href="#">Market</a></li>
+        </ul>
+
+        <div class="nav-right">
+            <a class="nav-login" href="#">Login</a>
+            <a class="button" href="#">
+                Start growing
+                <span class="button-icon">&#8599;</span>
+            </a>
+        </div>
+    </nav>
+</header>

@@ -5,4 +5,4 @@ def show_main(request):
     context = {
         'app_name': 'urFunFarming',
     }
-    return render(request, 'main.html', context)
+    return render(request, 'landing.html', context)
