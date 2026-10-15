@@ -26,7 +26,6 @@ function updateScrolled() {
 window.addEventListener('scroll', updateScrolled, { passive: true });
 updateScrolled();
 
-// Profile dropdown when signed in
 const profileButton = nav.querySelector('.profile-button');
 const profileDropdown = document.getElementById('profile-dropdown');
 
@@ -48,7 +47,6 @@ if (profileButton) {
     });
 }
 
-// Log out with fetch, then go to the log in page
 const logoutForm = document.querySelector('.logout-form');
 
 if (logoutForm) {
@@ -56,11 +54,12 @@ if (logoutForm) {
         e.preventDefault();
         const token = document.cookie.split('; ').find((row) => row.startsWith('csrftoken='));
         try {
-            await fetch(logoutForm.action, {
+            const response = await fetch(logoutForm.action, {
                 method: 'POST',
                 headers: { 'X-CSRFToken': token ? decodeURIComponent(token.split('=')[1]) : '' },
                 credentials: 'same-origin',
             });
+            if (!response.ok) throw new Error(response.status);
             window.location.href = logoutForm.dataset.redirect;
         } catch (error) {
             logoutForm.submit();

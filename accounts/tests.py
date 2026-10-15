@@ -5,6 +5,17 @@ from django.urls import reverse
 from accounts.models import Profile
 
 
+class AccountTestCase(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user('idris_k', password='tomato-Balcony-42')
+        self.profile = Profile.objects.create(user=self.user, display_name='Muhammad Idris', is_grower=True)
+
+    def login(self, **extra):
+        data = {'username': 'idris_k', 'password': 'tomato-Balcony-42', **extra}
+        return self.client.post(reverse('accounts:login'), data)
+
+
 class RegisterTest(TestCase):
     def setUp(self):
         self.client = Client()
@@ -42,16 +53,7 @@ class RegisterTest(TestCase):
         self.assertFalse(User.objects.filter(username='idris_k').exists())
 
 
-class LoginLogoutTest(TestCase):
-    def setUp(self):
-        self.client = Client()
-        self.user = User.objects.create_user('idris_k', password='tomato-Balcony-42')
-        Profile.objects.create(user=self.user, display_name='Muhammad Idris', is_grower=True)
-
-    def login(self, **extra):
-        data = {'username': 'idris_k', 'password': 'tomato-Balcony-42', **extra}
-        return self.client.post(reverse('accounts:login'), data)
-
+class LoginLogoutTest(AccountTestCase):
     def test_login_success_sets_last_login_cookie(self):
         response = self.login(remember_me='on')
         self.assertRedirects(response, reverse('main:show_main'))
@@ -81,18 +83,18 @@ class LoginLogoutTest(TestCase):
         self.assertEqual(response.cookies['last_login']['max-age'], 0)
         self.assertNotIn('_auth_user_id', self.client.session)
 
+    def test_logout_rejects_get(self):
+        self.login(remember_me='on')
+        self.assertEqual(self.client.get(reverse('accounts:logout')).status_code, 405)
+        self.assertIn('_auth_user_id', self.client.session)
+
     def test_logged_out_user_is_sent_to_login(self):
         response = self.client.get(reverse('accounts:logout'))
         self.assertEqual(response.status_code, 302)
         self.assertTrue(response.url.startswith('/login'))
 
 
-class SignedInLandingTest(TestCase):
-    def setUp(self):
-        self.client = Client()
-        self.user = User.objects.create_user('idris_k', password='tomato-Balcony-42')
-        Profile.objects.create(user=self.user, display_name='Muhammad Idris', is_grower=True)
-
+class SignedInLandingTest(AccountTestCase):
     def test_navbar_shows_display_name(self):
         self.client.force_login(self.user)
         response = self.client.get(reverse('main:show_main'))
@@ -101,7 +103,7 @@ class SignedInLandingTest(TestCase):
         self.assertNotContains(response, 'class="nav-login"')
 
     def test_landing_shows_last_login_and_grower_copy(self):
-        self.client.post(reverse('accounts:login'), {'username': 'idris_k', 'password': 'tomato-Balcony-42'})
+        self.login()
         response = self.client.get(reverse('main:show_main'))
         self.assertContains(response, 'Last login: ')
         self.assertContains(response, 'Add buying any time.')
@@ -114,16 +116,7 @@ class SignedInLandingTest(TestCase):
         self.assertNotContains(response, 'Last login:')
 
 
-class SessionPersistenceTest(TestCase):
-    def setUp(self):
-        self.client = Client()
-        self.user = User.objects.create_user('idris_k', password='tomato-Balcony-42')
-        Profile.objects.create(user=self.user, display_name='Muhammad Idris', is_grower=True)
-
-    def login(self, **extra):
-        data = {'username': 'idris_k', 'password': 'tomato-Balcony-42', **extra}
-        return self.client.post(reverse('accounts:login'), data)
-
+class SessionPersistenceTest(AccountTestCase):
     def assert_still_signed_in(self):
         response = self.client.get(reverse('main:show_main'))
         self.assertTrue(response.wsgi_request.user.is_authenticated)
@@ -147,19 +140,14 @@ class SessionPersistenceTest(TestCase):
         self.assert_still_signed_in()
 
 
-class JsonEndpointTest(TestCase):
-    def setUp(self):
-        self.client = Client()
-        self.user = User.objects.create_user('idris_k', password='tomato-Balcony-42', email='idris@example.com')
-        Profile.objects.create(user=self.user, display_name='Muhammad Idris', is_grower=True)
-
+class JsonEndpointTest(AccountTestCase):
     def test_me_json_logged_out(self):
         response = self.client.get(reverse('accounts:me_json'))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {'is_authenticated': False})
 
     def test_me_json_logged_in(self):
-        self.client.post(reverse('accounts:login'), {'username': 'idris_k', 'password': 'tomato-Balcony-42'})
+        self.login()
         data = self.client.get(reverse('accounts:me_json')).json()
         self.assertTrue(data['is_authenticated'])
         self.assertEqual(data['username'], 'idris_k')
@@ -196,12 +184,7 @@ class JsonEndpointTest(TestCase):
         self.assertEqual(response.status_code, 404)
 
 
-class AjaxAuthTest(TestCase):
-    def setUp(self):
-        self.client = Client()
-        self.user = User.objects.create_user('idris_k', password='tomato-Balcony-42')
-        Profile.objects.create(user=self.user, display_name='Muhammad Idris', is_grower=True)
-
+class AjaxAuthTest(AccountTestCase):
     def test_login_ajax_success(self):
         response = self.client.post(reverse('accounts:login_ajax'), {
             'username': 'idris_k', 'password': 'tomato-Balcony-42', 'remember_me': 'on',
@@ -234,6 +217,13 @@ class AjaxAuthTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('sessionid', response.cookies)
 
+    def test_ajax_views_send_signed_in_users_home(self):
+        self.login(remember_me='on')
+        for name in ('accounts:login_ajax', 'accounts:register_ajax'):
+            response = self.client.post(reverse(name), {})
+            self.assertEqual(response.json(), {'status': 'success', 'redirect': reverse('main:show_main')})
+        self.assertEqual(User.objects.count(), 1)
+
     def test_register_ajax_validation_errors(self):
         response = self.client.post(reverse('accounts:register_ajax'), {
             'display_name': 'Sekar',
@@ -262,11 +252,9 @@ class AjaxAuthTest(TestCase):
         self.assertTrue(Profile.objects.get(user__username='sekar_a').is_buyer)
 
 
-class ProfilePageTest(TestCase):
+class ProfilePageTest(AccountTestCase):
     def setUp(self):
-        self.client = Client()
-        self.user = User.objects.create_user('idris_k', password='tomato-Balcony-42')
-        self.profile = Profile.objects.create(user=self.user, display_name='Muhammad Idris', is_grower=True)
+        super().setUp()
         self.client.force_login(self.user)
         self.data = {
             'save_profile': '1',

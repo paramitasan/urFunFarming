@@ -55,6 +55,7 @@ def login_user(request):
 
 
 @login_required(login_url='/login')
+@require_POST
 def logout_user(request):
     logout(request)
     response = HttpResponseRedirect(reverse('accounts:login'))
@@ -63,12 +64,15 @@ def logout_user(request):
 
 
 def form_errors(form):
-    # {"field": ["message", ...]}, with "__all__" for errors that aren't on one field
+    # Errors not tied to one field come under "__all__"
     return {field: [str(error) for error in errors] for field, errors in form.errors.items()}
 
 
 @require_POST
 def register_ajax(request):
+    if request.user.is_authenticated:
+        return JsonResponse({'status': 'success', 'redirect': reverse('main:show_main')})
+
     form = RegisterForm(request.POST)
 
     if form.is_valid():
@@ -81,6 +85,9 @@ def register_ajax(request):
 
 @require_POST
 def login_ajax(request):
+    if request.user.is_authenticated:
+        return JsonResponse({'status': 'success', 'redirect': reverse('main:show_main')})
+
     form = LoginForm(data=request.POST)
 
     if form.is_valid():
@@ -145,18 +152,18 @@ def profile_summary(profile):
 @login_required(login_url='/login')
 def profile(request):
     # Always the signed-in user's own profile, whatever the form sends
-    profile, _ = Profile.objects.get_or_create(user=request.user, defaults={'display_name': request.user.username})
-    profile_form = ProfileForm(instance=profile)
+    user_profile, _ = Profile.objects.get_or_create(user=request.user, defaults={'display_name': request.user.username})
+    profile_form = ProfileForm(instance=user_profile)
     password_form = PasswordForm(request.user)
     is_fetch = request.headers.get('X-Requested-With') == 'fetch'
 
     if request.method == 'POST' and 'save_profile' in request.POST:
-        profile_form = ProfileForm(request.POST, instance=profile)
+        profile_form = ProfileForm(request.POST, instance=user_profile)
         if profile_form.is_valid():
             profile_form.save()
             message = 'Profile saved. Neighbors will see the changes right away.'
             if is_fetch:
-                return JsonResponse({'status': 'success', 'message': message, 'profile': profile_summary(profile)})
+                return JsonResponse({'status': 'success', 'message': message, 'profile': profile_summary(user_profile)})
             messages.success(request, message)
             return redirect('accounts:profile')
         if is_fetch:
@@ -177,7 +184,7 @@ def profile(request):
             return JsonResponse({'status': 'error', 'errors': form_errors(password_form)}, status=400)
 
     context = {
-        'profile': profile,
+        'profile': user_profile,
         'profile_form': profile_form,
         'password_form': password_form,
     }

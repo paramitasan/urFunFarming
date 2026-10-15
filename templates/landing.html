@@ -29,7 +29,6 @@
 
         <div class="ctas">
             {% if profile.is_grower %}
-            {# TODO: point to My gardens once the gardens module exists #}
             <a class="btn magnetic" href="#">
                 My gardens
                 <span class="well">
@@ -197,7 +196,6 @@
                     <li>Post surplus harvest, priced or free.</li>
                 </ul>
                 <div class="role-action">
-                    {# TODO: My gardens link once the gardens module exists #}
                     <a class="btn magnetic" href="{% if profile.is_grower %}#{% else %}{% url 'accounts:register' %}{% endif %}">
                         {% if profile.is_grower %}My gardens{% else %}Start growing{% endif %}
                         <span class="well">
@@ -282,7 +280,6 @@
             <h2 class="section-title">Questions growers are asking</h2>
             {% if user.is_authenticated %}
             <p>Read the full answers, share what worked, and ask your own.</p>
-            {# TODO: point to the forum once it exists #}
             <a class="link" href="#">Ask a question</a>
             {% else %}
             <p>Anyone can read the titles. Sign in to read the answers and add your own.</p>
@@ -340,7 +337,6 @@
         </h2>
 
         <div class="tiles">
-            {# TODO: My gardens link once the gardens module exists #}
             <a class="tile tile-grow" href="{% if profile.is_grower %}#{% elif user.is_authenticated %}{% url 'accounts:profile' %}#roles{% else %}{% url 'accounts:register' %}{% endif %}">
                 {% if profile.is_grower %}
                 <span class="role-badge"><span class="role-badge-dot"></span>Your role</span>

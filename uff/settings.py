@@ -142,7 +142,6 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Auth pages live in the accounts app
 LOGIN_URL = '/login/'
 
 # PWS serves HTTPS through a proxy, so Django needs to trust that origin for POST forms

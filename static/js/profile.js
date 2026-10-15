@@ -1,4 +1,4 @@
-// Profile page: bio counter and saving both forms with fetch (uses getCookie and showErrors from auth.js)
+// Needs getCookie and showErrors from auth.js
 
 const bio = document.getElementById('id_bio');
 const bioCounter = document.getElementById('bio-counter');
@@ -30,7 +30,6 @@ function roleChip(text, isAdd) {
     return chip;
 }
 
-// Keep the summary card and navbar in step with what was saved
 function updateSummary(profile) {
     document.querySelector('[data-summary="display_name"]').textContent = profile.display_name;
     document.querySelector('[data-summary="initials"]').textContent = profile.initials;
