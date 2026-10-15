@@ -7,6 +7,11 @@ class Profile(models.Model):
     display_name = models.CharField(max_length=50)
     is_grower = models.BooleanField(default=False)
     is_buyer = models.BooleanField(default=False)
+    bio = models.CharField(max_length=300, blank=True)
+    area = models.CharField(max_length=80, blank=True)
+    city = models.CharField(max_length=80, blank=True)
+    phone = models.CharField(max_length=30, blank=True)
+    contact_email = models.EmailField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
