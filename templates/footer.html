@@ -1,9 +1,22 @@
 {% load static %}
 <footer class="footer">
     <div class="footer-inner">
-        <a href="{% url 'main:show_main' %}">
-            <img src="{% static 'img/main-logo-with-text.png' %}" alt="UrFunFarming">
-        </a>
-        <p>&copy; 2026 UrFunFarming</p>
+        <div class="footer-top">
+            <a class="footer-logo" href="{% url 'main:show_main' %}">
+                <img src="{% static 'img/main-logo-with-text.png' %}" alt="UrFunFarming">
+            </a>
+
+            <ul class="footer-links">
+                <li><a href="{% url 'main:show_main' %}#market">Market</a></li>
+                <li><a href="{% url 'main:show_main' %}#forum">Forum</a></li>
+                <li><a href="{% url 'main:show_main' %}#gardens">Gardens</a></li>
+                <li><a href="#">Privacy</a></li>
+                <li><a href="#">Terms</a></li>
+            </ul>
+        </div>
+
+        <p class="footer-note">
+            &copy; 2026 UrFunFarming. Weather data by Open-Meteo. Listings shown in the demo are sample data.
+        </p>
     </div>
 </footer>

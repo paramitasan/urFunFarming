@@ -1,0 +1,12 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="460" height="460" viewBox="0 0 460 460" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Sky / Sun and glow">
+<circle id="Shape" cx="230" cy="230" r="230" fill="url(#paint0_radial_0_16)"/>
+</g>
+<defs>
+<radialGradient id="paint0_radial_0_16" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(230 230) scale(230)">
+<stop stop-color="#EA9E26" stop-opacity="0.34"/>
+<stop offset="0.35" stop-color="#EA9E26" stop-opacity="0.204"/>
+<stop offset="1" stop-color="#EA9E26" stop-opacity="0"/>
+</radialGradient>
+</defs>
+</svg>

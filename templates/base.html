@@ -8,6 +8,7 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/motion.css' %}">
 </head>
 <body>
 
@@ -16,7 +17,13 @@
     <main>
         {% block content %}{% endblock content %}
     </main>
-    
-     {% include 'footer.html' %}
+
+    {% include 'footer.html' %}
+
+    <script src="{% static 'js/navbar.js' %}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/htmx/1.9.12/htmx.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    {% block motion %}{% endblock motion %}
 </body>
 </html>
