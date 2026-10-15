@@ -7,20 +7,20 @@
     --dur-hover: 150ms;
 }
 
-/* Hero before the animation starts */
+/* Hero before the animation starts, only when the motion script runs */
 
-.hero h1 .line {
+.motion .hero h1 .line {
     display: block;
     clip-path: inset(0 0 100% 0);
 }
 
-.hero .sub,
-.hero .ctas {
+.motion .hero .sub,
+.motion .hero .ctas {
     opacity: 0;
     transform: translateY(12px);
 }
 
-.hero .glow {
+.motion .hero .glow {
     opacity: 0;
 }
 
