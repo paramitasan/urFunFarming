@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+<script defer src="{% static 'js/auth.js' %}"></script>
+{% endblock head %}
+
+{% block navbar %}{% endblock navbar %}
+{% block footer %}{% endblock footer %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-scene" aria-hidden="true">
+        <img class="auth-cloud auth-cloud-1" src="{% static 'img/cloud-1.svg' %}" alt="">
+        <img class="auth-cloud auth-cloud-2" src="{% static 'img/cloud-2.svg' %}" alt="">
+        <svg class="auth-skyline" viewBox="0 0 1440 476" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect y="419.6" width="1440" height="56.4" fill="#C9E2C4"/>
+            <g class="auth-buildings">
+                {% include 'svg/buildings.svg' %}
+            </g>
+        </svg>
+    </div>
+
+    <header class="auth-header">
+        <a class="auth-logo" href="{% url 'main:show_main' %}">
+            <img src="{% static 'img/main-logo-with-text.png' %}" alt="UrFunFarming home">
+        </a>
+        <a class="auth-back" href="{% url 'main:show_main' %}">
+            <img src="{% static 'img/arrow-left.svg' %}" alt="" width="16" height="16">
+            Back to home
+        </a>
+    </header>
+
+    <div class="auth-card">
+        {% block card %}{% endblock card %}
+    </div>
+</div>
+{% endblock content %}
