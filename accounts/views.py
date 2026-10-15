@@ -11,6 +11,10 @@ from accounts.forms import LoginForm, RegisterForm
 
 
 def register(request):
+    # Signed-in users skip the form instead of seeing an empty one
+    if request.user.is_authenticated:
+        return redirect('main:show_main')
+
     form = RegisterForm()
 
     if request.method == 'POST':
@@ -25,6 +29,9 @@ def register(request):
 
 
 def login_user(request):
+    if request.user.is_authenticated:
+        return redirect('main:show_main')
+
     if request.method == 'POST':
         form = LoginForm(data=request.POST)
 

@@ -144,3 +144,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Auth pages live in the accounts app
 LOGIN_URL = '/login/'
+
+# PWS serves HTTPS through a proxy, so Django needs to trust that origin for POST forms
+CSRF_TRUSTED_ORIGINS = ['https://paramita-santoso-urfunfarming.pws.cs.ui.ac.id']
+
+# Secure cookies only in production, never while DEBUG is on
+SECURE_COOKIES = os.getenv('SECURE_COOKIES', str(PRODUCTION)).lower() == 'true' and not DEBUG
+SESSION_COOKIE_SECURE = SECURE_COOKIES
+CSRF_COOKIE_SECURE = SECURE_COOKIES

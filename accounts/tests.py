@@ -112,3 +112,36 @@ class SignedInLandingTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Log in')
         self.assertNotContains(response, 'Last login:')
+
+
+class SessionPersistenceTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user('idris_k', password='tomato-Balcony-42')
+        Profile.objects.create(user=self.user, display_name='Muhammad Idris', is_grower=True)
+
+    def login(self, **extra):
+        data = {'username': 'idris_k', 'password': 'tomato-Balcony-42', **extra}
+        return self.client.post(reverse('accounts:login'), data)
+
+    def assert_still_signed_in(self):
+        response = self.client.get(reverse('main:show_main'))
+        self.assertTrue(response.wsgi_request.user.is_authenticated)
+        self.assertEqual(response.wsgi_request.user, self.user)
+        self.assertContains(response, 'class="profile-button"')
+
+    def test_session_survives_next_page(self):
+        response = self.login(remember_me='on')
+        self.assertIn('sessionid', response.cookies)
+        self.assert_still_signed_in()
+        self.assert_still_signed_in()
+
+    def test_session_survives_next_page_without_remember_me(self):
+        self.login()
+        self.assert_still_signed_in()
+
+    def test_signed_in_user_skips_login_and_register(self):
+        self.login(remember_me='on')
+        self.assertRedirects(self.client.get(reverse('accounts:login')), reverse('main:show_main'))
+        self.assertRedirects(self.client.get(reverse('accounts:register')), reverse('main:show_main'))
+        self.assert_still_signed_in()
