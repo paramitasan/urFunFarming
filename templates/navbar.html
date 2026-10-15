@@ -6,16 +6,20 @@
         </a>
 
         <ul class="nav-links">
-            <li><a class="active" href="{% url 'main:show_main' %}">Home</a></li>
-            <li><a href="#">Forum</a></li>
-            <li><a href="#">Market</a></li>
+            <li><a href="{% url 'main:show_main' %}#market">Market</a></li>
+            <li><a href="{% url 'main:show_main' %}#forum">Forum</a></li>
+            <li><a href="{% url 'main:show_main' %}#gardens">Gardens</a></li>
         </ul>
 
-        <div class="nav-right">
-            <a class="nav-login" href="#">Login</a>
-            <a class="button" href="#">
+        <div class="nav-actions">
+            <a class="nav-login" href="#">Log in</a>
+            <a class="btn btn-small magnetic" href="#">
                 Start growing
-                <span class="button-icon">&#8599;</span>
+                <span class="well">
+                    <svg width="12" height="12" viewBox="11 11 12 12" fill="none" aria-hidden="true">
+                        <path d="M12 22L22 12M22 19V12H15" stroke="#0B2E1D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
             </a>
         </div>
     </nav>

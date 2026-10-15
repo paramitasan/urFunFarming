@@ -1,0 +1,59 @@
+/* Animation timing */
+
+:root {
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    --dur-press: 160ms;
+    --dur-hover: 150ms;
+}
+
+/* Hero before the animation starts */
+
+.hero h1 .line {
+    display: block;
+    clip-path: inset(0 0 100% 0);
+}
+
+.hero .sub,
+.hero .ctas {
+    opacity: 0;
+    transform: translateY(12px);
+}
+
+.hero .glow {
+    opacity: 0;
+}
+
+/* Buttons and links */
+
+.btn {
+    transition: transform var(--dur-press) var(--ease-out), background-color var(--dur-hover) ease;
+    will-change: transform;
+}
+
+.btn:active {
+    transform: scale(0.97);
+}
+
+.btn .well svg {
+    transition: transform var(--dur-press) var(--ease-out);
+}
+
+.link {
+    text-decoration-thickness: 1px;
+    transition: text-decoration-thickness var(--dur-hover) ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .btn:hover {
+        background: #1DB873;
+    }
+
+    .btn:hover .well svg {
+        transform: translate(2px, -2px);
+    }
+
+    .link:hover {
+        text-decoration-thickness: 2px;
+    }
+}
