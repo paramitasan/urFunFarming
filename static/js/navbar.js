@@ -25,3 +25,44 @@ function updateScrolled() {
 }
 window.addEventListener('scroll', updateScrolled, { passive: true });
 updateScrolled();
+
+const profileButton = nav.querySelector('.profile-button');
+const profileDropdown = document.getElementById('profile-dropdown');
+
+function setProfile(open) {
+    profileDropdown.hidden = !open;
+    profileButton.setAttribute('aria-expanded', open);
+}
+
+if (profileButton) {
+    profileButton.addEventListener('click', () => setProfile(profileDropdown.hidden));
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.profile-menu')) setProfile(false);
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !profileDropdown.hidden) {
+            setProfile(false);
+            profileButton.focus();
+        }
+    });
+}
+
+const logoutForm = document.querySelector('.logout-form');
+
+if (logoutForm) {
+    logoutForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const token = document.cookie.split('; ').find((row) => row.startsWith('csrftoken='));
+        try {
+            const response = await fetch(logoutForm.action, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': token ? decodeURIComponent(token.split('=')[1]) : '' },
+                credentials: 'same-origin',
+            });
+            if (!response.ok) throw new Error(response.status);
+            window.location.href = logoutForm.dataset.redirect;
+        } catch (error) {
+            logoutForm.submit();
+        }
+    });
+}

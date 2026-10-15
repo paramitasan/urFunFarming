@@ -1,0 +1,15 @@
+<div class="field{% if field.errors or invalid %} has-error{% endif %}">
+    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+    <div class="input-wrap">
+        {{ field }}
+        {% if toggle %}
+        <button type="button" class="password-toggle" data-toggle-password="{{ field.id_for_label }}" aria-label="Show password">Show</button>
+        {% endif %}
+    </div>
+    {% if help %}
+    <p class="field-help">{{ help }}</p>
+    {% endif %}
+    {% for error in field.errors %}
+    <p class="field-error">{{ error }}</p>
+    {% endfor %}
+</div>

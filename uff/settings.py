@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'main',
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -140,3 +141,13 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_URL = '/login/'
+
+# PWS serves HTTPS through a proxy, so Django needs to trust that origin for POST forms
+CSRF_TRUSTED_ORIGINS = ['https://paramita-santoso-urfunfarming.pws.cs.ui.ac.id']
+
+# Secure cookies only in production, never while DEBUG is on
+SECURE_COOKIES = os.getenv('SECURE_COOKIES', str(PRODUCTION)).lower() == 'true' and not DEBUG
+SESSION_COOKIE_SECURE = SECURE_COOKIES
+CSRF_COOKIE_SECURE = SECURE_COOKIES

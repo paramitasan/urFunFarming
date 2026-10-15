@@ -1,5 +1,7 @@
 from django.shortcuts import render
 
+from accounts.models import Profile
+
 
 # Sample listings until the market app is ready
 LISTINGS = [
@@ -31,11 +33,17 @@ def get_listings(category):
 
 
 def show_main(request):
+    profile = None
+    if request.user.is_authenticated:
+        profile = Profile.objects.filter(user=request.user).first()
+
     context = {
         'app_name': 'urFunFarming',
         'listings': LISTINGS,
         'categories': CATEGORIES,
         'active': 'all',
+        'profile': profile,
+        'last_login': request.COOKIES.get('last_login', 'Never'),
     }
     return render(request, 'landing.html', context)
 

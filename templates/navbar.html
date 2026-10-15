@@ -12,9 +12,10 @@
                 <li><a href="{% url 'main:show_main' %}#gardens" data-label="Gardens">Gardens</a></li>
             </ul>
 
+            {% if not user.is_authenticated %}
             <div class="menu-actions">
-                <a class="nav-login" href="#">Log in</a>
-                <a class="btn btn-small" href="#">
+                <a class="nav-login" href="{% url 'accounts:login' %}">Log in</a>
+                <a class="btn btn-small" href="{% url 'accounts:register' %}">
                     Start growing
                     <span class="well">
                         <svg width="12" height="12" viewBox="11 11 12 12" fill="none" aria-hidden="true">
@@ -23,11 +24,28 @@
                     </span>
                 </a>
             </div>
+            {% endif %}
         </div>
 
         <div class="nav-actions">
-            <a class="nav-login" href="#">Log in</a>
-            <a class="btn btn-small magnetic" href="#">
+            {% if user.is_authenticated %}
+            <div class="profile-menu">
+                <button type="button" class="profile-button" aria-expanded="false" aria-controls="profile-dropdown">
+                    <span class="avatar">{% firstof user.profile.initials user.username|slice:":2"|upper %}</span>
+                    <span class="profile-name">{% firstof user.profile.display_name user.username %}</span>
+                    <img src="{% static 'img/chevron-down.svg' %}" alt="" width="14" height="14">
+                </button>
+                <div class="profile-dropdown" id="profile-dropdown" hidden>
+                    <a href="{% url 'accounts:profile' %}">Profile</a>
+                    <form class="logout-form" method="POST" action="{% url 'accounts:logout' %}" data-redirect="{% url 'accounts:login' %}">
+                        {% csrf_token %}
+                        <button type="submit">Log out</button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <a class="nav-login" href="{% url 'accounts:login' %}">Log in</a>
+            <a class="btn btn-small" href="{% url 'accounts:register' %}">
                 Start growing
                 <span class="well">
                     <svg width="12" height="12" viewBox="11 11 12 12" fill="none" aria-hidden="true">
@@ -35,6 +53,7 @@
                     </svg>
                 </span>
             </a>
+            {% endif %}
             <button type="button" class="menu-button" aria-expanded="false" aria-controls="nav-menu" aria-label="Open menu">
                 <span></span>
                 <span></span>

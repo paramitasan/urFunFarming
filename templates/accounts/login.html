@@ -1,0 +1,38 @@
+{% extends 'accounts/auth_base.html' %}
+
+{% block title %}Log in - UrFunFarming{% endblock title %}
+
+{% block card %}
+<div class="auth-heading">
+    <h1>Welcome back</h1>
+    <p>Log in to check on your gardens, listings and questions.</p>
+</div>
+
+{% include 'accounts/messages.html' %}
+
+<form class="auth-form" method="POST" action="{% url 'accounts:login' %}" data-ajax-url="{% url 'accounts:login_ajax' %}" data-error-field="password">
+    {% csrf_token %}
+
+    <div class="fields">
+        {% include 'accounts/field.html' with field=form.username %}
+        {% include 'accounts/field.html' with field=form.password toggle=True invalid=form.non_field_errors %}
+    </div>
+
+    <div class="auth-options">
+        <label class="remember">
+            <input type="checkbox" name="remember_me" {% if not form.is_bound or request.POST.remember_me %}checked{% endif %}>
+            Remember me
+        </label>
+        <a class="auth-link" href="#">Forgot password?</a>
+    </div>
+
+    <button type="submit" class="auth-submit">Log in</button>
+</form>
+
+<hr class="auth-divider">
+
+<p class="auth-switch">
+    New to UrFunFarming?
+    <a class="auth-link" href="{% url 'accounts:register' %}">Create an account</a>
+</p>
+{% endblock card %}

@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Your profile - UrFunFarming{% endblock title %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+<link rel="stylesheet" href="{% static 'css/profile.css' %}">
+<script defer src="{% static 'js/auth.js' %}"></script>
+<script defer src="{% static 'js/profile.js' %}"></script>
+{% endblock head %}
+
+{% block content %}
+<div class="profile-page">
+    <div class="profile-heading">
+        <h1>Your profile</h1>
+        <p>Choose how neighbors see you, and keep your account secure.</p>
+        <div class="auth-alerts">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" role="status">{{ message }}</div>
+            {% endfor %}
+            {% for error in profile_form.non_field_errors %}
+            <div class="alert alert-error" role="alert">{{ error }}</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="profile-layout">
+        <aside class="profile-summary">
+            <div class="avatar-large" data-summary="initials">{{ profile.initials }}</div>
+            <div class="summary-name">
+                <h2 data-summary="display_name">{{ profile.display_name }}</h2>
+                <p>@{{ user.username }}</p>
+            </div>
+            <div class="summary-roles" data-summary="roles">
+                {% if profile.is_grower %}<span class="role-chip">Grower</span>{% endif %}
+                {% if profile.is_buyer %}<span class="role-chip">Buyer</span>{% endif %}
+                {% if not profile.is_grower %}<a class="role-chip role-chip-add" href="#roles">+ Add grower</a>{% endif %}
+                {% if not profile.is_buyer %}<a class="role-chip role-chip-add" href="#roles">+ Add buyer</a>{% endif %}
+            </div>
+            <div class="summary-meta">
+                <p class="summary-place" data-summary="place">{% if profile.area and profile.city %}{{ profile.area }}, {{ profile.city }}{% else %}{{ profile.area }}{{ profile.city }}{% endif %}</p>
+                <p>Member since {{ user.date_joined|date:"M Y" }}</p>
+            </div>
+            <hr class="summary-divider">
+            <a class="outline-button summary-button" href="#">View public profile</a>
+        </aside>
+
+        <div class="profile-settings">
+            <form class="profile-form" method="POST" action="{% url 'accounts:profile' %}" data-profile-form>
+                {% csrf_token %}
+
+                <section class="settings-card">
+                    <div class="card-heading">
+                        <h2>Profile details</h2>
+                        <p>Shown on your profile, your listings and your forum posts.</p>
+                    </div>
+
+                    <div class="field-row">
+                        {% include 'accounts/field.html' with field=profile_form.display_name %}
+                        <div class="field">
+                            <label for="username">Username</label>
+                            <div class="input-wrap">
+                                <input id="username" class="readonly-input" type="text" value="{{ user.username }}" readonly aria-describedby="username-help">
+                            </div>
+                            <p class="field-help" id="username-help">Used in your profile link. Can&rsquo;t be changed.</p>
+                        </div>
+                    </div>
+
+                    <div class="field{% if profile_form.bio.errors %} has-error{% endif %}">
+                        <label for="{{ profile_form.bio.id_for_label }}">Bio</label>
+                        <div class="bio-box">
+                            {{ profile_form.bio }}
+                            <span class="bio-counter" id="bio-counter" aria-live="polite">{{ profile_form.bio.value|default:""|length }} / 300</span>
+                        </div>
+                        {% for error in profile_form.bio.errors %}
+                        <p class="field-error">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+
+                    <div class="field-row">
+                        {% include 'accounts/field.html' with field=profile_form.area help="Shown as an area, never your exact address." %}
+                        {% include 'accounts/field.html' with field=profile_form.city %}
+                    </div>
+
+                    <fieldset class="role-picker" id="roles">
+                        <legend>How you use UrFunFarming</legend>
+                        <div class="role-options">
+                            <label class="role-option">
+                                <input type="checkbox" name="is_grower" {% if profile_form.is_grower.value %}checked{% endif %}>
+                                <span class="role-top">
+                                    <span class="role-title">I grow food</span>
+                                    <span class="role-check"></span>
+                                </span>
+                                <span class="role-desc">Gardens, a journal, care planning and harvest listings.</span>
+                            </label>
+                            <label class="role-option">
+                                <input type="checkbox" name="is_buyer" {% if profile_form.is_buyer.value %}checked{% endif %}>
+                                <span class="role-top">
+                                    <span class="role-title">I buy local produce</span>
+                                    <span class="role-check"></span>
+                                </span>
+                                <span class="role-desc">Browse listings and contact growers for pickup.</span>
+                            </label>
+                        </div>
+                        <p class="role-help">Pick one or both.</p>
+                    </fieldset>
+                </section>
+
+                <section class="settings-card">
+                    <div class="card-heading">
+                        <h2>Contact</h2>
+                        <p>Only signed-in members can see these, so buyers can arrange pickup with you.</p>
+                    </div>
+
+                    <div class="field-row">
+                        {% include 'accounts/field.html' with field=profile_form.phone %}
+                        {% include 'accounts/field.html' with field=profile_form.contact_email %}
+                    </div>
+                </section>
+
+                <div class="settings-actions">
+                    <a class="cancel-link" href="{% url 'accounts:profile' %}">Cancel</a>
+                    <button type="submit" class="save-button" name="save_profile" value="1">Save changes</button>
+                </div>
+            </form>
+
+            <form class="settings-card" method="POST" action="{% url 'accounts:profile' %}" data-profile-form>
+                {% csrf_token %}
+                <div class="card-heading">
+                    <h2>Change password</h2>
+                    <p>You&rsquo;ll stay logged in on this device after changing it.</p>
+                </div>
+
+                {% include 'accounts/field.html' with field=password_form.old_password toggle=True %}
+
+                <div class="field-row">
+                    {% include 'accounts/field.html' with field=password_form.new_password1 toggle=True help="Not too similar to your username, and not only numbers." %}
+                    {% include 'accounts/field.html' with field=password_form.new_password2 %}
+                </div>
+
+                <div class="password-actions">
+                    <button type="submit" class="outline-button" name="change_password" value="1">Update password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}

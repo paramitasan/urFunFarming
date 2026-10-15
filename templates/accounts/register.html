@@ -1,0 +1,57 @@
+{% extends 'accounts/auth_base.html' %}
+
+{% block title %}Create an account - UrFunFarming{% endblock title %}
+
+{% block card %}
+<div class="auth-heading">
+    <h1>Create your account</h1>
+    <p>One account works for growing and buying. Pick what fits now, add the other later.</p>
+</div>
+
+{% include 'accounts/messages.html' %}
+
+<form class="auth-form" method="POST" action="{% url 'accounts:register' %}" data-ajax-url="{% url 'accounts:register_ajax' %}">
+    {% csrf_token %}
+
+    <fieldset class="role-picker">
+        <legend>How will you use UrFunFarming?</legend>
+        <div class="role-options">
+            <label class="role-option">
+                <input type="checkbox" name="is_grower" {% if form.is_grower.value %}checked{% endif %}>
+                <span class="role-top">
+                    <span class="role-title">I grow food</span>
+                    <span class="role-check"></span>
+                </span>
+                <span class="role-desc">Gardens, a journal, care planning and harvest listings.</span>
+            </label>
+            <label class="role-option">
+                <input type="checkbox" name="is_buyer" {% if form.is_buyer.value %}checked{% endif %}>
+                <span class="role-top">
+                    <span class="role-title">I buy local produce</span>
+                    <span class="role-check"></span>
+                </span>
+                <span class="role-desc">Browse listings and contact growers for pickup.</span>
+            </label>
+        </div>
+        <p class="role-help">Pick one or both.</p>
+    </fieldset>
+
+    <div class="fields">
+        {% include 'accounts/field.html' with field=form.display_name %}
+        {% include 'accounts/field.html' with field=form.username %}
+        <div class="password-row">
+            {% include 'accounts/field.html' with field=form.password1 toggle=True %}
+            {% include 'accounts/field.html' with field=form.password2 %}
+        </div>
+    </div>
+
+    <button type="submit" class="auth-submit">Create account</button>
+</form>
+
+<hr class="auth-divider">
+
+<p class="auth-switch">
+    Already have an account?
+    <a class="auth-link" href="{% url 'accounts:login' %}">Log in</a>
+</p>
+{% endblock card %}
