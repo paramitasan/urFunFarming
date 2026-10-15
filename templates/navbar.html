@@ -38,7 +38,7 @@
                 <div class="profile-dropdown" id="profile-dropdown" hidden>
                     {# TODO: point to the profile page once it exists #}
                     <a href="#">Profile</a>
-                    <form method="POST" action="{% url 'accounts:logout' %}">
+                    <form class="logout-form" method="POST" action="{% url 'accounts:logout' %}" data-redirect="{% url 'accounts:login' %}">
                         {% csrf_token %}
                         <button type="submit">Log out</button>
                     </form>

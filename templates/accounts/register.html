@@ -10,7 +10,7 @@
 
 {% include 'accounts/messages.html' %}
 
-<form class="auth-form" method="POST" action="{% url 'accounts:register' %}">
+<form class="auth-form" method="POST" action="{% url 'accounts:register' %}" data-ajax-url="{% url 'accounts:register_ajax' %}">
     {% csrf_token %}
 
     <fieldset class="role-picker">

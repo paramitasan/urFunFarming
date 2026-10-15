@@ -10,12 +10,12 @@
 
 {% include 'accounts/messages.html' %}
 
-<form class="auth-form" method="POST" action="{% url 'accounts:login' %}">
+<form class="auth-form" method="POST" action="{% url 'accounts:login' %}" data-ajax-url="{% url 'accounts:login_ajax' %}" data-error-field="password">
     {% csrf_token %}
 
     <div class="fields">
         {% include 'accounts/field.html' with field=form.username %}
-        {% include 'accounts/field.html' with field=form.password toggle=True %}
+        {% include 'accounts/field.html' with field=form.password toggle=True invalid=form.non_field_errors %}
     </div>
 
     <div class="auth-options">
