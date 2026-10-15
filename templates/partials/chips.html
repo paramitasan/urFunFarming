@@ -1,0 +1,7 @@
+<div class="chips" id="chips"{% if oob %} hx-swap-oob="true"{% endif %}>
+    {% for key, label in categories %}
+        <button class="chip{% if key == active %} on{% endif %}"
+                hx-get="{% url 'main:filter_listings' %}?category={{ key }}"
+                hx-target="#track">{{ label }}</button>
+    {% endfor %}
+</div>

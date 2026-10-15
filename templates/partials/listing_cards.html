@@ -1,0 +1,19 @@
+{% load static %}
+{% for item in listings %}
+<article class="card">
+    <div class="placeholder card-photo">
+        <div class="placeholder-label">
+            <img src="{% static 'img/image-icon.svg' %}" alt="">
+            Image placeholder, 4:3 photo
+        </div>
+    </div>
+    <div class="card-text">
+        <h3>{{ item.title }}</h3>
+        <p>{{ item.grower }}</p>
+    </div>
+    <div class="card-row">
+        <span class="price">{{ item.price }}</span>
+        <span class="until">{{ item.until }}</span>
+    </div>
+</article>
+{% endfor %}

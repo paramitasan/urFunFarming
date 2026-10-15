@@ -1,0 +1,12 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="32" height="26" viewBox="0 0 32 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Image icon" clip-path="url(#clip0_0_4)">
+<rect id="Rectangle" x="0.75" y="0.75" width="30.5" height="24.5" rx="4.25" stroke="#386C5F" stroke-width="1.5"/>
+<path id="Vector" d="M0 10L8 0L14 7L18 3L26 10" stroke="#386C5F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle id="Ellipse" cx="23.5" cy="7.5" r="2.5" fill="#386C5F"/>
+</g>
+<defs>
+<clipPath id="clip0_0_4">
+<rect width="32" height="26" fill="white"/>
+</clipPath>
+</defs>
+</svg>

@@ -40,4 +40,240 @@
 
     {% include 'svg/skyline.svg' %}
 </section>
+
+<section class="grow" id="grow">
+    <div class="grow-inner">
+        <div class="plant">
+            {% include 'svg/plant.svg' %}
+        </div>
+
+        <div class="grow-text">
+            <p class="day-count">Journal <b id="day">0</b> days</p>
+            <h2 class="section-title">From seed to table</h2>
+
+            <div class="steps">
+                <div class="step on">
+                    <h3>Plant</h3>
+                    <p>Add a garden, pick a crop, and note where it lives: balcony, rooftop, or a hydroponic rack.</p>
+                </div>
+                <div class="step">
+                    <h3>Log</h3>
+                    <p>Dated entries with photos. Keep them private or share the timeline.</p>
+                </div>
+                <div class="step">
+                    <h3>Care</h3>
+                    <p>Plan tasks around the forecast and skip the days it rains.</p>
+                </div>
+                <div class="step">
+                    <h3>Share</h3>
+                    <p>Post the surplus. Neighbors pick it up, priced or free.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="market" id="market">
+    <div class="container">
+        <div class="section-head">
+            <h2 class="section-title">Fresh from nearby rooftops</h2>
+            <a class="link" href="#">See all listings</a>
+        </div>
+        <p class="market-text">
+            Fifty listings from growers around the city, updated as they harvest.
+            Prices are set by each grower.
+        </p>
+
+        {% include 'partials/chips.html' %}
+
+        <div class="track" id="track">
+            {% include 'partials/listing_cards.html' %}
+        </div>
+
+        <p class="market-hint">Scroll to walk past the stalls. The row pans sideways while the section is pinned.</p>
+    </div>
+</section>
+
+<section class="roles">
+    <div class="container roles-grid">
+        <div class="role-card">
+            <div class="role-text">
+                <h3>If you grow</h3>
+                <ul>
+                    <li>Map your gardens and what is planted in each one.</li>
+                    <li>Keep a dated journal, public or private.</li>
+                    <li>Plan care tasks around the week&rsquo;s forecast.</li>
+                    <li>Post surplus harvest, priced or free.</li>
+                </ul>
+                <div class="role-action">
+                    <a class="btn magnetic" href="#">
+                        Start growing
+                        <span class="well">
+                            <svg width="12" height="12" viewBox="11 11 12 12" fill="none" aria-hidden="true">
+                                <path d="M12 22L22 12M22 19V12H15" stroke="#0B2E1D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </span>
+                    </a>
+                </div>
+            </div>
+            <img class="role-plant" src="{% static 'img/plant-tree.svg' %}" alt="" width="137" height="205">
+        </div>
+
+        <div class="role-card">
+            <div class="role-text">
+                <h3>If you&rsquo;re buying</h3>
+                <ul>
+                    <li>Filter listings by crop, price, and collection area.</li>
+                    <li>See the grower&rsquo;s garden before you reach out.</li>
+                    <li>Contact the grower to arrange pickup.</li>
+                    <li>Ask growers questions in the forum.</li>
+                </ul>
+                <div class="role-action">
+                    <a class="link" href="#">Join as a buyer</a>
+                </div>
+            </div>
+            <img class="role-plant" src="{% static 'img/plant-sunflowers.svg' %}" alt="" width="174" height="204">
+        </div>
+    </div>
+</section>
+
+<section class="gardens" id="gardens">
+    <div class="container">
+        <div class="section-head">
+            <h2 class="section-title">Meet the gardens behind the food</h2>
+            <a class="link" href="#">Explore gardens</a>
+        </div>
+
+        <div class="gardens-grid">
+            <div class="garden-big">
+                <div class="placeholder parallax" data-speed="-20">
+                    <div class="placeholder-label">
+                        <img src="{% static 'img/image-icon.svg' %}" alt="">
+                        Image placeholder, garden photo, 2:1
+                    </div>
+                </div>
+                <h3>Atap Hijau Tebet</h3>
+                <p>Hydroponic NFT on an office rooftop. Four plantings, grown by Rina Wulandari.</p>
+            </div>
+
+            <div class="garden-list">
+                <div class="garden-small">
+                    <div class="placeholder parallax" data-speed="-10">
+                        <div class="placeholder-label">
+                            <img src="{% static 'img/image-icon.svg' %}" alt="">
+                            Image placeholder, photo
+                        </div>
+                    </div>
+                    <div>
+                        <h3>Kebun Balkon Rawamangun</h3>
+                        <p>Soil pots on a third-floor balcony. Six plantings.</p>
+                        <span class="garden-owner">Bayu Pratama</span>
+                    </div>
+                </div>
+
+                <div class="garden-small">
+                    <div class="placeholder parallax" data-speed="-10">
+                        <div class="placeholder-label">
+                            <img src="{% static 'img/image-icon.svg' %}" alt="">
+                            Image placeholder, photo
+                        </div>
+                    </div>
+                    <div>
+                        <h3>Rak Selada Cikini</h3>
+                        <p>Wick system in a shared courtyard. Two plantings.</p>
+                        <span class="garden-owner">Sekar Ayuningtyas</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="forum" id="forum">
+    <div class="container forum-grid">
+        <div class="forum-intro">
+            <h2 class="section-title">Questions growers are asking</h2>
+            <p>Anyone can read the titles. Sign in to read the answers and add your own.</p>
+            <a class="link" href="#">Log in</a>
+        </div>
+
+        <div class="questions">
+            <div class="question">
+                <div>
+                    <h3>Why are my pak choy leaves turning yellow at the edges?</h3>
+                    <p>4 answers in Plant care</p>
+                </div>
+                <span>2 days ago</span>
+            </div>
+            <div class="question">
+                <div>
+                    <h3>What EC level do you run for lettuce in NFT?</h3>
+                    <p>7 answers in Hydroponics</p>
+                </div>
+                <span>5 days ago</span>
+            </div>
+            <div class="question">
+                <div>
+                    <h3>Is it worth covering a rooftop setup in the rainy season?</h3>
+                    <p>2 answers in Weather</p>
+                </div>
+                <span>1 week ago</span>
+            </div>
+            <div class="question">
+                <div>
+                    <h3>Seedlings keep falling over after a week. Too little light?</h3>
+                    <p>5 answers in Seedlings</p>
+                </div>
+                <span>9 days ago</span>
+            </div>
+            <div class="question">
+                <div>
+                    <h3>Which herbs handle a west-facing balcony?</h3>
+                    <p>11 answers in Balcony growing</p>
+                </div>
+                <span>2 weeks ago</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="dusk" id="dusk">
+    <div class="moon"></div>
+
+    <div class="container">
+        <h2 class="section-title">Start with one role. Add the other any time.</h2>
+
+        <div class="tiles">
+            <a class="tile tile-grow" href="#">
+                <div>
+                    <h3>I grow food</h3>
+                    <p>Gardens, a plant journal, a care planner, and harvest listings.</p>
+                </div>
+                <span class="tile-cta">
+                    Start growing
+                    <span class="well">
+                        <svg width="12" height="12" viewBox="11 11 12 12" fill="none" aria-hidden="true">
+                            <path d="M12 22L22 12M22 19V12H15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                </span>
+            </a>
+
+            <a class="tile tile-buy" href="#">
+                <div>
+                    <h3>I want local produce</h3>
+                    <p>Browse listings, see the gardens, and contact the grower for pickup.</p>
+                </div>
+                <span class="tile-cta">
+                    Join as a buyer
+                    <span class="well">
+                        <svg width="12" height="12" viewBox="11 11 12 12" fill="none" aria-hidden="true">
+                            <path d="M12 22L22 12M22 19V12H15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                </span>
+            </a>
+        </div>
+    </div>
+</section>
 {% endblock content %}
