@@ -3,6 +3,7 @@
 
 :root {
     --color-bg: #E6F0DC;
+    --color-light: #F5FAF6; /* Figma color/bg: light text and icons on dark green */
     --color-surface: #FBFDFB;
     --color-band: #D9EDDF;
     --color-mint: #9CDBB6;
@@ -271,8 +272,11 @@ ul {
     color: var(--color-forest);
 }
 
+/* Extra room below each line so the reveal clip doesn't cut the tail of "g" */
 .hero h1 .line {
     display: block;
+    padding-bottom: 0.15em;
+    margin-bottom: -0.15em;
 }
 
 .hero .sub {
@@ -654,7 +658,7 @@ ul {
 .chip.on {
     background-color: var(--color-forest);
     border-color: var(--color-forest);
-    color: var(--color-bg);
+    color: var(--color-light);
 }
 
 /* Sideways scrolling row */
@@ -937,7 +941,7 @@ ul {
 .dusk .section-title {
     position: relative;
     max-width: 1100px;
-    color: var(--color-bg);
+    color: var(--color-light);
 }
 
 .tiles {
@@ -954,8 +958,8 @@ ul {
     flex-direction: column;
     justify-content: space-between;
     gap: 40px;
-    padding: 36px;
-    border: 1px solid transparent;
+    padding: 34.5px;
+    border: 1.5px solid transparent;
     border-radius: 28px;
 }
 
@@ -978,10 +982,11 @@ ul {
 
 .tile-buy {
     border-color: var(--color-mint);
-    color: var(--color-bg);
+    color: var(--color-light);
 }
 
 .tile-cta {
+    align-self: flex-start;
     display: inline-flex;
     align-items: center;
     gap: 14px;
@@ -1000,13 +1005,13 @@ ul {
 }
 
 .tile-grow .well {
-    background-color: var(--color-ink);
-    color: var(--color-mint);
+    background-color: var(--color-forest);
+    color: var(--color-surface);
 }
 
 .tile-buy .well {
-    background-color: var(--color-mint);
-    color: var(--color-bg);
+    background-color: var(--color-accent);
+    color: var(--color-forest);
 }
 
 /* Footer */
