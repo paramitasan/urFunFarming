@@ -9,7 +9,7 @@
 
 /* Hero before the animation starts, only when the motion script runs */
 
-.motion .hero h1 .line {
+.motion .hero h1 .line {    
     display: block;
     clip-path: inset(0 0 100% 0);
 }
@@ -43,6 +43,11 @@
     transition: border-color var(--dur-hover) ease;
 }
 
+.nav-links a,
+.nav-login {
+    transition: color var(--dur-hover) ease, background-color var(--dur-hover) ease;
+}
+
 .link {
     text-decoration-thickness: 1px;
     transition: text-decoration-thickness var(--dur-hover) ease;
@@ -63,5 +68,14 @@
 
     .step:hover {
         border-color: var(--color-hairline);
+    }
+
+    .nav-links a:hover {
+        font-weight: 600;
+        color: var(--color-forest);
+    }
+
+    .nav-login:hover {
+        background-color: var(--color-band);
     }
 }
