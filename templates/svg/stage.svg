@@ -1,0 +1,71 @@
+<svg class="stage-art" viewBox="0 0 600 620" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+        <linearGradient id="stage-sky" x1="300" y1="0" x2="300" y2="620" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#E9F4E4"/>
+            <stop offset="1" stop-color="#CFE6CB"/>
+        </linearGradient>
+        <clipPath id="stage-clip">
+            <rect width="600" height="620" rx="32"/>
+        </clipPath>
+    </defs>
+    <g clip-path="url(#stage-clip)">
+        <rect width="600" height="620" rx="32" fill="url(#stage-sky)"/>
+        <circle id="sun-halo" data-name="Sun halo" opacity="0.45" cx="467" cy="87" r="95" fill="#F6E3B8" fill-opacity="0.55"/>
+        <circle id="stage-sun" data-name="Sun" cx="467" cy="87" r="60" fill="#F6D9A8"/>
+        <ellipse id="hill-back" data-name="Hill back" cx="160" cy="610" rx="380" ry="160" fill="#B8DBB6"/>
+        <ellipse id="hill-front" data-name="Hill front" cx="540" cy="650" rx="360" ry="150" fill="#9FD0A4"/>
+        <ellipse id="ground" data-name="Ground" cx="350" cy="670" rx="410" ry="110" fill="#8CC795"/>
+
+        <g id="harvest-crate" class="harvest-crate" data-name="Prop / Harvest crate">
+            <circle id="produce-1" data-name="Produce 1" cx="415" cy="449" r="22" fill="#21C37E" stroke="#125133" stroke-width="2"/>
+            <circle id="produce-2" data-name="Produce 2" cx="455" cy="441" r="24" fill="#EA9E26" stroke="#125133" stroke-width="2"/>
+            <circle id="produce-3" data-name="Produce 3" cx="494" cy="450" r="21" fill="#9CDBB6" stroke="#125133" stroke-width="2"/>
+            <rect id="crate-box" data-name="Crate box" x="381.25" y="459.25" width="153.5" height="79.5" rx="6.75" fill="#D98F2E" stroke="#125133" stroke-width="2.5"/>
+            <rect id="crate-slat-1" data-name="Crate slat 1" x="392" y="482" width="132" height="7" rx="3" fill="#125133" fill-opacity="0.22"/>
+            <rect id="crate-slat-2" data-name="Crate slat 2" x="392" y="508" width="132" height="7" rx="3" fill="#125133" fill-opacity="0.22"/>
+        </g>
+
+        <g id="plant-growing-tomato" data-name="Plant / Growing tomato">
+            <g id="leaf-1" class="leaf leaf-1" data-name="Leaf 1" data-base="253.84 390">
+                <path d="M253.84 390C209.66 415.64 163.97 397.18 150 348.04C194.18 322.41 239.87 340.87 253.84 390Z" fill="#9CDBB6" stroke="#125133" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path data-name="Leaf 1 rib" d="M243.46 385.8L168.69 355.6" stroke="#125133" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+            <g id="leaf-2" class="leaf leaf-2" data-name="Leaf 2" data-base="256.87 346">
+                <path d="M256.87 346C269.77 293.75 317.2 272.64 364.67 298.01C351.76 350.25 304.33 371.37 256.87 346Z" fill="#21C37E" stroke="#125133" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path data-name="Leaf 2 rib" d="M267.65 341.2L345.26 306.64" stroke="#125133" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+            <g id="leaf-3" class="leaf leaf-3" data-name="Leaf 3" data-base="256.76 298">
+                <path d="M256.76 298C210.1 322.94 163.47 302.18 150.79 250.82C197.44 225.88 244.07 246.64 256.76 298Z" fill="#21C37E" stroke="#125133" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path data-name="Leaf 3 rib" d="M246.16 293.28L169.86 259.31" stroke="#125133" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+            <g id="leaf-4" class="leaf leaf-4" data-name="Leaf 4" data-base="253.19 250">
+                <path d="M253.19 250C261.32 203.27 301.73 181.79 345.02 201.17C336.88 247.9 296.48 269.39 253.19 250Z" fill="#9CDBB6" stroke="#125133" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path data-name="Leaf 4 rib" d="M262.37 245.12L328.49 209.96" stroke="#125133" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+            <g id="leaf-5" class="leaf leaf-5" data-name="Leaf 5" data-base="248.07 202">
+                <path d="M248.07 202C210.4 220.48 174.02 202.73 165.38 161.67C203.05 143.19 239.44 160.94 248.07 202Z" fill="#21C37E" stroke="#125133" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path data-name="Leaf 5 rib" d="M239.8 197.97L180.27 168.93" stroke="#125133" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+            <g id="leaf-6" class="leaf leaf-6" data-name="Leaf 6" data-base="244.49 160">
+                <path d="M244.49 160C249.49 123.86 279.97 106.26 313.77 120C308.77 156.14 278.29 173.74 244.49 160Z" fill="#9CDBB6" stroke="#125133" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path data-name="Leaf 6 rib" d="M251.42 156L301.3 127.2" stroke="#125133" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+
+            <path id="fruit-2-stalk" class="fruit-stalk" data-name="Fruit 2 stalk" data-base="243.46 136" d="M243.46 136C233.46 130 221.46 132 213.46 142" stroke="#125133" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <path id="stem" class="stem" data-name="Stem (draws on)" d="M250.3 424L251.18 415.95L252.04 407.9L252.88 399.85L253.67 391.8L254.41 383.75L255.09 375.7L255.69 367.65L256.21 359.6L256.63 351.55L256.96 343.5L257.18 335.45L257.29 327.4V319.35L257.18 311.3L256.96 303.25L256.63 295.2L256.21 287.15L255.69 279.1L255.09 271.05L254.41 263L253.67 254.95L252.88 246.9L252.04 238.85L251.18 230.8L250.3 222.75L249.42 214.7L248.56 206.65L247.72 198.6L246.93 190.55L246.19 182.5L245.51 174.45L244.91 166.4L244.39 158.35L243.97 150.3L243.64 142.25L243.42 134.2L243.31 126.15V118.1L243.42 110.05L243.64 102" stroke="#125133" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <g id="fruit-1" class="fruit fruit-1" data-name="Fruit 1 (step 4)">
+                <circle cx="243.643" cy="82" r="22.75" fill="#EA9E26" stroke="#125133" stroke-width="2.5"/>
+                <path data-name="Fruit 1 cap" d="M243.64 60C238.64 54 238.64 49 243.64 44C248.64 49 248.64 54 243.64 60Z" fill="#21C37E" stroke="#125133" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+            <g id="fruit-2" class="fruit fruit-2" data-name="Fruit 2 (step 4)">
+                <circle cx="213.464" cy="158" r="14.75" fill="#EA9E26" stroke="#125133" stroke-width="2.5"/>
+                <path data-name="Fruit 2 cap" d="M213.46 144C208.46 138 208.46 133 213.46 128C218.46 133 218.46 138 213.46 144Z" fill="#21C37E" stroke="#125133" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+
+            <path id="pot" data-name="Pot" d="M168.3 444H332.3L319.3 532C318.633 537.333 315.633 540 310.3 540H190.3C184.967 540 181.967 537.333 181.3 532L168.3 444Z" fill="#EA9E26" stroke="#125133" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect id="pot-rim" data-name="Pot rim" x="159.55" y="419.25" width="181.5" height="23.5" rx="5.75" fill="#D9EDDF" stroke="#125133" stroke-width="2.5"/>
+        </g>
+    </g>
+</svg>
