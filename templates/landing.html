@@ -222,7 +222,7 @@
                 </ul>
                 <div class="role-action">
                     {% if user.is_authenticated %}
-                    <a class="link" href="#market">Start buying</a>
+                    <a class="link" href="{% url 'accounts:profile' %}#roles">Start buying</a>
                     {% else %}
                     <a class="link" href="{% url 'accounts:register' %}">Join as a buyer</a>
                     {% endif %}
@@ -340,8 +340,8 @@
         </h2>
 
         <div class="tiles">
-            {# TODO: My gardens link, and adding a role from the profile page #}
-            <a class="tile tile-grow" href="{% if user.is_authenticated %}#{% else %}{% url 'accounts:register' %}{% endif %}">
+            {# TODO: My gardens link once the gardens module exists #}
+            <a class="tile tile-grow" href="{% if profile.is_grower %}#{% elif user.is_authenticated %}{% url 'accounts:profile' %}#roles{% else %}{% url 'accounts:register' %}{% endif %}">
                 {% if profile.is_grower %}
                 <span class="role-badge"><span class="role-badge-dot"></span>Your role</span>
                 {% endif %}
@@ -359,7 +359,7 @@
                 </span>
             </a>
 
-            <a class="tile tile-buy" href="{% if user.is_authenticated %}#market{% else %}{% url 'accounts:register' %}{% endif %}">
+            <a class="tile tile-buy" href="{% if profile.is_buyer %}#market{% elif user.is_authenticated %}{% url 'accounts:profile' %}#roles{% else %}{% url 'accounts:register' %}{% endif %}">
                 {% if profile.is_buyer %}
                 <span class="role-badge"><span class="role-badge-dot"></span>Your role</span>
                 {% endif %}

@@ -36,8 +36,7 @@
                     <img src="{% static 'img/chevron-down.svg' %}" alt="" width="14" height="14">
                 </button>
                 <div class="profile-dropdown" id="profile-dropdown" hidden>
-                    {# TODO: point to the profile page once it exists #}
-                    <a href="#">Profile</a>
+                    <a href="{% url 'accounts:profile' %}">Profile</a>
                     <form class="logout-form" method="POST" action="{% url 'accounts:logout' %}" data-redirect="{% url 'accounts:login' %}">
                         {% csrf_token %}
                         <button type="submit">Log out</button>

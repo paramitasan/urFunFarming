@@ -1,7 +1,7 @@
 import datetime
 
 from django.contrib import messages
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect, JsonResponse
@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
-from accounts.forms import LoginForm, RegisterForm
+from accounts.forms import LoginForm, PasswordForm, ProfileForm, RegisterForm
 from accounts.models import Profile
 
 
@@ -119,6 +119,66 @@ def profile_json(request, username):
         'display_name': profile.display_name,
         'is_grower': profile.is_grower,
         'is_buyer': profile.is_buyer,
+        'bio': profile.bio,
+        'area': profile.area,
+        'city': profile.city,
         'created_at': profile.created_at.isoformat(),
     }
+    # Contact details are for signed-in members only
+    if request.user.is_authenticated:
+        data['phone'] = profile.phone
+        data['contact_email'] = profile.contact_email
     return JsonResponse(data)
+
+
+def profile_summary(profile):
+    return {
+        'display_name': profile.display_name,
+        'initials': profile.initials,
+        'is_grower': profile.is_grower,
+        'is_buyer': profile.is_buyer,
+        'area': profile.area,
+        'city': profile.city,
+    }
+
+
+@login_required(login_url='/login')
+def profile(request):
+    # Always the signed-in user's own profile, whatever the form sends
+    profile, _ = Profile.objects.get_or_create(user=request.user, defaults={'display_name': request.user.username})
+    profile_form = ProfileForm(instance=profile)
+    password_form = PasswordForm(request.user)
+    is_fetch = request.headers.get('X-Requested-With') == 'fetch'
+
+    if request.method == 'POST' and 'save_profile' in request.POST:
+        profile_form = ProfileForm(request.POST, instance=profile)
+        if profile_form.is_valid():
+            profile_form.save()
+            message = 'Profile saved. Neighbors will see the changes right away.'
+            if is_fetch:
+                return JsonResponse({'status': 'success', 'message': message, 'profile': profile_summary(profile)})
+            messages.success(request, message)
+            return redirect('accounts:profile')
+        if is_fetch:
+            return JsonResponse({'status': 'error', 'errors': form_errors(profile_form)}, status=400)
+
+    elif request.method == 'POST' and 'change_password' in request.POST:
+        password_form = PasswordForm(request.user, request.POST)
+        if password_form.is_valid():
+            user = password_form.save()
+            # Keeps this session valid after the password hash changes
+            update_session_auth_hash(request, user)
+            message = 'Password updated. You are still logged in on this device.'
+            if is_fetch:
+                return JsonResponse({'status': 'success', 'message': message})
+            messages.success(request, message)
+            return redirect('accounts:profile')
+        if is_fetch:
+            return JsonResponse({'status': 'error', 'errors': form_errors(password_form)}, status=400)
+
+    context = {
+        'profile': profile,
+        'profile_form': profile_form,
+        'password_form': password_form,
+    }
+    return render(request, 'accounts/profile.html', context)

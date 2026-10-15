@@ -168,13 +168,28 @@ class JsonEndpointTest(TestCase):
         self.assertFalse(data['is_buyer'])
         self.assertNotEqual(data['last_login'], 'Never')
 
-    def test_profile_json_public_fields_only(self):
+    def test_profile_json_hides_contact_from_visitors(self):
+        Profile.objects.filter(user=self.user).update(
+            bio='Balcony grower', area='Tebet', city='Jakarta', phone='+62 812 3456 7890', contact_email='idris@example.com',
+        )
         response = self.client.get(reverse('accounts:profile_json', args=['idris_k']))
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data['display_name'], 'Muhammad Idris')
-        self.assertEqual(set(data), {'username', 'display_name', 'is_grower', 'is_buyer', 'created_at'})
+        self.assertEqual(data['city'], 'Jakarta')
+        self.assertEqual(
+            set(data), {'username', 'display_name', 'is_grower', 'is_buyer', 'bio', 'area', 'city', 'created_at'},
+        )
+        self.assertNotIn('+62 812', response.content.decode())
         self.assertNotIn('idris@example.com', response.content.decode())
+
+    def test_profile_json_shows_contact_to_members(self):
+        Profile.objects.filter(user=self.user).update(phone='+62 812 3456 7890', contact_email='idris@example.com')
+        member = User.objects.create_user('sekar_a', password='tomato-Balcony-42')
+        self.client.force_login(member)
+        data = self.client.get(reverse('accounts:profile_json', args=['idris_k'])).json()
+        self.assertEqual(data['phone'], '+62 812 3456 7890')
+        self.assertEqual(data['contact_email'], 'idris@example.com')
 
     def test_profile_json_unknown_user_is_404(self):
         response = self.client.get(reverse('accounts:profile_json', args=['nobody']))
@@ -245,3 +260,107 @@ class AjaxAuthTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {'status': 'success', 'redirect': reverse('accounts:login')})
         self.assertTrue(Profile.objects.get(user__username='sekar_a').is_buyer)
+
+
+class ProfilePageTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user('idris_k', password='tomato-Balcony-42')
+        self.profile = Profile.objects.create(user=self.user, display_name='Muhammad Idris', is_grower=True)
+        self.client.force_login(self.user)
+        self.data = {
+            'save_profile': '1',
+            'display_name': 'Idris K',
+            'bio': 'Balcony grower in Tebet.',
+            'area': 'Tebet',
+            'city': 'Jakarta',
+            'phone': '+62 812 3456 7890',
+            'contact_email': 'idris@example.com',
+            'is_grower': 'on',
+            'is_buyer': 'on',
+        }
+
+    def change_password(self, old, **extra):
+        data = {
+            'change_password': '1',
+            'old_password': old,
+            'new_password1': 'chili-Rooftop-77',
+            'new_password2': 'chili-Rooftop-77',
+        }
+        return self.client.post(reverse('accounts:profile'), data, **extra)
+
+    def test_login_required(self):
+        self.client.logout()
+        response = self.client.get(reverse('accounts:profile'))
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.url.startswith('/login'))
+
+    def test_page_renders_own_profile(self):
+        response = self.client.get(reverse('accounts:profile'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'accounts/profile.html')
+        self.assertContains(response, '@idris_k')
+        self.assertContains(response, '+ Add buyer')
+
+    def test_profile_update_success(self):
+        response = self.client.post(reverse('accounts:profile'), self.data, follow=True)
+        self.assertRedirects(response, reverse('accounts:profile'))
+        self.assertContains(response, 'Profile saved.')
+        self.profile.refresh_from_db()
+        self.assertEqual(self.profile.display_name, 'Idris K')
+        self.assertEqual(self.profile.city, 'Jakarta')
+        self.assertTrue(self.profile.is_buyer)
+
+    def test_profile_update_with_fetch(self):
+        response = self.client.post(reverse('accounts:profile'), self.data, HTTP_X_REQUESTED_WITH='fetch')
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['status'], 'success')
+        self.assertEqual(data['profile']['initials'], 'IK')
+
+    def test_bio_over_300_characters(self):
+        self.data['bio'] = 'a' * 301
+        response = self.client.post(reverse('accounts:profile'), self.data)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['profile_form'].has_error('bio'))
+
+        response = self.client.post(reverse('accounts:profile'), self.data, HTTP_X_REQUESTED_WITH='fetch')
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('bio', response.json()['errors'])
+        self.profile.refresh_from_db()
+        self.assertEqual(self.profile.bio, '')
+
+    def test_no_role_selected(self):
+        del self.data['is_grower']
+        del self.data['is_buyer']
+        response = self.client.post(reverse('accounts:profile'), self.data, HTTP_X_REQUESTED_WITH='fetch')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()['status'], 'error')
+        self.assertIn('Pick at least one role', response.json()['errors']['__all__'][0])
+        self.profile.refresh_from_db()
+        self.assertTrue(self.profile.is_grower)
+
+    def test_password_change_keeps_user_logged_in(self):
+        response = self.change_password('tomato-Balcony-42', follow=True)
+        self.assertContains(response, 'Password updated.')
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password('chili-Rooftop-77'))
+        response = self.client.get(reverse('main:show_main'))
+        self.assertTrue(response.wsgi_request.user.is_authenticated)
+
+    def test_wrong_current_password(self):
+        response = self.change_password('wrong', HTTP_X_REQUESTED_WITH='fetch')
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('old_password', response.json()['errors'])
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password('tomato-Balcony-42'))
+
+    def test_cannot_change_another_users_profile(self):
+        other = User.objects.create_user('sekar_a', password='tomato-Balcony-42')
+        other_profile = Profile.objects.create(user=other, display_name='Sekar', is_buyer=True)
+        self.data.update({'user': other.pk, 'username': 'sekar_a', 'id': other_profile.pk})
+        self.client.post(reverse('accounts:profile'), self.data)
+        other_profile.refresh_from_db()
+        self.profile.refresh_from_db()
+        self.assertEqual(other_profile.display_name, 'Sekar')
+        self.assertEqual(self.profile.display_name, 'Idris K')
