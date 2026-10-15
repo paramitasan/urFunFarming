@@ -148,6 +148,7 @@ ul {
 .link {
     font-size: 16px;
     font-weight: 600;
+    line-height: 1.2;
     color: var(--color-forest);
     text-decoration: underline;
     text-underline-offset: 4px;
@@ -475,6 +476,7 @@ ul {
 
 .role-card {
     flex: 1;
+    min-width: 0;
     min-height: 457px;
     display: flex;
     align-items: center;
@@ -702,6 +704,7 @@ ul {
     justify-content: space-between;
     gap: 40px;
     padding: 36px;
+    border: 1px solid transparent;
     border-radius: 28px;
 }
 
@@ -723,7 +726,7 @@ ul {
 }
 
 .tile-buy {
-    border: 1px solid var(--color-mint);
+    border-color: var(--color-mint);
     color: var(--color-bg);
 }
 
