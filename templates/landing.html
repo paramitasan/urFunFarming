@@ -28,7 +28,29 @@
         </p>
 
         <div class="ctas">
+            {% if profile.is_grower %}
+            {# TODO: point to My gardens once the gardens module exists #}
             <a class="btn magnetic" href="#">
+                My gardens
+                <span class="well">
+                    <svg width="12" height="12" viewBox="11 11 12 12" fill="none" aria-hidden="true">
+                        <path d="M12 22L22 12M22 19V12H15" stroke="#0B2E1D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+            </a>
+            <a class="link" href="#market">Browse the market</a>
+            {% elif profile.is_buyer %}
+            <a class="btn magnetic" href="#market">
+                Browse the market
+                <span class="well">
+                    <svg width="12" height="12" viewBox="11 11 12 12" fill="none" aria-hidden="true">
+                        <path d="M12 22L22 12M22 19V12H15" stroke="#0B2E1D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+            </a>
+            <a class="link" href="#gardens">Meet the gardens</a>
+            {% else %}
+            <a class="btn magnetic" href="{% url 'accounts:register' %}">
                 Start growing
                 <span class="well">
                     <svg width="12" height="12" viewBox="11 11 12 12" fill="none" aria-hidden="true">
@@ -37,7 +59,12 @@
                 </span>
             </a>
             <a class="link" href="#market">Browse the market</a>
+            {% endif %}
         </div>
+
+        {% if user.is_authenticated %}
+        <p class="last-login">Last login: {{ last_login|slice:":16" }}</p>
+        {% endif %}
     </div>
 
     {% include 'svg/skyline.svg' %}
@@ -170,8 +197,9 @@
                     <li>Post surplus harvest, priced or free.</li>
                 </ul>
                 <div class="role-action">
-                    <a class="btn magnetic" href="#">
-                        Start growing
+                    {# TODO: My gardens link once the gardens module exists #}
+                    <a class="btn magnetic" href="{% if profile.is_grower %}#{% else %}{% url 'accounts:register' %}{% endif %}">
+                        {% if profile.is_grower %}My gardens{% else %}Start growing{% endif %}
                         <span class="well">
                             <svg width="12" height="12" viewBox="11 11 12 12" fill="none" aria-hidden="true">
                                 <path d="M12 22L22 12M22 19V12H15" stroke="#0B2E1D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -193,7 +221,11 @@
                     <li>Ask growers questions in the forum.</li>
                 </ul>
                 <div class="role-action">
-                    <a class="link" href="#">Join as a buyer</a>
+                    {% if user.is_authenticated %}
+                    <a class="link" href="#market">Start buying</a>
+                    {% else %}
+                    <a class="link" href="{% url 'accounts:register' %}">Join as a buyer</a>
+                    {% endif %}
                 </div>
             </div>
             <img class="role-plant" src="{% static 'img/plant-sunflowers.svg' %}" alt="" width="174" height="204">
@@ -248,8 +280,14 @@
     <div class="container forum-grid">
         <div class="forum-intro">
             <h2 class="section-title">Questions growers are asking</h2>
+            {% if user.is_authenticated %}
+            <p>Read the full answers, share what worked, and ask your own.</p>
+            {# TODO: point to the forum once it exists #}
+            <a class="link" href="#">Ask a question</a>
+            {% else %}
             <p>Anyone can read the titles. Sign in to read the answers and add your own.</p>
-            <a class="link" href="#">Log in</a>
+            <a class="link" href="{% url 'accounts:login' %}">Log in</a>
+            {% endif %}
         </div>
 
         <div class="questions">
@@ -294,16 +332,25 @@
 
 <section class="dusk" id="dusk">
     <div class="container">
-        <h2 class="section-title">Start with one role. Add the other any time.</h2>
+        <h2 class="section-title">
+            {% if profile.is_grower and profile.is_buyer %}You grow and you buy. Both roles are yours.
+            {% elif profile.is_grower %}You&rsquo;re growing. Add buying any time.
+            {% elif profile.is_buyer %}You&rsquo;re buying. Add growing any time.
+            {% else %}Start with one role. Add the other any time.{% endif %}
+        </h2>
 
         <div class="tiles">
-            <a class="tile tile-grow" href="#">
+            {# TODO: My gardens link, and adding a role from the profile page #}
+            <a class="tile tile-grow" href="{% if user.is_authenticated %}#{% else %}{% url 'accounts:register' %}{% endif %}">
+                {% if profile.is_grower %}
+                <span class="role-badge"><span class="role-badge-dot"></span>Your role</span>
+                {% endif %}
                 <div>
                     <h3>I grow food</h3>
                     <p>Gardens, a plant journal, a care planner, and harvest listings.</p>
                 </div>
                 <span class="tile-cta">
-                    Start growing
+                    {% if profile.is_grower %}My gardens{% else %}Start growing{% endif %}
                     <span class="well">
                         <svg width="12" height="12" viewBox="11 11 12 12" fill="none" aria-hidden="true">
                             <path d="M12 22L22 12M22 19V12H15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -312,13 +359,16 @@
                 </span>
             </a>
 
-            <a class="tile tile-buy" href="#">
+            <a class="tile tile-buy" href="{% if user.is_authenticated %}#market{% else %}{% url 'accounts:register' %}{% endif %}">
+                {% if profile.is_buyer %}
+                <span class="role-badge"><span class="role-badge-dot"></span>Your role</span>
+                {% endif %}
                 <div>
                     <h3>I want local produce</h3>
                     <p>Browse listings, see the gardens, and contact the grower for pickup.</p>
                 </div>
                 <span class="tile-cta">
-                    Join as a buyer
+                    {% if profile.is_buyer %}Browse the market{% elif user.is_authenticated %}Start buying{% else %}Join as a buyer{% endif %}
                     <span class="well">
                         <svg width="12" height="12" viewBox="11 11 12 12" fill="none" aria-hidden="true">
                             <path d="M12 22L22 12M22 19V12H15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>

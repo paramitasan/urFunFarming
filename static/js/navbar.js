@@ -25,3 +25,25 @@ function updateScrolled() {
 }
 window.addEventListener('scroll', updateScrolled, { passive: true });
 updateScrolled();
+
+// Profile dropdown when signed in
+const profileButton = nav.querySelector('.profile-button');
+const profileDropdown = document.getElementById('profile-dropdown');
+
+function setProfile(open) {
+    profileDropdown.hidden = !open;
+    profileButton.setAttribute('aria-expanded', open);
+}
+
+if (profileButton) {
+    profileButton.addEventListener('click', () => setProfile(profileDropdown.hidden));
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.profile-menu')) setProfile(false);
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !profileDropdown.hidden) {
+            setProfile(false);
+            profileButton.focus();
+        }
+    });
+}

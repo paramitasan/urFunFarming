@@ -157,6 +157,81 @@ ul {
     display: none;
 }
 
+/* Profile menu when signed in */
+
+.profile-menu {
+    position: relative;
+}
+
+.profile-button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 14px 6px 6px;
+    background-color: var(--color-surface);
+    border: 1.5px solid var(--color-band);
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+    cursor: pointer;
+}
+
+.avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--color-accent);
+}
+
+.profile-button img {
+    transition: transform var(--dur-press) var(--ease-out);
+}
+
+.profile-button[aria-expanded="true"] img {
+    transform: rotate(180deg);
+}
+
+.profile-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 200px;
+    padding: 8px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-band);
+    border-radius: 18px;
+    box-shadow: 0 10px 15px rgba(18, 81, 51, 0.14);
+}
+
+.profile-dropdown a,
+.profile-dropdown button {
+    display: block;
+    width: 100%;
+    padding: 10px 14px;
+    background: none;
+    border: none;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: normal;
+    text-align: left;
+    color: var(--color-deep);
+    cursor: pointer;
+}
+
+.profile-dropdown a:hover,
+.profile-dropdown button:hover {
+    background-color: var(--color-band);
+    color: var(--color-forest);
+}
+
 /* Button */
 
 .btn {
@@ -291,6 +366,12 @@ ul {
     align-items: center;
     gap: 28px;
     margin-top: 40px;
+}
+
+.last-login {
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--color-deep);
 }
 
 #skyline {
@@ -952,6 +1033,7 @@ ul {
 }
 
 .tile {
+    position: relative;
     flex: 1;
     min-height: 292px;
     display: flex;
@@ -961,6 +1043,39 @@ ul {
     padding: 34.5px;
     border: 1.5px solid transparent;
     border-radius: 28px;
+}
+
+/* "Your role" badge when signed in */
+.role-badge {
+    position: absolute;
+    top: 34.5px;
+    right: 34.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background-color: var(--color-forest);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-surface);
+}
+
+.role-badge-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--color-mint);
+}
+
+.tile-buy .role-badge {
+    background-color: var(--color-accent);
+    color: var(--color-forest);
+}
+
+.tile-buy .role-badge-dot {
+    background-color: var(--color-forest);
 }
 
 .tile h3 {
@@ -1143,6 +1258,14 @@ ul {
     .nav-actions .nav-login,
     .nav-actions .btn {
         display: none;
+    }
+
+    .profile-name {
+        display: none;
+    }
+
+    .profile-button {
+        padding-right: 10px;
     }
 
     .menu-actions {
