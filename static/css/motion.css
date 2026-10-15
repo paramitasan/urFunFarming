@@ -7,36 +7,10 @@
     --dur-hover: 150ms;
 }
 
-/* Hero before the animation starts, only when the motion script runs */
-
-.motion .hero h1 .line {    
-    display: block;
-    clip-path: inset(0 0 100% 0);
-}
-
-.motion .hero .sub,
-.motion .hero .ctas {
-    opacity: 0;
-    transform: translateY(12px);
-}
-
-.motion .hero .glow {
-    opacity: 0;
-}
-
 /* Buttons and links */
 
 .btn {
-    transition: transform var(--dur-press) var(--ease-out), background-color var(--dur-hover) ease;
-    will-change: transform;
-}
-
-.btn:active {
-    transform: scale(0.97);
-}
-
-.btn .well svg {
-    transition: transform var(--dur-press) var(--ease-out);
+    transition: transform var(--dur-hover) ease, background-color var(--dur-hover) ease, box-shadow var(--dur-hover) ease;
 }
 
 .step {
@@ -54,12 +28,11 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
+    /* A little darker with a soft glow and a small lift */
     .btn:hover {
         background: #1DB873;
-    }
-
-    .btn:hover .well svg {
-        transform: translate(2px, -2px);
+        box-shadow: 0 6px 16px rgba(33, 195, 126, 0.35);
+        transform: translateY(-2px);
     }
 
     .link:hover {

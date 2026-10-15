@@ -4,7 +4,6 @@
 {% block title %}{{ app_name }} - Some of us grow. Some of us eat.{% endblock title %}
 
 {% block content %}
-<script>document.documentElement.classList.add('motion');</script>
 
 <section class="hero">
     <div class="sky">
@@ -29,7 +28,7 @@
 
         <div class="ctas">
             {% if profile.is_grower %}
-            <a class="btn magnetic" href="#">
+            <a class="btn" href="#">
                 My gardens
                 <span class="well">
                     <svg width="12" height="12" viewBox="11 11 12 12" fill="none" aria-hidden="true">
@@ -39,7 +38,7 @@
             </a>
             <a class="link" href="#market">Browse the market</a>
             {% elif profile.is_buyer %}
-            <a class="btn magnetic" href="#market">
+            <a class="btn" href="#market">
                 Browse the market
                 <span class="well">
                     <svg width="12" height="12" viewBox="11 11 12 12" fill="none" aria-hidden="true">
@@ -49,7 +48,7 @@
             </a>
             <a class="link" href="#gardens">Meet the gardens</a>
             {% else %}
-            <a class="btn magnetic" href="{% url 'accounts:register' %}">
+            <a class="btn" href="{% url 'accounts:register' %}">
                 Start growing
                 <span class="well">
                     <svg width="12" height="12" viewBox="11 11 12 12" fill="none" aria-hidden="true">
@@ -78,18 +77,18 @@
 
             <div class="harvest-chip" data-name="Harvest countdown">
                 <span class="harvest-dot"></span>
-                Harvest in 24 days
+                <span id="harvest-text">Ready to harvest</span>
             </div>
 
             <div class="journal-card" data-name="Journal snapshot">
                 <div class="journal-days">
-                    <b id="journal-days">18</b>
+                    <b id="journal-days">42</b>
                     <span>DAYS</span>
                 </div>
                 <div class="journal-text">
                     <span class="journal-label">JOURNAL</span>
                     <span class="journal-place">Balcony rack, Tebet</span>
-                    <span class="journal-note">Flowering &middot; water again Thursday</span>
+                    <span class="journal-note" id="journal-note">Ripe &middot; ready to share</span>
                 </div>
             </div>
         </div>
@@ -100,9 +99,7 @@
             <p class="grow-sub">Four steps, one account. Grow on your balcony, log the journey, plan care around the weather, and pass the surplus on to a neighbor.</p>
 
             <div class="step-list">
-                <svg class="connector" width="2" height="323" viewBox="0 0 2 323" fill="none" aria-hidden="true">
-                    <line x1="1" y1="1" x2="1" y2="322" stroke="#9CDBB6" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 6"/>
-                </svg>
+                <span class="connector" aria-hidden="true"></span>
                 <span class="connector-fill"></span>
 
                 <button type="button" class="step" data-name="Step / Plant">
@@ -196,7 +193,7 @@
                     <li>Post surplus harvest, priced or free.</li>
                 </ul>
                 <div class="role-action">
-                    <a class="btn magnetic" href="{% if profile.is_grower %}#{% else %}{% url 'accounts:register' %}{% endif %}">
+                    <a class="btn" href="{% if profile.is_grower %}#{% else %}{% url 'accounts:register' %}{% endif %}">
                         {% if profile.is_grower %}My gardens{% else %}Start growing{% endif %}
                         <span class="well">
                             <svg width="12" height="12" viewBox="11 11 12 12" fill="none" aria-hidden="true">
