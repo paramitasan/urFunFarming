@@ -2,10 +2,7 @@
 {% for item in listings %}
 <article class="card">
     <div class="placeholder card-photo">
-        <div class="placeholder-label">
-            <img src="{% static 'img/image-icon.svg' %}" alt="">
-            Image placeholder, 4:3 photo
-        </div>
+        <img src="{% static 'img/no-image.png' %}" alt="No photo yet">
     </div>
     <div class="card-text">
         <h3>{{ item.title }}</h3>
