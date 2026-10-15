@@ -145,3 +145,103 @@ class SessionPersistenceTest(TestCase):
         self.assertRedirects(self.client.get(reverse('accounts:login')), reverse('main:show_main'))
         self.assertRedirects(self.client.get(reverse('accounts:register')), reverse('main:show_main'))
         self.assert_still_signed_in()
+
+
+class JsonEndpointTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user('idris_k', password='tomato-Balcony-42', email='idris@example.com')
+        Profile.objects.create(user=self.user, display_name='Muhammad Idris', is_grower=True)
+
+    def test_me_json_logged_out(self):
+        response = self.client.get(reverse('accounts:me_json'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {'is_authenticated': False})
+
+    def test_me_json_logged_in(self):
+        self.client.post(reverse('accounts:login'), {'username': 'idris_k', 'password': 'tomato-Balcony-42'})
+        data = self.client.get(reverse('accounts:me_json')).json()
+        self.assertTrue(data['is_authenticated'])
+        self.assertEqual(data['username'], 'idris_k')
+        self.assertEqual(data['display_name'], 'Muhammad Idris')
+        self.assertTrue(data['is_grower'])
+        self.assertFalse(data['is_buyer'])
+        self.assertNotEqual(data['last_login'], 'Never')
+
+    def test_profile_json_public_fields_only(self):
+        response = self.client.get(reverse('accounts:profile_json', args=['idris_k']))
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['display_name'], 'Muhammad Idris')
+        self.assertEqual(set(data), {'username', 'display_name', 'is_grower', 'is_buyer', 'created_at'})
+        self.assertNotIn('idris@example.com', response.content.decode())
+
+    def test_profile_json_unknown_user_is_404(self):
+        response = self.client.get(reverse('accounts:profile_json', args=['nobody']))
+        self.assertEqual(response.status_code, 404)
+
+
+class AjaxAuthTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user('idris_k', password='tomato-Balcony-42')
+        Profile.objects.create(user=self.user, display_name='Muhammad Idris', is_grower=True)
+
+    def test_login_ajax_success(self):
+        response = self.client.post(reverse('accounts:login_ajax'), {
+            'username': 'idris_k', 'password': 'tomato-Balcony-42', 'remember_me': 'on',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {'status': 'success', 'redirect': reverse('main:show_main')})
+        self.assertIn('sessionid', response.cookies)
+        self.assertTrue(response.cookies['last_login'].value)
+        self.assertEqual(int(self.client.session['_auth_user_id']), self.user.pk)
+
+    def test_login_ajax_failure(self):
+        response = self.client.post(reverse('accounts:login_ajax'), {'username': 'idris_k', 'password': 'wrong'})
+        self.assertEqual(response.status_code, 400)
+        data = response.json()
+        self.assertEqual(data['status'], 'error')
+        self.assertIn("don't match", data['errors']['__all__'][0])
+        self.assertNotIn('sessionid', response.cookies)
+
+    def test_login_ajax_rejects_get(self):
+        self.assertEqual(self.client.get(reverse('accounts:login_ajax')).status_code, 405)
+
+    def test_login_ajax_with_csrf_header(self):
+        client = Client(enforce_csrf_checks=True)
+        client.get(reverse('accounts:login'))
+        token = client.cookies['csrftoken'].value
+        data = {'username': 'idris_k', 'password': 'tomato-Balcony-42'}
+
+        self.assertEqual(client.post(reverse('accounts:login_ajax'), data).status_code, 403)
+        response = client.post(reverse('accounts:login_ajax'), data, HTTP_X_CSRFTOKEN=token)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('sessionid', response.cookies)
+
+    def test_register_ajax_validation_errors(self):
+        response = self.client.post(reverse('accounts:register_ajax'), {
+            'display_name': 'Sekar',
+            'username': 'idris_k',
+            'password1': 'tomato-Balcony-42',
+            'password2': 'something-Else-99',
+        })
+        self.assertEqual(response.status_code, 400)
+        data = response.json()
+        self.assertEqual(data['status'], 'error')
+        self.assertIn('username', data['errors'])
+        self.assertIn('password2', data['errors'])
+        self.assertIn('Pick at least one role', data['errors']['__all__'][0])
+        self.assertEqual(User.objects.count(), 1)
+
+    def test_register_ajax_success(self):
+        response = self.client.post(reverse('accounts:register_ajax'), {
+            'display_name': 'Sekar',
+            'username': 'sekar_a',
+            'password1': 'tomato-Balcony-42',
+            'password2': 'tomato-Balcony-42',
+            'is_buyer': 'on',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {'status': 'success', 'redirect': reverse('accounts:login')})
+        self.assertTrue(Profile.objects.get(user__username='sekar_a').is_buyer)
