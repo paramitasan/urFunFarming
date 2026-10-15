@@ -156,31 +156,91 @@ ul {
 /* Hero */
 
 .hero {
-    max-width: 1290px;
-    margin: 0 auto;
-    padding: 132px 24px 100px 24px;
+    position: relative;
+    overflow: hidden;
+    background-color: var(--color-bg);
 }
 
-.hero-title {
+.sky {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-width: 1440px;
+    margin: 0 auto;
+}
+
+.sky img {
+    position: absolute;
+    display: block;
+}
+
+.sun,
+.glow {
+    left: 63.75%;
+    top: 91px;
+    width: 460px;
+}
+
+.c1 {
+    left: 63%;
+    top: 261px;
+    width: 220px;
+}
+
+.c2 {
+    left: 73.8%;
+    top: 407px;
+    width: 297px;
+}
+
+.c3 {
+    left: 50.8%;
+    top: 480px;
+    width: 165px;
+}
+
+.hero-copy {
+    position: relative;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 132px 80px 0 80px;
+}
+
+.hero h1 {
+    max-width: 760px;
     font-size: 72px;
     font-weight: 800;
     line-height: 1.05;
-    letter-spacing: -2px;
+    letter-spacing: -1.44px;
     color: var(--color-forest);
 }
 
-.hero-text {
-    margin-top: 22px;
+.hero h1 .line {
+    display: block;
+}
+
+.hero .sub {
     max-width: 520px;
+    margin-top: 22px;
     font-size: 18px;
     color: var(--color-deep);
 }
 
-.hero-buttons {
+.hero .ctas {
     display: flex;
     align-items: center;
     gap: 28px;
     margin-top: 40px;
+}
+
+#skyline {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: auto;
+    margin-top: 12px;
 }
 
 /* Footer */
@@ -235,15 +295,15 @@ ul {
         gap: 16px;
     }
 
-    .hero {
-        padding: 120px 20px 80px 20px;
+    .hero-copy {
+        padding: 120px 20px 0 20px;
     }
 
-    .hero-title {
+    .hero h1 {
         font-size: 44px;
     }
 
-    .hero-buttons {
+    .hero .ctas {
         flex-wrap: wrap;
         gap: 20px;
     }

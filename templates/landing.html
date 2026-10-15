@@ -1,30 +1,43 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}{{ app_name }} - Some of us grow. Some of us eat.{% endblock title %}
 
 {% block content %}
 <section class="hero">
-    <h1 class="hero-title">
-        Some of us grow.<br>
-        Some of us eat.<br>
-        Most of us do both.
-    </h1>
-
-    <p class="hero-text">
-        Keep a plant journal, plan around the forecast, and offer
-        your surplus harvest for local pickup.
-    </p>
-
-    <div class="hero-buttons">
-        <a class="btn magnetic" href="#">
-            Start growing
-            <span class="well">
-                <svg width="12" height="12" viewBox="11 11 12 12" fill="none" aria-hidden="true">
-                    <path d="M12 22L22 12M22 19V12H15" stroke="#0B2E1D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </span>
-        </a>
-        <a class="link" href="#">Browse the market</a>
+    <div class="sky">
+        <img class="sun" src="{% static 'img/sun.svg' %}" alt="">
+        <img class="glow" src="{% static 'img/glow.svg' %}" alt="">
+        <img class="cloud c1" src="{% static 'img/cloud-1.svg' %}" alt="">
+        <img class="cloud c2" src="{% static 'img/cloud-2.svg' %}" alt="">
+        <img class="cloud c3" src="{% static 'img/cloud-3.svg' %}" alt="">
     </div>
+
+    <div class="hero-copy">
+        <h1>
+            <span class="line">Some of us grow.</span>
+            <span class="line">Some of us eat.</span>
+            <span class="line">Most of us do both.</span>
+        </h1>
+
+        <p class="sub">
+            Keep a plant journal, plan care around the forecast, and offer
+            your surplus harvest for local pickup.
+        </p>
+
+        <div class="ctas">
+            <a class="btn magnetic" href="#">
+                Start growing
+                <span class="well">
+                    <svg width="12" height="12" viewBox="11 11 12 12" fill="none" aria-hidden="true">
+                        <path d="M12 22L22 12M22 19V12H15" stroke="#0B2E1D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+            </a>
+            <a class="link" href="#market">Browse the market</a>
+        </div>
+    </div>
+
+    {% include 'svg/skyline.svg' %}
 </section>
 {% endblock content %}
