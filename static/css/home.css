@@ -23,10 +23,6 @@
 
 /* Sky by time of day; the greeting uses the same period */
 
-.sun-evening {
-    display: none;
-}
-
 .hero-home[data-period="morning"] {
     background-image: linear-gradient(to bottom, #FBEFD9, var(--color-bg));
 }
@@ -44,14 +40,6 @@
 .hero-home[data-period="evening"] .glow {
     left: calc(63.75% - 120px);
     top: 221px;
-}
-
-.hero-home[data-period="evening"] .sun {
-    display: none;
-}
-
-.hero-home[data-period="evening"] .sun-evening {
-    display: block;
 }
 
 .hero-home[data-period="night"] {

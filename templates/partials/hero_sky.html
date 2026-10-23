@@ -1,7 +1,6 @@
 {% load static %}
 <div class="sky" aria-hidden="true">
-    <img class="sun" src="{% static 'img/sun.svg' %}" alt="">
-    <img class="sun sun-evening" src="{% static 'img/sun-evening.svg' %}" alt="">
+    <img class="sun" src="{% if period == 'evening' %}{% static 'img/sun-evening.svg' %}{% else %}{% static 'img/sun.svg' %}{% endif %}" alt="">
     <img class="glow" src="{% static 'img/glow.svg' %}" alt="">
     <img class="cloud c1" src="{% static 'img/cloud-1.svg' %}" alt="">
     <img class="cloud c2" src="{% static 'img/cloud-2.svg' %}" alt="">

@@ -67,6 +67,23 @@ class HomePageTest(TestCase):
                 else:
                     self.assertNotContains(response, 'class="moon"')
 
+    def test_one_sun_picked_by_period(self):
+        jakarta = ZoneInfo('Asia/Jakarta')
+        self.client.force_login(self.grower)
+        for hour, sun in [(8, 'img/sun.svg'), (13, 'img/sun.svg'), (17, 'img/sun-evening.svg')]:
+            fake_now = datetime.datetime(2026, 10, 23, hour, 0, tzinfo=jakarta)
+            with self.subTest(hour=hour), patch('main.views.timezone.localtime', return_value=fake_now):
+                response = self.client.get(reverse('main:home'))
+                self.assertContains(response, 'class="sun"', count=1)
+                self.assertContains(response, sun)
+
+        self.client.logout()
+        midday = datetime.datetime(2026, 10, 23, 13, 0, tzinfo=jakarta)
+        with patch('main.views.timezone.localtime', return_value=midday):
+            landing = self.client.get(reverse('main:show_main'))
+        self.assertContains(landing, 'class="sun"', count=1)
+        self.assertNotContains(landing, 'sun-evening.svg')
+
     def test_hero_shows_last_login_roles_and_area(self):
         self.client.force_login(self.both)
         self.client.cookies['last_login'] = '2026-10-23 08:12:45.123456'
