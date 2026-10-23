@@ -152,28 +152,8 @@ if (window.gsap && window.ScrollTrigger) {
     }
 
     function landingMotion() {
-        // 1. Sunrise, with the text starting right away instead of after the sky
-        gsap.set('.hero .line', { clipPath: 'inset(0 0 100% 0)' });
-        gsap.set('.hero .sub, .hero .ctas', { opacity: 0, y: 6 });
-        gsap.set('.hero .glow', { opacity: 0 });
-        gsap.set('.hero', { backgroundColor: '#FBEFD9' });
-        gsap.set('.hero .sun', { y: '35vh' });
-        gsap.set('#skyline .bld', { scaleY: 0.96, opacity: 0, transformOrigin: '50% 100%' });
-        gsap.set('.cloud', { opacity: 0, x: -15 });
-
-        gsap.timeline()
-            .to('.hero .line', { clipPath: 'inset(0 0 0% 0)', duration: 0.45, stagger: 0.06 }, 0)
-            .to('.hero .sub', { opacity: 1, y: 0, duration: 0.4 }, 0.1)
-            .to('.hero .ctas', { opacity: 1, y: 0, duration: 0.4 }, 0.15)
-            .to('.hero .sun', { y: 0, duration: 1.4 }, 0)
-            .to('.hero .glow', { opacity: 1, duration: 1.4 }, 0.1)
-            .to('.hero', { backgroundColor: '#E6F0DC', duration: 1.6, ease: 'power2.inOut' }, 0)
-            .to('#skyline .bld', { scaleY: 1, opacity: 1, duration: 0.7, stagger: { each: 0.05, from: 'center' } }, 0.1)
-            .to('.cloud', { opacity: 1, x: 0, duration: 0.8, stagger: 0.08 }, 0.3);
-
-        [['.c1', 20, 26], ['.c2', -18, 34], ['.c3', 14, 20]].forEach(([sel, dx, dur]) =>
-            gsap.to(sel, { x: dx, duration: dur, ease: 'none', repeat: -1, yoyo: true, delay: 2 })
-        );
+        // 1. Sunrise, shared with Home (hero-motion.js)
+        heroIntro(document.querySelector('.hero'));
 
         // 2. From seed to table
         const cleanupGrow = setupGrow();

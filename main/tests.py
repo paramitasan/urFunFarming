@@ -133,6 +133,13 @@ class HomePageTest(TestCase):
         self.assertNotContains(both_page, 'class="role-band"')
         self.assertNotContains(both_page, '+ Add')
 
+    def test_home_loads_the_shared_hero_animation(self):
+        response = self.home_as(self.grower)
+        self.assertContains(response, 'js/hero-motion.js')
+        self.assertContains(response, 'js/home-motion.js')
+        self.client.logout()
+        self.assertContains(self.client.get(reverse('main:show_main')), 'js/hero-motion.js')
+
     def test_user_without_profile_gets_one(self):
         admin = User.objects.create_user('admin_k', password='tomato-Balcony-42')
         response = self.home_as(admin)
