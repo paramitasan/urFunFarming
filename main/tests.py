@@ -22,6 +22,18 @@ class LandingPageTest(TestCase):
         response = self.client.get(reverse('main:show_main'))
         self.assertTemplateUsed(response, 'landing.html')
 
+    def test_landing_sky_follows_jakarta_time(self):
+        jakarta = ZoneInfo('Asia/Jakarta')
+        for hour, period in [(8, 'morning'), (13, 'afternoon'), (17, 'evening'), (22, 'night')]:
+            fake_now = datetime.datetime(2026, 10, 23, hour, 0, tzinfo=jakarta)
+            with self.subTest(hour=hour), patch('main.views.timezone.localtime', return_value=fake_now):
+                response = self.client.get(reverse('main:show_main'))
+                self.assertContains(response, f'class="hero" data-period="{period}"')
+                if period == 'night':
+                    self.assertContains(response, 'class="moon"')
+                else:
+                    self.assertNotContains(response, 'class="moon"')
+
 class HomePageTest(TestCase):
     def make_user(self, username, is_grower=False, is_buyer=False):
         user = User.objects.create_user(username, password='tomato-Balcony-42')

@@ -506,6 +506,83 @@ ul {
     margin-top: 12px;
 }
 
+/* Hero sky by time of day, shared by the landing page and Home.
+   Offsets use margins so each page keeps its own sun position and GSAP can still move it. */
+
+.hero[data-period="morning"] {
+    background-image: linear-gradient(to bottom, #FBEFD9, var(--color-bg));
+}
+
+.hero[data-period="morning"] .sun,
+.hero[data-period="morning"] .glow {
+    margin-top: 170px;
+}
+
+.hero[data-period="evening"] {
+    background-image: linear-gradient(to bottom, #F3CFA6, var(--color-bg));
+}
+
+.hero[data-period="evening"] .sun,
+.hero[data-period="evening"] .glow {
+    margin-top: 190px;
+    margin-left: -120px;
+}
+
+.hero[data-period="night"] {
+    background-image: linear-gradient(to bottom, var(--color-ink), #1B4D38);
+}
+
+.hero[data-period="night"] .sun,
+.hero[data-period="night"] .glow {
+    display: none;
+}
+
+.hero[data-period="night"] .cloud {
+    opacity: 0.35;
+}
+
+.hero[data-period="night"] #skyline .back {
+    opacity: 0.5;
+}
+
+.hero[data-period="night"] h1,
+.hero[data-period="night"] .ctas .link {
+    color: var(--color-surface);
+}
+
+.hero[data-period="night"] .sub {
+    color: #C9E2C4;
+}
+
+.night-sky {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 420px;
+    pointer-events: none;
+}
+
+.night-sky .stars {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: var(--color-light);
+    opacity: 0.8;
+}
+
+.moon {
+    position: absolute;
+    left: 81%;
+    top: 120px;
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background-color: var(--color-light);
+    box-shadow: 0 0 60px 10px rgba(245, 250, 246, 0.45);
+}
+
 /* Shared section parts */
 
 .container {

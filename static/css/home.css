@@ -21,89 +21,16 @@
     top: 400px;
 }
 
-/* Sky by time of day; the greeting uses the same period */
+/* Home's own night details; the shared period sky is in style.css */
 
-.hero-home[data-period="morning"] {
-    background-image: linear-gradient(to bottom, #FBEFD9, var(--color-bg));
-}
-
-.hero-home[data-period="morning"] .sun,
-.hero-home[data-period="morning"] .glow {
-    top: 201px;
-}
-
-.hero-home[data-period="evening"] {
-    background-image: linear-gradient(to bottom, #F3CFA6, var(--color-bg));
-}
-
-.hero-home[data-period="evening"] .sun,
-.hero-home[data-period="evening"] .glow {
-    left: calc(63.75% - 120px);
-    top: 221px;
-}
-
-.hero-home[data-period="night"] {
-    background-image: linear-gradient(to bottom, var(--color-ink), #1B4D38);
-}
-
-.hero-home[data-period="night"] .sun,
-.hero-home[data-period="night"] .glow {
-    display: none;
-}
-
-.hero-home[data-period="night"] .cloud {
-    opacity: 0.35;
-}
-
-.hero-home[data-period="night"] #skyline .back {
-    opacity: 0.5;
-}
-
-.hero-home[data-period="night"] h1,
 .hero-home[data-period="night"] .home-edit {
     color: var(--color-surface);
-}
-
-.hero-home[data-period="night"] .sub {
-    color: #C9E2C4;
-}
-
-.hero-home[data-period="night"] .home-edit {
     background-color: rgba(251, 253, 251, 0.08);
     border-color: #C9E2C4;
 }
 
 .hero-home[data-period="night"] .home-edit:hover {
     background-color: rgba(251, 253, 251, 0.18);
-}
-
-.night-sky {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 420px;
-    pointer-events: none;
-}
-
-.night-sky .stars {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    fill: var(--color-light);
-    opacity: 0.8;
-}
-
-.moon {
-    position: absolute;
-    left: calc(50% + 450px);
-    top: 120px;
-    width: 110px;
-    height: 110px;
-    border-radius: 50%;
-    background-color: var(--color-light);
-    box-shadow: 0 0 60px 10px rgba(245, 250, 246, 0.45);
 }
 
 /* The sub-nav takes up the space above the greeting */

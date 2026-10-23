@@ -41,6 +41,7 @@ def show_main(request):
         return redirect('main:home')
 
     context = {
+        'period': get_period(timezone.localtime().hour),
         'app_name': 'urFunFarming',
         'listings': LISTINGS,
         'categories': CATEGORIES,
