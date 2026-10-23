@@ -20,17 +20,34 @@ function heroIntro(hero) {
         intro.to(nodes, { opacity: 1, y: 0, duration: 0.4 }, at);
     });
 
+    // Each period has its own sky move: sunrise, midday, sunset or moonrise
+    const sun = q('.sun'), glow = q('.glow');
     if (period === 'night') {
         gsap.set(q('.night-sky'), { opacity: 0 });
-        intro.to(q('.night-sky'), { opacity: 1, duration: 1.2 }, 0.2);
-    } else {
-        gsap.set(q('.sun'), { y: '35vh' });
-        gsap.set(q('.glow'), { opacity: 0 });
+        gsap.set(q('.moon'), { opacity: 0, y: 40 });
         intro
-            .to(q('.sun'), { y: 0, duration: 1.4 }, 0)
-            .to(q('.glow'), { opacity: 1, duration: 1.4 }, 0.1);
-        // Only the plain afternoon sky warms up; the morning and evening gradients keep their colour
-        if (period === 'afternoon') {
+            .to(q('.night-sky'), { opacity: 1, duration: 1.2 }, 0.1)
+            .to(q('.moon'), { opacity: 1, y: 0, duration: 1.6 }, 0.2);
+        gsap.to(q('.stars circle'), {
+            opacity: 0.25, duration: 'random(1.2, 2.4)', ease: 'sine.inOut',
+            repeat: -1, yoyo: true, delay: 1.4, stagger: { each: 0.15, from: 'random' }
+        });
+    } else if (period === 'evening') {
+        gsap.set(sun, { y: -140 });
+        gsap.set(glow, { opacity: 0 });
+        intro
+            .to(sun, { y: 0, duration: 1.8, ease: 'power1.inOut' }, 0)
+            .to(glow, { opacity: 1, duration: 1.6 }, 0.2);
+    } else {
+        // Morning rises slower from lower down; afternoon is the original sunrise
+        const morning = period === 'morning';
+        gsap.set(sun, { y: morning ? '45vh' : '35vh' });
+        gsap.set(glow, { opacity: 0 });
+        intro
+            .to(sun, { y: 0, duration: morning ? 1.9 : 1.4 }, 0)
+            .to(glow, { opacity: 1, duration: morning ? 1.8 : 1.4 }, 0.1);
+        // Only the plain afternoon sky warms up; the morning gradient keeps its colour
+        if (!morning) {
             gsap.set(hero, { backgroundColor: '#FBEFD9' });
             intro.to(hero, { backgroundColor: '#E6F0DC', duration: 1.6, ease: 'power2.inOut' }, 0);
         }
