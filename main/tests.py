@@ -79,8 +79,14 @@ class HomePageTest(TestCase):
 
         buyer_page = self.home_as(self.buyer)
         self.assertNotContains(buyer_page, 'Your growing tools')
-        self.assertContains(buyer_page, 'Where to?')
+        self.assertContains(buyer_page, 'Around the neighborhood')
         self.assertContains(buyer_page, 'class="launch-tile"', count=3)
+
+        both_page = self.home_as(self.both)
+        self.assertContains(both_page, 'Your growing tools')
+        self.assertContains(both_page, 'Around the neighborhood')
+        self.assertContains(both_page, 'class="launch-tile"', count=6)
+        self.assertNotContains(both_page, 'Where to?')
 
     def test_subnav_only_for_growers_on_home(self):
         self.assertContains(self.home_as(self.grower), 'class="subnav"')

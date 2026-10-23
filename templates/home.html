@@ -51,13 +51,8 @@
 
     <section class="launchpad">
         <div class="launch-heading">
-            {% if profile.is_grower %}
             <h2>Around the neighborhood</h2>
             <p>Market, public gardens and the forum.</p>
-            {% else %}
-            <h2>Where to?</h2>
-            <p>Everything you can do with a buyer account.</p>
-            {% endif %}
         </div>
         <div class="launch-row">
             {% include 'partials/launch_tile.html' with icon='svg/icons/market.svg' title='Market' text='Browse harvests near you and arrange a pickup.' %}
