@@ -32,7 +32,7 @@
                 <h2 data-summary="display_name">{{ profile.display_name }}</h2>
                 <p>@{{ user.username }}</p>
             </div>
-            <div class="summary-roles" data-summary="roles">
+            <div class="role-chips summary-roles" data-summary="roles">
                 {% if profile.is_grower %}<span class="role-chip">Grower</span>{% endif %}
                 {% if profile.is_buyer %}<span class="role-chip">Buyer</span>{% endif %}
                 {% if not profile.is_grower %}<a class="role-chip role-chip-add" href="#roles">+ Add grower</a>{% endif %}
@@ -121,7 +121,7 @@
 
                 <div class="settings-actions">
                     <a class="cancel-link" href="{% url 'accounts:profile' %}">Cancel</a>
-                    <button type="submit" class="save-button" name="save_profile" value="1">Save changes</button>
+                    <button type="submit" class="pill-button" name="save_profile" value="1">Save changes</button>
                 </div>
             </form>
 

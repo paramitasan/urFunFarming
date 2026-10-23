@@ -14,6 +14,7 @@
     --color-ink: #0B2E1D;
     --color-amber: #EA9E26;
     --color-hairline: rgba(18, 81, 51, 0.12);
+    --color-field: #C9DFCB;
 }
 
 
@@ -189,6 +190,16 @@ ul {
     background-color: var(--color-accent);
 }
 
+.avatar-56 {
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
 .profile-button img {
     transition: transform var(--dur-press) var(--ease-out);
 }
@@ -229,6 +240,125 @@ ul {
 .profile-dropdown a:hover,
 .profile-dropdown button:hover {
     background-color: var(--color-band);
+    color: var(--color-forest);
+}
+
+/* Pill buttons and role chips, shared by Home and Profile */
+
+.outline-button,
+.pill-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px 22px;
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+    cursor: pointer;
+}
+
+.outline-button {
+    background: none;
+    border: 1.5px solid var(--color-forest);
+}
+
+.outline-button:hover {
+    background-color: var(--color-band);
+}
+
+.pill-button {
+    background-color: var(--color-accent);
+    border: none;
+}
+
+.pill-button:hover {
+    background-color: #1DB873;
+}
+
+.outline-button:disabled,
+.pill-button:disabled {
+    opacity: 0.7;
+    cursor: progress;
+}
+
+.role-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.role-chip {
+    padding: 6px 12px;
+    border-radius: 999px;
+    background-color: var(--color-band);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.role-chip-add {
+    padding: 6px 10.5px;
+    background: none;
+    border: 1.5px dashed var(--color-field);
+    color: var(--color-deep);
+}
+
+.role-chip-add:hover {
+    border-color: var(--color-accent);
+    color: var(--color-forest);
+}
+
+.outline-button:focus-visible,
+.pill-button:focus-visible,
+.role-chip-add:focus-visible,
+.subnav a:focus-visible {
+    outline: 2px solid var(--color-forest);
+    outline-offset: 2px;
+}
+
+/* Grower sub-nav under the navbar */
+
+.subnav-row {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    padding: 108px 16px 0;
+}
+
+.subnav {
+    display: flex;
+    gap: 4px;
+    padding: 6px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-band);
+    border-radius: 999px;
+}
+
+.subnav a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: normal;
+    color: var(--color-deep);
+    white-space: nowrap;
+}
+
+.subnav a[aria-current="page"] {
+    background-color: var(--color-band);
+    font-weight: 600;
+    color: var(--color-forest);
+}
+
+.subnav a:hover {
     color: var(--color-forest);
 }
 
@@ -366,12 +496,6 @@ ul {
     align-items: center;
     gap: 28px;
     margin-top: 40px;
-}
-
-.last-login {
-    margin-top: 16px;
-    font-size: 13px;
-    color: var(--color-deep);
 }
 
 #skyline {
@@ -1046,39 +1170,6 @@ ul {
     padding: 34.5px;
     border: 1.5px solid transparent;
     border-radius: 28px;
-}
-
-/* "Your role" badge when signed in */
-.role-badge {
-    position: absolute;
-    top: 34.5px;
-    right: 34.5px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 999px;
-    background-color: var(--color-forest);
-    font-size: 13px;
-    font-weight: 600;
-    line-height: normal;
-    color: var(--color-surface);
-}
-
-.role-badge-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background-color: var(--color-mint);
-}
-
-.tile-buy .role-badge {
-    background-color: var(--color-accent);
-    color: var(--color-forest);
-}
-
-.tile-buy .role-badge-dot {
-    background-color: var(--color-forest);
 }
 
 .tile h3 {

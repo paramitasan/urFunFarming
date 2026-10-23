@@ -1,0 +1,251 @@
+/* Signed-in Home page, on top of the landing hero styles */
+
+.hero-home {
+    height: 960px;
+}
+
+.hero-home .sun,
+.hero-home .glow {
+    top: 31px;
+}
+
+.hero-home .c1 {
+    top: 181px;
+}
+
+.hero-home .c2 {
+    top: 327px;
+}
+
+.hero-home .c3 {
+    top: 400px;
+}
+
+/* The sub-nav takes up the space above the greeting */
+.hero-home .subnav-row + .hero-copy {
+    padding-top: 31px;
+}
+
+.hero-home .sub span {
+    display: block;
+}
+
+.hero-home #skyline {
+    position: absolute;
+    top: 428px;
+    left: 0;
+    margin-top: 0;
+}
+
+.home-edit {
+    margin-top: 40px;
+    background-color: var(--color-surface);
+}
+
+/* Launchpad tiles */
+
+.home-content {
+    display: flex;
+    flex-direction: column;
+    gap: 56px;
+    padding-top: 72px;
+    padding-bottom: 80px;
+}
+
+.launchpads,
+.launchpad {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.launch-heading h2 {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--color-forest);
+}
+
+.launch-heading p {
+    margin-top: 4px;
+    font-size: 15px;
+    line-height: normal;
+    color: var(--color-deep);
+}
+
+.launch-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.launch-tile {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 24px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-band);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(18, 81, 51, 0.06);
+    transition: transform var(--dur-hover) ease, box-shadow var(--dur-hover) ease, border-color var(--dur-hover) ease;
+}
+
+.launch-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.launch-icon {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background-color: var(--color-band);
+    color: var(--color-forest);
+}
+
+.launch-name {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    font-weight: 600;
+    line-height: normal;
+}
+
+.launch-eyebrow {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    color: var(--color-deep);
+}
+
+.launch-title {
+    font-size: 20px;
+    color: var(--color-forest);
+}
+
+.launch-desc {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--color-deep);
+}
+
+.launch-open {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.launch-tile:focus-visible {
+    outline: 2px solid var(--color-forest);
+    outline-offset: 2px;
+}
+
+/* Profile card */
+
+.home-profile {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 24px 28px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-band);
+    border-radius: 20px;
+}
+
+.home-profile-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 14px;
+    line-height: normal;
+    color: var(--color-deep);
+}
+
+.home-profile-text .home-profile-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-forest);
+}
+
+/* Add-a-role band */
+
+.role-band {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 32px 36px;
+    background-color: var(--color-forest);
+    border-radius: 24px;
+}
+
+.role-band h2 {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: normal;
+    color: var(--color-surface);
+}
+
+.role-band p {
+    margin-top: 4px;
+    font-size: 14px;
+    line-height: normal;
+    color: #C9E2C4;
+}
+
+.role-band .pill-button {
+    flex-shrink: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .launch-tile:hover {
+        border-color: var(--color-mint);
+        box-shadow: 0 14px 30px rgba(18, 81, 51, 0.1);
+        transform: translateY(-2px);
+    }
+}
+
+@media (max-width: 1023px) {
+    .launch-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .hero-home {
+        height: auto;
+    }
+
+    .hero-home #skyline {
+        position: relative;
+        top: auto;
+        margin-top: 40px;
+    }
+}
+
+@media (max-width: 639px) {
+    .launch-row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .home-profile,
+    .role-band {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .role-band {
+        padding: 24px;
+    }
+}
