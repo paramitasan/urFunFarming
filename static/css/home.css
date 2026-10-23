@@ -1,7 +1,19 @@
 /* Signed-in Home page, on top of the landing hero styles */
 
 .hero-home {
-    height: 1000px;
+    /* Skyline starts at 428px and is 572.19 / 1440 of the width tall, so the hero ends where the skyline ends */
+    height: calc(428px + 39.74vw);
+}
+
+/* Ground colour under the skyline, so a rounding gap at the bottom never shows the sky */
+.hero-home::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 40px;
+    background-color: #145236;
 }
 
 .hero-home .sun,
@@ -61,7 +73,8 @@
     display: flex;
     flex-direction: column;
     gap: 56px;
-    margin-top: -130px;
+    /* 130px at 1440, shrinking with the ground strip */
+    margin-top: -9vw;
     padding-bottom: 80px;
 }
 
@@ -283,11 +296,6 @@
 @media (max-width: 1023px) {
     .launch-row {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .launchpad-band::before {
-        left: -20px;
-        right: -20px;
     }
 }
 
