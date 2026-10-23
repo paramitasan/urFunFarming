@@ -103,6 +103,10 @@
 }
 
 .launch-tile {
+    --well: var(--color-band);
+    --ink: var(--color-forest);
+    position: relative;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -120,6 +124,13 @@
     gap: 12px;
 }
 
+/* One tint per module */
+.launch-tile[data-tone="journal"] { --well: #FBEFD9; --ink: #A86A12; }
+.launch-tile[data-tone="care"] { --well: #DCEDF5; --ink: #2A6B8C; }
+.launch-tile[data-tone="market"] { --well: #FBE4D4; --ink: #B9541A; }
+.launch-tile[data-tone="explore"] { --well: #EAF0D0; --ink: #5E7B23; }
+.launch-tile[data-tone="forum"] { --well: var(--color-forest); --ink: var(--color-light); }
+
 .launch-icon {
     display: flex;
     flex-shrink: 0;
@@ -128,8 +139,27 @@
     width: 44px;
     height: 44px;
     border-radius: 12px;
-    background-color: var(--color-band);
+    background-color: var(--well);
+    color: var(--ink);
+}
+
+/* Faint copy of the icon in the corner */
+.launch-mark {
+    position: absolute;
+    right: -26px;
+    bottom: -30px;
+    opacity: 0.08;
+    color: var(--ink);
+    pointer-events: none;
+}
+
+.launch-tile[data-tone="forum"] .launch-mark {
     color: var(--color-forest);
+}
+
+.launch-mark .icon {
+    width: 110px;
+    height: 110px;
 }
 
 .launch-title {
