@@ -1,7 +1,7 @@
 /* Signed-in Home page, on top of the landing hero styles */
 
 .hero-home {
-    height: 960px;
+    height: 1000px;
 }
 
 .hero-home .sun,
@@ -42,14 +42,37 @@
     background-color: var(--color-surface);
 }
 
-/* Launchpad tiles */
+/* Launchpad tiles. The first row climbs onto the skyline's dark ground */
 
 .home-content {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 56px;
-    padding-top: 72px;
+    margin-top: -130px;
     padding-bottom: 80px;
+}
+
+.launchpads > .launchpad:first-child .launch-heading h2 {
+    color: var(--color-surface);
+}
+
+.launchpads > .launchpad:first-child .launch-heading p {
+    color: #C9E2C4;
+}
+
+/* Pale band behind the neighborhood row, as wide as the page */
+.launchpad-band {
+    position: relative;
+    isolation: isolate;
+}
+
+.launchpad-band::before {
+    content: "";
+    position: absolute;
+    inset: -40px -80px -48px;
+    z-index: -1;
+    background-color: rgba(217, 237, 223, 0.55);
 }
 
 .launchpads,
@@ -219,6 +242,11 @@
     .launch-row {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+
+    .launchpad-band::before {
+        left: -20px;
+        right: -20px;
+    }
 }
 
 @media (max-width: 900px) {
@@ -230,6 +258,10 @@
         position: relative;
         top: auto;
         margin-top: 40px;
+    }
+
+    .home-content {
+        margin-top: -70px;
     }
 }
 
