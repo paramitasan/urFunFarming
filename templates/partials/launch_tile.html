@@ -1,11 +1,8 @@
 <a class="launch-tile" href="{{ href|default:'#' }}">
     <span class="launch-top">
         <span class="launch-icon">{% include icon %}</span>
-        <span class="launch-name">
-            <span class="launch-eyebrow">MODULE {{ module }}</span>
-            <span class="launch-title">{{ title }}</span>
-        </span>
+        <span class="launch-title">{{ title }}</span>
+        <span class="launch-arrow">{% include 'svg/icons/arrow.svg' %}</span>
     </span>
     <span class="launch-desc">{{ text }}</span>
-    <span class="launch-open">Open {% include 'svg/icons/arrow.svg' %}</span>
 </a>

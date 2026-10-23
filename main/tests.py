@@ -75,6 +75,7 @@ class HomePageTest(TestCase):
         self.assertContains(grower_page, 'Your growing tools')
         self.assertContains(grower_page, 'Around the neighborhood')
         self.assertContains(grower_page, 'class="launch-tile"', count=6)
+        self.assertNotContains(grower_page, 'MODULE')
 
         buyer_page = self.home_as(self.buyer)
         self.assertNotContains(buyer_page, 'Your growing tools')
