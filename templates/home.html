@@ -8,8 +8,19 @@
 {% endblock head %}
 
 {% block content %}
-<section class="hero hero-home">
+<section class="hero hero-home" data-period="{{ period }}">
     {% include 'partials/hero_sky.html' %}
+    {% if period == 'night' %}
+    <div class="night-sky" aria-hidden="true">
+        <span class="moon"></span>
+        <svg class="stars" viewBox="0 0 1440 420" preserveAspectRatio="xMidYMin slice">
+            <circle cx="160" cy="90" r="2.5"/><circle cx="310" cy="150" r="1.5"/><circle cx="480" cy="60" r="1.5"/><circle cx="620" cy="210" r="2.5"/>
+            <circle cx="760" cy="110" r="1.5"/><circle cx="900" cy="70" r="1.5"/><circle cx="1010" cy="240" r="2.5"/><circle cx="1120" cy="40" r="1.5"/>
+            <circle cx="1290" cy="300" r="1.5"/><circle cx="1390" cy="170" r="2.5"/><circle cx="240" cy="300" r="1.5"/><circle cx="1040" cy="380" r="1.5"/>
+            <circle cx="560" cy="330" r="2.5"/><circle cx="850" cy="290" r="1.5"/><circle cx="1240" cy="90" r="1.5"/>
+        </svg>
+    </div>
+    {% endif %}
     {% include 'partials/grower_subnav.html' %}
 
     <div class="hero-copy">

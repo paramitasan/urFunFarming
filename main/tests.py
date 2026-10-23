@@ -51,16 +51,21 @@ class HomePageTest(TestCase):
 
     def test_greeting_follows_jakarta_time(self):
         jakarta = ZoneInfo('Asia/Jakarta')
-        cases = [(6, 'Good morning'), (10, 'Good morning'), (11, 'Good afternoon'), (14, 'Good afternoon'),
-                 (15, 'Good evening'), (18, 'Good evening'), (19, 'Good night'), (23, 'Good night')]
+        cases = [(6, 'morning'), (10, 'morning'), (11, 'afternoon'), (14, 'afternoon'),
+                 (15, 'evening'), (18, 'evening'), (19, 'night'), (23, 'night')]
         self.client.force_login(self.grower)
         for hour, greeting in cases:
             fake_now = datetime.datetime(2026, 10, 23, hour, 30, tzinfo=jakarta)
             with self.subTest(hour=hour), patch('main.views.timezone.localtime', return_value=fake_now):
                 response = self.client.get(reverse('main:home'))
-                self.assertContains(response, f'{greeting},')
+                self.assertContains(response, f'Good {greeting},')
                 self.assertContains(response, 'Idris.')
                 self.assertContains(response, 'Friday, 23 October')
+                self.assertContains(response, f'data-period="{greeting}"')
+                if greeting == 'night':
+                    self.assertContains(response, 'class="moon"')
+                else:
+                    self.assertNotContains(response, 'class="moon"')
 
     def test_hero_shows_last_login_roles_and_area(self):
         self.client.force_login(self.both)
@@ -118,6 +123,7 @@ class HomePageTest(TestCase):
         grower_page = self.home_as(self.grower)
         self.assertContains(grower_page, 'Add buying any time.')
         self.assertContains(grower_page, '+ Add buyer')
+
 
         buyer_page = self.home_as(self.buyer)
         self.assertContains(buyer_page, 'Add growing any time.')

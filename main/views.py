@@ -49,14 +49,14 @@ def show_main(request):
     return render(request, 'landing.html', context)
 
 
-def get_greeting(hour):
+def get_period(hour):
     if hour < 11:
-        return 'Good morning'
+        return 'morning'
     if hour < 15:
-        return 'Good afternoon'
+        return 'afternoon'
     if hour < 19:
-        return 'Good evening'
-    return 'Good night'
+        return 'evening'
+    return 'night'
 
 
 def parse_last_login(value):
@@ -82,9 +82,11 @@ def home(request):
         roles = ''
     place = ', '.join(part for part in (profile.area, profile.city) if part)
 
+    period = get_period(now.hour)
     context = {
         'profile': profile,
-        'greeting': get_greeting(now.hour),
+        'period': period,
+        'greeting': f'Good {period}',
         'today': now,
         'last_login': parse_last_login(request.COOKIES.get('last_login')),
         'details': ' · '.join(part for part in (roles, place) if part),
