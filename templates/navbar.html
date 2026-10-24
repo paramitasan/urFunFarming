@@ -7,7 +7,7 @@
 
         <div class="nav-menu" id="nav-menu">
             <ul class="nav-links">
-                <li><a href="{% url 'main:show_main' %}#market" data-label="Market">Market</a></li>
+                <li><a href="{% url 'marketplace:index' %}" data-label="Market"{% if request.resolver_match.app_name == 'marketplace' %} aria-current="page"{% endif %}>Market</a></li>
                 <li><a href="{% url 'main:show_main' %}#forum" data-label="Forum">Forum</a></li>
                 <li><a href="{% url 'main:show_main' %}#gardens" data-label="Gardens">Gardens</a></li>
             </ul>

@@ -1,0 +1,11 @@
+[run]
+branch = True
+source = marketplace,accounts,main
+omit =
+    */migrations/*
+    */tests/*
+    */tests.py
+
+[report]
+show_missing = True
+fail_under = 80

@@ -12,6 +12,7 @@
 
 <form class="auth-form" method="POST" action="{% url 'accounts:login' %}" data-ajax-url="{% url 'accounts:login_ajax' %}" data-error-field="password">
     {% csrf_token %}
+    <input type="hidden" name="next" value="{% firstof request.POST.next request.GET.next '' %}">
 
     <div class="fields">
         {% include 'accounts/field.html' with field=form.username %}

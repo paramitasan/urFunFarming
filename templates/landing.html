@@ -36,9 +36,9 @@
                     </svg>
                 </span>
             </a>
-            <a class="link" href="#market">Browse the market</a>
+            <a class="link" href="{% url 'marketplace:index' %}">Browse the market</a>
             {% elif profile.is_buyer %}
-            <a class="btn" href="#market">
+            <a class="btn" href="{% url 'marketplace:index' %}">
                 Browse the market
                 <span class="well">
                     <svg width="12" height="12" viewBox="11 11 12 12" fill="none" aria-hidden="true">
@@ -56,7 +56,7 @@
                     </svg>
                 </span>
             </a>
-            <a class="link" href="#market">Browse the market</a>
+            <a class="link" href="{% url 'marketplace:index' %}">Browse the market</a>
             {% endif %}
         </div>
 
@@ -162,10 +162,10 @@
     <div class="container">
         <div class="section-head">
             <h2 class="section-title">Fresh from nearby rooftops</h2>
-            <a class="link" href="#">See all listings</a>
+            <a class="link" href="{% url 'marketplace:index' %}">See all listings</a>
         </div>
         <p class="market-text">
-            Fifty listings from growers around the city, updated as they harvest.
+            {{ listing_count }} harvest listings from growers around the city, updated as they harvest.
             Prices are set by each grower.
         </p>
 
@@ -352,7 +352,7 @@
                 </span>
             </a>
 
-            <a class="tile tile-buy" href="{% if profile.is_buyer %}#market{% elif user.is_authenticated %}{% url 'accounts:profile' %}#roles{% else %}{% url 'accounts:register' %}{% endif %}">
+            <a class="tile tile-buy" href="{% if profile.is_buyer %}{% url 'marketplace:index' %}{% elif user.is_authenticated %}{% url 'accounts:profile' %}#roles{% else %}{% url 'accounts:register' %}{% endif %}">
                 {% if profile.is_buyer %}
                 <span class="role-badge"><span class="role-badge-dot"></span>Your role</span>
                 {% endif %}

@@ -1,0 +1,9 @@
+<form method="get" action="{% url 'marketplace:weather' listing.pk %}" data-weather-form>
+    {% if weather_form.errors %}<div class="market-error" role="alert">{{ weather_form.errors }}</div>{% endif %}
+    <div class="market-weather-fields">{% for field in weather_form %}<div class="market-field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}</div>{% endfor %}</div>
+    <button class="market-button market-button-outline" type="submit">Find pickup times</button>
+</form>
+{% if weather_error %}<p class="market-error" role="alert">{{ weather_error }}</p>{% elif weather_checked %}
+    {% if weather_slots %}<ul class="market-weather-slots">{% for slot in weather_slots %}<li><strong>{{ slot.time|date:'H:i' }} WIB</strong><span>{{ slot.temperature|floatformat:1 }}°C</span><span>{{ slot.rain|floatformat:1 }} mm rain</span><small>{{ slot.humidity|floatformat:0 }}% humidity</small></li>{% endfor %}</ul>{% else %}<p class="market-weather-empty">No upcoming collection times match this window and your weather limits. Try another date or adjust the filters.</p>{% endif %}
+{% endif %}
+<p class="market-help market-weather-source">Weather data: <a class="market-text-link" href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>. Forecasts are estimates; confirm your pickup time with the grower.</p>

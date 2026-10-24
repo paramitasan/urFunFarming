@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from accounts.forms import LoginForm, PasswordForm, ProfileForm, RegisterForm
@@ -31,6 +32,13 @@ def register(request):
     return render(request, 'accounts/register.html', context)
 
 
+def _login_target(request):
+    target = request.POST.get('next') or request.GET.get('next')
+    if target and url_has_allowed_host_and_scheme(target, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+        return target
+    return reverse('main:show_main')
+
+
 def login_user(request):
     if request.user.is_authenticated:
         return redirect('main:show_main')
@@ -44,7 +52,7 @@ def login_user(request):
             # Unchecked "Remember me" ends the session when the browser closes
             if not request.POST.get('remember_me'):
                 request.session.set_expiry(0)
-            response = HttpResponseRedirect(reverse('main:show_main'))
+            response = HttpResponseRedirect(_login_target(request))
             response.set_cookie('last_login', str(datetime.datetime.now()))
             return response
     else:
@@ -95,7 +103,7 @@ def login_ajax(request):
         login(request, user)
         if not request.POST.get('remember_me'):
             request.session.set_expiry(0)
-        response = JsonResponse({'status': 'success', 'redirect': reverse('main:show_main')})
+        response = JsonResponse({'status': 'success', 'redirect': _login_target(request)})
         response.set_cookie('last_login', str(datetime.datetime.now()))
         return response
 

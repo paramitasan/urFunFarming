@@ -1,4 +1,4 @@
-django~=5.0
+django~=5.2
 gunicorn
 psycopg2-binary
 python-dotenv
