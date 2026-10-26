@@ -351,3 +351,10 @@
         padding: 24px;
     }
 }
+
+/* Very small phones: the sub-nav drops its icons so all three labels fit */
+@media (max-width: 379px) {
+    .subnav a svg {
+        display: none;
+    }
+}

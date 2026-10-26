@@ -57,7 +57,8 @@ ul {
     right: 0;
     display: flex;
     justify-content: center;
-    padding: 0 16px;
+    /* Same side gap as the page content, so the navbar edge lines up with it */
+    padding: 0 80px;
     z-index: 100;
     pointer-events: none;
 }
@@ -1549,6 +1550,15 @@ ul {
         padding: 0 40px;
     }
 
+    .header {
+        padding: 0 40px;
+    }
+
+    .hero-copy {
+        padding-left: 40px;
+        padding-right: 40px;
+    }
+
     .section-title {
         font-size: 36px;
     }
@@ -1621,6 +1631,10 @@ ul {
 
 @media (max-width: 639px) {
     .container {
+        padding: 0 20px;
+    }
+
+    .header {
         padding: 0 20px;
     }
 
@@ -1785,5 +1799,34 @@ ul {
 
     .footer {
         padding: 40px 20px;
+    }
+}
+
+/* Very small phones: a smaller logo and no chevron so the avatar and menu button still fit */
+@media (max-width: 379px) {
+    .navbar {
+        gap: 8px;
+    }
+
+    .logo img,
+    .navbar.scrolled .logo img {
+        height: 32px;
+    }
+
+    .nav-actions {
+        gap: 8px;
+    }
+
+    .profile-button {
+        padding: 4px;
+    }
+
+    .profile-button img {
+        display: none;
+    }
+
+    .menu-button {
+        width: 44px;
+        height: 44px;
     }
 }
