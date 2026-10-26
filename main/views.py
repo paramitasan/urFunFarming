@@ -5,35 +5,25 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 
 from accounts.models import Profile
+from marketplace.models import HarvestListing
 
-
-# Sample listings until the market app is ready
-LISTINGS = [
-    {'title': 'Butterhead lettuce, 2 heads', 'grower': 'Ayu, Tebet', 'price': 'Rp9.000', 'until': 'Until Sat', 'category': 'leafy'},
-    {'title': 'Cherry tomatoes, 500 g', 'grower': 'Rina, Rawamangun', 'price': 'Rp15.000', 'until': 'Until Fri', 'category': 'fruiting'},
-    {'title': 'Carrots, 1 kg', 'grower': 'Bayu, Cikini', 'price': 'Rp12.000', 'until': 'Until Sun', 'category': 'root'},
-    {'title': 'Thai basil, 3 bunches', 'grower': 'Sekar, Kemang', 'price': 'Free', 'until': 'Today only', 'category': 'herbs'},
-    {'title': 'Kangkung, 4 bunches', 'grower': 'Rina, Tebet', 'price': 'Rp8.000', 'until': 'Until Thu', 'category': 'leafy'},
-    {'title': 'Mint, 2 bunches', 'grower': 'Yoga, Bintaro', 'price': 'Free', 'until': 'Until Wed', 'category': 'herbs'},
-    {'title': 'Bird’s eye chili, 250 g', 'grower': 'Dimas, Kemang', 'price': 'Rp9.000', 'until': 'Until Sun', 'category': 'fruiting'},
-    {'title': 'Roma tomatoes, 1 kg', 'grower': 'Maria, Cempaka Putih', 'price': 'Rp22.000', 'until': 'Until Mon', 'category': 'fruiting'},
-]
 
 CATEGORIES = [
     ('all', 'All'),
-    ('leafy', 'Leafy greens'),
+    ('vegetables', 'Vegetables'),
+    ('fruits', 'Fruits'),
     ('herbs', 'Herbs'),
-    ('fruiting', 'Fruiting veg'),
     ('free', 'Free to collect'),
 ]
 
 
 def get_listings(category):
+    queryset = HarvestListing.objects.available_now().select_related('owner', 'owner__profile')
     if category == 'free':
-        return [item for item in LISTINGS if item['price'] == 'Free']
-    if category in ('leafy', 'herbs', 'fruiting'):
-        return [item for item in LISTINGS if item['category'] == category]
-    return LISTINGS
+        queryset = queryset.filter(price=0)
+    elif category in HarvestListing.Category.values:
+        queryset = queryset.filter(category=category)
+    return queryset[:8]
 
 
 def show_main(request):
@@ -43,7 +33,8 @@ def show_main(request):
     context = {
         'period': get_period(timezone.localtime().hour),
         'app_name': 'urFunFarming',
-        'listings': LISTINGS,
+        'listings': get_listings('all'),
+        'listing_count': HarvestListing.objects.available_now().count(),
         'categories': CATEGORIES,
         'active': 'all',
     }
@@ -83,8 +74,16 @@ def home(request):
         roles = ''
     place = ', '.join(part for part in (profile.area, profile.city) if part)
 
+    # Live count for the Market tile, the same listings the landing page shows
+    listing_count = HarvestListing.objects.available_now().count()
+    if listing_count:
+        market_text = f'{listing_count} harvest{"" if listing_count == 1 else "s"} near you right now. Arrange a pickup.'
+    else:
+        market_text = 'Browse harvests near you and arrange a pickup.'
+
     period = get_period(now.hour)
     context = {
+        'market_text': market_text,
         'profile': profile,
         'period': period,
         'greeting': f'Good {period}',

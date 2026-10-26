@@ -1,0 +1,28 @@
+{% extends 'marketplace/base.html' %}
+{% load static %}
+{% block title %}{{ listing.title }} · Harvest Marketplace{% endblock %}
+{% block market_content %}
+<a class="market-back" href="{% url 'marketplace:index' %}">← Back to the market</a>
+<div class="market-detail-layout">
+    <section class="market-panel market-detail-main">
+        <div class="harvest-photo market-detail-photo">{% if listing.image_url %}<img class="harvest-user-photo" src="{{ listing.image_url }}" alt="{{ listing.title }}" referrerpolicy="no-referrer"><img class="harvest-photo-fallback" src="{% static 'marketplace/img/imgIconSprout.svg' %}" alt="" hidden>{% else %}<img src="{% static 'marketplace/img/imgIconSprout.svg' %}" alt="">{% endif %}<span class="harvest-status{% if listing.price == 0 %} harvest-status-free{% endif %}">{{ listing.status_label }}</span></div>
+        <div class="market-detail-copy"><p class="market-eyebrow">{{ listing.get_category_display }}</p><h1>{{ listing.title }}</h1><p class="harvest-price market-detail-price">{{ listing.price_label }}{% if listing.price %}<span> / {{ listing.price_unit_label }}</span>{% endif %}</p><p>{{ listing.quantity_label }} available</p>
+        <dl class="market-listing-facts"><div><dt>Collection area</dt><dd>{{ listing.area }}, {{ listing.city }}</dd></div><div><dt>Available from</dt><dd>{{ listing.available_from|date:'j M Y' }}</dd></div>{% if listing.available_until %}<div><dt>Available until</dt><dd>{{ listing.available_until|date:'j M Y' }}</dd></div>{% endif %}</dl>
+        <h2>About this harvest</h2><p class="market-description">{{ listing.description|linebreaksbr }}</p>
+        {% if listing.is_demo %}<p class="market-demo-label">Demo listing · This is sample data, not a real offer.</p>{% endif %}
+        {% if user.pk == listing.owner_id %}<div class="market-form-actions"><a class="market-button market-button-primary" href="{% url 'marketplace:edit' listing.pk %}">Edit listing</a><a class="market-button market-button-danger-outline" href="{% url 'marketplace:delete' listing.pk %}">Delete listing</a></div>{% endif %}</div>
+    </section>
+    <aside class="market-panel market-grower-panel" id="grower"><p class="market-eyebrow">YOUR LOCAL GROWER</p><div class="market-grower-identity"><span class="harvest-avatar">{{ listing.grower_initials }}</span><div><h2>{{ listing.grower_name }}</h2><p>{{ listing.area }}, {{ listing.city }}</p></div></div>
+        {% if listing.owner.profile.bio %}<p>{{ listing.owner.profile.bio }}</p>{% endif %}
+        <h3>Arrange your collection</h3><p>Contact the grower to agree on a time, payment, and the collection point.</p>
+        {% if user.is_authenticated %}<div class="market-contact">
+            {% if listing.owner.profile.phone %}<a class="market-text-link" href="tel:{{ listing.owner.profile.phone }}">{{ listing.owner.profile.phone }}</a>{% endif %}
+            {% if listing.owner.profile.contact_email %}<a class="market-text-link" href="mailto:{{ listing.owner.profile.contact_email }}">{{ listing.owner.profile.contact_email }}</a>{% endif %}
+            {% if not listing.owner.profile.phone and not listing.owner.profile.contact_email %}<p>This grower hasn't added contact details yet.</p>{% endif %}
+            {% if user.pk == listing.owner_id %}<a class="market-text-link" href="{% url 'accounts:profile' %}">Update my contact details →</a>{% endif %}
+        </div>{% else %}<a class="market-button market-button-primary" href="{% url 'accounts:login' %}?next={{ listing.get_absolute_url|urlencode }}">Log in to view contact details</a>{% endif %}
+        <a class="market-text-link" href="{% url 'marketplace:index' %}?grower={{ listing.owner.username|urlencode }}">More harvests from this grower →</a>
+    </aside>
+</div>
+<section class="market-panel market-weather-panel"><div><p class="market-eyebrow">PLAN YOUR PICKUP</p><h2>Find a good time to collect</h2><p>Filter hourly forecasts for {{ listing.city }} by time, rain and temperature. Times are in WIB; forecasts use the approximate city location.</p></div><div id="pickup-weather-results" aria-live="polite">{% include 'marketplace/_weather.html' %}</div></section>
+{% endblock %}

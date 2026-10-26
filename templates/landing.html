@@ -29,7 +29,7 @@
                     </svg>
                 </span>
             </a>
-            <a class="link" href="#market">Browse the market</a>
+            <a class="link" href="{% url 'marketplace:index' %}">Browse the market</a>
         </div>
     </div>
 
@@ -130,10 +130,10 @@
     <div class="container">
         <div class="section-head">
             <h2 class="section-title">Fresh from nearby rooftops</h2>
-            <a class="link" href="#">See all listings</a>
+            <a class="link" href="{% url 'marketplace:index' %}">See all listings</a>
         </div>
         <p class="market-text">
-            Fifty listings from growers around the city, updated as they harvest.
+            {{ listing_count }} harvest listing{{ listing_count|pluralize }} from growers around the city, updated as they harvest.
             Prices are set by each grower.
         </p>
 

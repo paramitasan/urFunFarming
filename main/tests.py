@@ -165,6 +165,21 @@ class HomePageTest(TestCase):
         self.client.logout()
         self.assertContains(self.client.get(reverse('main:show_main')), 'js/hero-motion.js')
 
+    def test_market_tile_links_to_marketplace_with_live_count(self):
+        from marketplace.models import HarvestListing
+        from marketplace.dates import jakarta_today
+
+        response = self.home_as(self.buyer)
+        self.assertContains(response, f'href="{reverse("marketplace:index")}" data-tone="market"')
+        self.assertContains(response, 'Browse harvests near you and arrange a pickup.')
+
+        HarvestListing.objects.create(
+            owner=self.grower, title='Fresh basil', description='Basil from the balcony.', category='herbs',
+            quantity=6, unit='bunch', price=12000, price_quantity=2, area='Tebet', city='Jakarta',
+            available_from=jakarta_today(), available_until=jakarta_today() + datetime.timedelta(days=3),
+        )
+        self.assertContains(self.home_as(self.buyer), '1 harvest near you right now.')
+
     def test_user_without_profile_gets_one(self):
         admin = User.objects.create_user('admin_k', password='tomato-Balcony-42')
         response = self.home_as(admin)
