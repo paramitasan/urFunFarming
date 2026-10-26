@@ -88,7 +88,7 @@ ul {
     box-shadow: 0 10px 15px rgba(18, 81, 51, 0.14);
 }
 
-/* Even padding keeps the grid centred; the margin gives the logo Figma's 24px inset */
+/* The navbar's 24px left padding gives the logo Figma's inset */
 .logo {
     justify-self: start;
 }
@@ -1455,20 +1455,12 @@ ul {
 
 @media (max-width: 900px) {
     .hero-copy {
-        padding: 120px 20px 0 20px;
-    }
-
-    .hero h1 {
-        font-size: 44px;
+        padding: 120px 40px 0 40px;
     }
 
     .hero .ctas {
         flex-wrap: wrap;
         gap: 20px;
-    }
-
-    .footer {
-        padding: 40px 20px;
     }
 
     .footer-top {
@@ -1478,5 +1470,320 @@ ul {
 
     .footer-links {
         flex-wrap: wrap;
+    }
+
+    .tiles {
+        flex-direction: column;
+    }
+
+    .tile {
+        min-height: 0;
+    }
+}
+
+/* Landing sections. Above 1439px everything keeps the Figma desktop sizes */
+
+/* The plant art and the steps share the row instead of pushing it wider */
+@media (max-width: 1439px) {
+    /* Both columns split the row; the art stops at its 600px desktop width */
+    .grow-art {
+        width: auto;
+        height: auto;
+        flex: 1 1 0;
+        max-width: 600px;
+        /* The journal card hangs 40px below the stage, like the 660px desktop box */
+        padding-bottom: 40px;
+    }
+
+    .journal-card {
+        top: auto;
+        bottom: 2px;
+    }
+
+    .grow-text {
+        width: auto;
+        flex: 1 1 0;
+        min-width: 0;
+    }
+}
+
+@media (max-width: 1279px) {
+    .role-text {
+        width: auto;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .forum-grid {
+        gap: 56px;
+    }
+
+    .forum-intro {
+        width: 360px;
+    }
+}
+
+@media (max-width: 1199px) {
+    /* 72px at 1200 down to 34px on phones */
+    .hero h1 {
+        font-size: clamp(34px, 6vw, 72px);
+    }
+
+    /* Two role cards side by side leave the lists too narrow from here down */
+    .roles-grid {
+        flex-direction: column;
+    }
+
+    .role-card {
+        min-height: 0;
+    }
+
+    .garden-small .placeholder {
+        width: 140px;
+        height: 130px;
+    }
+}
+
+@media (max-width: 1023px) {
+    .container {
+        padding: 0 40px;
+    }
+
+    .section-title {
+        font-size: 36px;
+    }
+
+    .grow-inner {
+        flex-direction: column;
+        align-items: center;
+        gap: 48px;
+        padding: 80px 40px;
+    }
+
+    .grow-art {
+        flex: none;
+        width: 100%;
+        max-width: 600px;
+    }
+
+    .grow-text {
+        flex: none;
+        width: 100%;
+        max-width: 620px;
+    }
+
+    .market,
+    .gardens {
+        padding: 88px 0;
+    }
+
+    .track-scroll {
+        margin: 32px -40px 0;
+    }
+
+    .track {
+        padding: 0 40px;
+    }
+
+    .gardens-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .garden-big .placeholder {
+        height: 320px;
+    }
+
+    .forum {
+        padding: 88px 0;
+    }
+
+    .forum-grid {
+        flex-direction: column;
+        gap: 32px;
+    }
+
+    .forum-intro {
+        width: auto;
+    }
+
+    .questions {
+        width: 100%;
+    }
+
+    .dusk {
+        padding: 80px 0;
+    }
+
+    .footer {
+        padding: 40px;
+    }
+}
+
+@media (max-width: 639px) {
+    .container {
+        padding: 0 20px;
+    }
+
+    .hero-copy {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    /* Smaller sky, kept beside the buttons where the text leaves room */
+    .hero .sun,
+    .hero .glow {
+        left: 66%;
+        top: 60px;
+        width: 240px;
+    }
+
+    /* The morning and evening drops would push the sun into the text */
+    .hero[data-period] .sun,
+    .hero[data-period] .glow {
+        margin: 0;
+    }
+
+    .moon {
+        left: 80%;
+        top: 140px;
+        width: 64px;
+        height: 64px;
+    }
+
+    .hero .c1 {
+        display: none;
+    }
+
+    .hero .c2 {
+        left: 62%;
+        top: 385px;
+        width: 140px;
+    }
+
+    .hero .c3 {
+        left: 58%;
+        top: 455px;
+        width: 90px;
+    }
+
+    .section-title {
+        font-size: 30px;
+    }
+
+    .section-head {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .grow-inner {
+        padding: 64px 20px;
+    }
+
+    .grow-text .eyebrow,
+    .grow-text .section-title,
+    .grow-text .grow-sub,
+    .garden-link {
+        padding-left: 0;
+    }
+
+    .step {
+        padding: 16px 14px;
+        gap: 14px;
+    }
+
+    .step-title {
+        font-size: 19px;
+    }
+
+    .journal-card {
+        left: 12px;
+        bottom: 8px;
+        padding: 10px 14px 10px 10px;
+    }
+
+    .harvest-chip {
+        left: 12px;
+        top: 12px;
+    }
+
+    .market,
+    .gardens,
+    .forum {
+        padding: 64px 0;
+    }
+
+    .track-scroll {
+        margin: 24px -20px 0;
+    }
+
+    .track {
+        padding: 0 20px;
+    }
+
+    .card {
+        width: 260px;
+    }
+
+    .roles {
+        padding: 24px 0 64px;
+    }
+
+    /* Plant goes above the text so the list and button get the full card width */
+    .role-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 28px 24px;
+    }
+
+    .role-text {
+        align-self: stretch;
+    }
+
+    .role-text h3 {
+        font-size: 26px;
+    }
+
+    .role-text ul {
+        font-size: 16px;
+    }
+
+    .role-plant {
+        order: -1;
+        width: 72px;
+        height: auto;
+    }
+
+    .garden-big .placeholder {
+        height: 220px;
+    }
+
+    .garden-small .placeholder {
+        width: 120px;
+        height: 110px;
+    }
+
+    .question {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    .dusk {
+        padding: 64px 0;
+    }
+
+    .tile {
+        padding: 24px;
+        gap: 28px;
+    }
+
+    .tile h3 {
+        font-size: 28px;
+    }
+
+    .footer {
+        padding: 40px 20px;
     }
 }

@@ -285,14 +285,60 @@
         margin-top: 40px;
     }
 
+    /* The skyline's ground gets thin on small screens, so extend it to keep the white heading on dark green */
+    .hero-home {
+        padding-bottom: 110px;
+    }
+
+    .hero-home::before {
+        height: 130px;
+    }
+
     .home-content {
-        margin-top: -70px;
+        margin-top: -110px;
     }
 }
 
 @media (max-width: 639px) {
     .launch-row {
         grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* Sun peeks in beside the greeting; clouds sit beside the Edit profile button */
+    .hero-home .sun,
+    .hero-home .glow {
+        left: 70%;
+        top: 150px;
+        width: 180px;
+    }
+
+    .hero-home .c2 {
+        top: 405px;
+    }
+
+    .hero-home .c3 {
+        top: 465px;
+    }
+
+    /* Sub-nav fills the width so all three links fit under the phone navbar */
+    .hero-home .subnav-row {
+        padding-top: 96px;
+    }
+
+    .subnav {
+        width: 100%;
+        max-width: 420px;
+    }
+
+    .subnav li {
+        flex: 1;
+    }
+
+    .subnav a {
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 6px;
+        font-size: 13px;
     }
 
     .home-profile,
