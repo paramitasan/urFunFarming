@@ -14,8 +14,10 @@ if (window.gsap && window.ScrollTrigger) {
             }
 
             document.querySelectorAll('.launch-row').forEach((row) =>
+                // clearProps drops GSAP's inline transform afterwards so the CSS hover lift still works
                 gsap.from(row.querySelectorAll('.launch-tile'), {
                     y: 10, opacity: 0, duration: 0.45, stagger: 0.06,
+                    clearProps: 'transform,translate,rotate,scale',
                     scrollTrigger: { trigger: row, start: 'top 90%', once: true }
                 })
             );

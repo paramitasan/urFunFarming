@@ -122,10 +122,6 @@ class HomePageTest(TestCase):
         self.assertContains(both_page, 'class="launch-tile"', count=6)
         self.assertNotContains(both_page, 'Where to?')
 
-    def test_neighborhood_band_only_with_growing_tools(self):
-        self.assertContains(self.home_as(self.grower), 'launchpad-band')
-        self.assertNotContains(self.home_as(self.buyer), 'launchpad-band')
-
     def test_subnav_only_for_growers_on_home(self):
         self.assertContains(self.home_as(self.grower), 'class="subnav"')
         self.assertContains(self.home_as(self.both), 'class="subnav"')

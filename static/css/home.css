@@ -74,20 +74,6 @@
     color: #C9E2C4;
 }
 
-/* Pale band behind the neighborhood row, as wide as the page */
-.launchpad-band {
-    position: relative;
-    isolation: isolate;
-}
-
-.launchpad-band::before {
-    content: "";
-    position: absolute;
-    inset: -40px -80px -48px;
-    z-index: -1;
-    background-color: rgba(217, 237, 223, 0.55);
-}
-
 .launchpads,
 .launchpad {
     display: flex;
@@ -128,7 +114,8 @@
     border: 1px solid var(--color-band);
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(18, 81, 51, 0.06);
-    transition: transform var(--dur-hover) ease, box-shadow var(--dur-hover) ease, border-color var(--dur-hover) ease;
+    /* The hover lift uses translate, not transform, so it can't smooth out GSAP's entrance and leave tiles uneven */
+    transition: translate var(--dur-hover) ease, box-shadow var(--dur-hover) ease, border-color var(--dur-hover) ease;
 }
 
 .launch-top {
@@ -272,7 +259,7 @@
     .launch-tile:hover {
         border-color: var(--color-mint);
         box-shadow: 0 14px 30px rgba(18, 81, 51, 0.1);
-        transform: translateY(-2px);
+        translate: 0 -2px;
     }
 
     .launch-tile:hover .launch-arrow {
