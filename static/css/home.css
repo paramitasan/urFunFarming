@@ -1,0 +1,360 @@
+/* Signed-in Home page, on top of the landing hero styles */
+
+.hero-home {
+    /* Skyline starts at 428px and is 572.19 / 1440 of the width tall, so the hero ends where the skyline ends */
+    height: calc(428px + 39.74vw);
+}
+
+/* Ground colour under the skyline, so a rounding gap at the bottom never shows the sky */
+.hero-home::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 40px;
+    background-color: #145236;
+}
+
+.hero-home .sun,
+.hero-home .glow {
+    top: 31px;
+}
+
+.hero-home .c1 {
+    top: 181px;
+}
+
+.hero-home .c2 {
+    top: 327px;
+}
+
+.hero-home .c3 {
+    top: 400px;
+}
+
+/* The sub-nav takes up the space above the greeting */
+.hero-home .subnav-row + .hero-copy {
+    padding-top: 31px;
+}
+
+.hero-home .sub span {
+    display: block;
+}
+
+.hero-home #skyline {
+    position: absolute;
+    top: 428px;
+    left: 0;
+    margin-top: 0;
+}
+
+.home-edit {
+    margin-top: 40px;
+    background-color: var(--color-surface);
+}
+
+/* Launchpad tiles. The first row climbs onto the skyline's dark ground */
+
+.home-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 56px;
+    /* 130px at 1440, shrinking with the ground strip */
+    margin-top: -9vw;
+    padding-bottom: 80px;
+}
+
+.launchpads > .launchpad:first-child .launch-heading h2 {
+    color: var(--color-surface);
+}
+
+.launchpads > .launchpad:first-child .launch-heading p {
+    color: #C9E2C4;
+}
+
+.launchpads,
+.launchpad {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.launch-heading h2 {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--color-forest);
+}
+
+.launch-heading p {
+    margin-top: 4px;
+    font-size: 15px;
+    line-height: normal;
+    color: var(--color-deep);
+}
+
+.launch-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.launch-tile {
+    --well: var(--color-band);
+    --ink: var(--color-forest);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 24px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-band);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(18, 81, 51, 0.06);
+    /* The hover lift uses translate, not transform, so it can't smooth out GSAP's entrance and leave tiles uneven */
+    transition: translate var(--dur-hover) ease, box-shadow var(--dur-hover) ease, border-color var(--dur-hover) ease;
+}
+
+.launch-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* One tint per module */
+.launch-tile[data-tone="journal"] { --well: #FBEFD9; --ink: #A86A12; }
+.launch-tile[data-tone="care"] { --well: #DCEDF5; --ink: #2A6B8C; }
+.launch-tile[data-tone="market"] { --well: #FBE4D4; --ink: #B9541A; }
+.launch-tile[data-tone="explore"] { --well: #EAF0D0; --ink: #5E7B23; }
+.launch-tile[data-tone="forum"] { --well: var(--color-forest); --ink: var(--color-light); }
+
+.launch-icon {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background-color: var(--well);
+    color: var(--ink);
+}
+
+/* Faint copy of the icon in the corner */
+.launch-mark {
+    position: absolute;
+    right: -26px;
+    bottom: -30px;
+    opacity: 0.08;
+    color: var(--ink);
+    pointer-events: none;
+}
+
+.launch-tile[data-tone="forum"] .launch-mark {
+    color: var(--color-forest);
+}
+
+.launch-mark .icon {
+    width: 110px;
+    height: 110px;
+}
+
+.launch-title {
+    flex: 1;
+    min-width: 0;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.launch-arrow {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1.5px solid var(--color-band);
+    border-radius: 50%;
+    background-color: var(--color-surface);
+    color: var(--color-forest);
+    transition: transform var(--dur-hover) ease, background-color var(--dur-hover) ease;
+}
+
+.launch-desc {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--color-deep);
+}
+
+.launch-tile:focus-visible {
+    outline: 2px solid var(--color-forest);
+    outline-offset: 2px;
+}
+
+/* Profile card */
+
+.home-profile {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 24px 28px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-band);
+    border-radius: 20px;
+}
+
+.home-profile-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 14px;
+    line-height: normal;
+    color: var(--color-deep);
+}
+
+.home-profile-text .home-profile-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-forest);
+}
+
+/* Add-a-role band */
+
+.role-band {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 32px 36px;
+    background-color: var(--color-forest);
+    border-radius: 24px;
+}
+
+.role-band h2 {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: normal;
+    color: var(--color-surface);
+}
+
+.role-band p {
+    margin-top: 4px;
+    font-size: 14px;
+    line-height: normal;
+    color: #C9E2C4;
+}
+
+.role-band .pill-button {
+    flex-shrink: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .launch-tile:hover {
+        border-color: var(--color-mint);
+        box-shadow: 0 14px 30px rgba(18, 81, 51, 0.1);
+        translate: 0 -2px;
+    }
+
+    .launch-tile:hover .launch-arrow {
+        background-color: var(--color-band);
+        transform: translateX(3px);
+    }
+}
+
+@media (max-width: 1023px) {
+    .launch-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .hero-home {
+        height: auto;
+    }
+
+    .hero-home #skyline {
+        position: relative;
+        top: auto;
+        margin-top: 40px;
+    }
+
+    /* The skyline's ground gets thin on small screens, so extend it to keep the white heading on dark green */
+    .hero-home {
+        padding-bottom: 110px;
+    }
+
+    .hero-home::before {
+        height: 130px;
+    }
+
+    .home-content {
+        margin-top: -110px;
+    }
+}
+
+@media (max-width: 639px) {
+    .launch-row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* Sun peeks in beside the greeting; clouds sit beside the Edit profile button */
+    .hero-home .sun,
+    .hero-home .glow {
+        left: 70%;
+        top: 150px;
+        width: 180px;
+    }
+
+    .hero-home .c2 {
+        top: 405px;
+    }
+
+    .hero-home .c3 {
+        top: 465px;
+    }
+
+    /* Sub-nav fills the width so all three links fit under the phone navbar */
+    .hero-home .subnav-row {
+        padding-top: 96px;
+    }
+
+    .subnav {
+        width: 100%;
+        max-width: 420px;
+    }
+
+    .subnav li {
+        flex: 1;
+    }
+
+    .subnav a {
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 6px;
+        font-size: 13px;
+    }
+
+    .home-profile,
+    .role-band {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .role-band {
+        padding: 24px;
+    }
+}
+
+/* Very small phones: the sub-nav drops its icons so all three labels fit */
+@media (max-width: 379px) {
+    .subnav a svg {
+        display: none;
+    }
+}

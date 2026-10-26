@@ -133,7 +133,7 @@ class MarketplaceBrowsingTests(MarketplaceCase):
         self.assertNotContains(response, '<img src=x')
         home = self.client.get(reverse('main:show_main'))
         self.assertContains(home, self.listing.get_absolute_url())
-        self.assertContains(home, '1 harvest listings')
+        self.assertContains(home, '1 harvest listing from')
         self.assertContains(self.client.get(reverse('main:filter_listings'), {'category': 'herbs'}), '&lt;script&gt;')
         self.assertNotContains(self.client.get(reverse('main:filter_listings'), {'category': 'free'}), '&lt;script&gt;')
 
@@ -278,8 +278,8 @@ class MarketplaceWriteTests(MarketplaceCase):
         for ajax in [False, True]:
             url = reverse('accounts:login_ajax' if ajax else 'accounts:login')
             for target, expected in [(self.listing.get_absolute_url(), self.listing.get_absolute_url()),
-                                     ('https://evil.example/path', reverse('main:show_main')),
-                                     ('//evil.example/path', reverse('main:show_main'))]:
+                                     ('https://evil.example/path', reverse('main:home')),
+                                     ('//evil.example/path', reverse('main:home'))]:
                 with self.subTest(ajax=ajax, target=target):
                     self.client.logout()
                     response = self.client.post(url, {'username': self.owner.username, 'password': 'garden-test-password', 'next': target})

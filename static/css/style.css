@@ -14,6 +14,7 @@
     --color-ink: #0B2E1D;
     --color-amber: #EA9E26;
     --color-hairline: rgba(18, 81, 51, 0.12);
+    --color-field: #C9DFCB;
 }
 
 
@@ -51,17 +52,18 @@ ul {
 
 .header {
     position: fixed;
-    top: 24px;
+    top: 20px;
     left: 0;
     right: 0;
     display: flex;
     justify-content: center;
-    padding: 0 16px;
+    /* Same side gap as the page content, so the navbar edge lines up with it */
+    padding: 0 80px;
     z-index: 100;
     pointer-events: none;
 }
 
-/* Three columns so the links sit in the true center */
+/* Three columns so the links sit between the logo and the buttons, like the Figma nav */
 .navbar {
     position: relative;
     width: 100%;
@@ -71,7 +73,7 @@ ul {
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
     gap: 16px;
-    padding: 0 12px;
+    padding: 0 12px 0 24px;
     background-color: rgba(251, 253, 251, 0.85);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -87,10 +89,9 @@ ul {
     box-shadow: 0 10px 15px rgba(18, 81, 51, 0.14);
 }
 
-/* Even padding keeps the grid centred; the margin gives the logo Figma's 24px inset */
+/* The navbar's 24px left padding gives the logo Figma's inset */
 .logo {
     justify-self: start;
-    margin-left: 12px;
 }
 
 .logo img {
@@ -189,6 +190,16 @@ ul {
     background-color: var(--color-accent);
 }
 
+.avatar-56 {
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
 .profile-button img {
     transition: transform var(--dur-press) var(--ease-out);
 }
@@ -229,6 +240,125 @@ ul {
 .profile-dropdown a:hover,
 .profile-dropdown button:hover {
     background-color: var(--color-band);
+    color: var(--color-forest);
+}
+
+/* Pill buttons and role chips, shared by Home and Profile */
+
+.outline-button,
+.pill-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px 22px;
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+    cursor: pointer;
+}
+
+.outline-button {
+    background: none;
+    border: 1.5px solid var(--color-forest);
+}
+
+.outline-button:hover {
+    background-color: var(--color-band);
+}
+
+.pill-button {
+    background-color: var(--color-accent);
+    border: none;
+}
+
+.pill-button:hover {
+    background-color: #1DB873;
+}
+
+.outline-button:disabled,
+.pill-button:disabled {
+    opacity: 0.7;
+    cursor: progress;
+}
+
+.role-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.role-chip {
+    padding: 6px 12px;
+    border-radius: 999px;
+    background-color: var(--color-band);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.role-chip-add {
+    padding: 6px 10.5px;
+    background: none;
+    border: 1.5px dashed var(--color-field);
+    color: var(--color-deep);
+}
+
+.role-chip-add:hover {
+    border-color: var(--color-accent);
+    color: var(--color-forest);
+}
+
+.outline-button:focus-visible,
+.pill-button:focus-visible,
+.role-chip-add:focus-visible,
+.subnav a:focus-visible {
+    outline: 2px solid var(--color-forest);
+    outline-offset: 2px;
+}
+
+/* Grower sub-nav under the navbar */
+
+.subnav-row {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    padding: 108px 16px 0;
+}
+
+.subnav {
+    display: flex;
+    gap: 4px;
+    padding: 6px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-band);
+    border-radius: 999px;
+}
+
+.subnav a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: normal;
+    color: var(--color-deep);
+    white-space: nowrap;
+}
+
+.subnav a[aria-current="page"] {
+    background-color: var(--color-band);
+    font-weight: 600;
+    color: var(--color-forest);
+}
+
+.subnav a:hover {
     color: var(--color-forest);
 }
 
@@ -279,8 +409,11 @@ ul {
     font-weight: 600;
     line-height: 1.2;
     color: var(--color-forest);
-    text-decoration: underline;
     text-underline-offset: 4px;
+}
+
+.link:hover {
+    text-decoration: underline;
 }
 
 /* Hero */
@@ -368,18 +501,90 @@ ul {
     margin-top: 40px;
 }
 
-.last-login {
-    margin-top: 16px;
-    font-size: 13px;
-    color: var(--color-deep);
-}
-
 #skyline {
     position: relative;
     display: block;
     width: 100%;
     height: auto;
     margin-top: 12px;
+}
+
+/* Hero sky by time of day, shared by the landing page and Home.
+   Offsets use margins so each page keeps its own sun position and GSAP can still move it. */
+
+.hero[data-period="morning"] {
+    background-image: linear-gradient(to bottom, #FBEFD9, var(--color-bg));
+}
+
+.hero[data-period="morning"] .sun,
+.hero[data-period="morning"] .glow {
+    margin-top: 170px;
+}
+
+.hero[data-period="evening"] {
+    background-image: linear-gradient(to bottom, #F3CFA6, var(--color-bg));
+}
+
+.hero[data-period="evening"] .sun,
+.hero[data-period="evening"] .glow {
+    margin-top: 190px;
+    margin-left: -120px;
+}
+
+/* Soft night: a pale dusk sky, so the text and buttons keep their day colours */
+.hero[data-period="night"] {
+    background-image: linear-gradient(to bottom, #C7CDE4, #D9E1E2 55%, var(--color-bg));
+}
+
+.hero[data-period="night"] .sun,
+.hero[data-period="night"] .glow {
+    display: none;
+}
+
+.hero[data-period="night"] .cloud {
+    opacity: 0.95;
+}
+
+.hero[data-period="night"] #skyline .back {
+    opacity: 0.5;
+}
+
+/* Every third window has its light on; the rest go grey */
+.hero[data-period="night"] #skyline [fill="#EEF3EA"] {
+    fill: #DEE3EE;
+}
+
+.hero[data-period="night"] #skyline .lit {
+    fill: #F4B84C;
+}
+
+.night-sky {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 420px;
+    pointer-events: none;
+}
+
+.night-sky .stars {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: #FFFFFF;
+    opacity: 0.95;
+}
+
+.moon {
+    position: absolute;
+    left: 81.25%;
+    top: 120px;
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background-color: #FBF5E2;
+    box-shadow: inset 0 0 0 2px #E9DDB4, 0 0 60px 18px rgba(255, 247, 220, 0.95);
 }
 
 /* Shared section parts */
@@ -1048,39 +1253,6 @@ ul {
     border-radius: 28px;
 }
 
-/* "Your role" badge when signed in */
-.role-badge {
-    position: absolute;
-    top: 34.5px;
-    right: 34.5px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 999px;
-    background-color: var(--color-forest);
-    font-size: 13px;
-    font-weight: 600;
-    line-height: normal;
-    color: var(--color-surface);
-}
-
-.role-badge-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background-color: var(--color-mint);
-}
-
-.tile-buy .role-badge {
-    background-color: var(--color-accent);
-    color: var(--color-forest);
-}
-
-.tile-buy .role-badge-dot {
-    background-color: var(--color-forest);
-}
-
 .tile h3 {
     font-size: 34px;
     font-weight: 700;
@@ -1284,20 +1456,12 @@ ul {
 
 @media (max-width: 900px) {
     .hero-copy {
-        padding: 120px 20px 0 20px;
-    }
-
-    .hero h1 {
-        font-size: 44px;
+        padding: 120px 40px 0 40px;
     }
 
     .hero .ctas {
         flex-wrap: wrap;
         gap: 20px;
-    }
-
-    .footer {
-        padding: 40px 20px;
     }
 
     .footer-top {
@@ -1307,5 +1471,362 @@ ul {
 
     .footer-links {
         flex-wrap: wrap;
+    }
+
+    .tiles {
+        flex-direction: column;
+    }
+
+    .tile {
+        min-height: 0;
+    }
+}
+
+/* Landing sections. Above 1439px everything keeps the Figma desktop sizes */
+
+/* The plant art and the steps share the row instead of pushing it wider */
+@media (max-width: 1439px) {
+    /* Both columns split the row; the art stops at its 600px desktop width */
+    .grow-art {
+        width: auto;
+        height: auto;
+        flex: 1 1 0;
+        max-width: 600px;
+        /* The journal card hangs 40px below the stage, like the 660px desktop box */
+        padding-bottom: 40px;
+    }
+
+    .journal-card {
+        top: auto;
+        bottom: 2px;
+    }
+
+    .grow-text {
+        width: auto;
+        flex: 1 1 0;
+        min-width: 0;
+    }
+}
+
+@media (max-width: 1279px) {
+    .role-text {
+        width: auto;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .forum-grid {
+        gap: 56px;
+    }
+
+    .forum-intro {
+        width: 360px;
+    }
+}
+
+@media (max-width: 1199px) {
+    /* 72px at 1200 down to 34px on phones */
+    .hero h1 {
+        font-size: clamp(34px, 6vw, 72px);
+    }
+
+    /* Two role cards side by side leave the lists too narrow from here down */
+    .roles-grid {
+        flex-direction: column;
+    }
+
+    .role-card {
+        min-height: 0;
+    }
+
+    .garden-small .placeholder {
+        width: 140px;
+        height: 130px;
+    }
+}
+
+@media (max-width: 1023px) {
+    .container {
+        padding: 0 40px;
+    }
+
+    .header {
+        padding: 0 40px;
+    }
+
+    .hero-copy {
+        padding-left: 40px;
+        padding-right: 40px;
+    }
+
+    .section-title {
+        font-size: 36px;
+    }
+
+    .grow-inner {
+        flex-direction: column;
+        align-items: center;
+        gap: 48px;
+        padding: 80px 40px;
+    }
+
+    .grow-art {
+        flex: none;
+        width: 100%;
+        max-width: 600px;
+    }
+
+    .grow-text {
+        flex: none;
+        width: 100%;
+        max-width: 620px;
+    }
+
+    .market,
+    .gardens {
+        padding: 88px 0;
+    }
+
+    .track-scroll {
+        margin: 32px -40px 0;
+    }
+
+    .track {
+        padding: 0 40px;
+    }
+
+    .gardens-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .garden-big .placeholder {
+        height: 320px;
+    }
+
+    .forum {
+        padding: 88px 0;
+    }
+
+    .forum-grid {
+        flex-direction: column;
+        gap: 32px;
+    }
+
+    .forum-intro {
+        width: auto;
+    }
+
+    .questions {
+        width: 100%;
+    }
+
+    .dusk {
+        padding: 80px 0;
+    }
+
+    .footer {
+        padding: 40px;
+    }
+}
+
+@media (max-width: 639px) {
+    .container {
+        padding: 0 20px;
+    }
+
+    .header {
+        padding: 0 20px;
+    }
+
+    .hero-copy {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    /* Smaller sky, kept beside the buttons where the text leaves room */
+    .hero .sun,
+    .hero .glow {
+        left: 66%;
+        top: 60px;
+        width: 240px;
+    }
+
+    /* The morning and evening drops would push the sun into the text */
+    .hero[data-period] .sun,
+    .hero[data-period] .glow {
+        margin: 0;
+    }
+
+    .moon {
+        left: 80%;
+        top: 140px;
+        width: 64px;
+        height: 64px;
+    }
+
+    .hero .c1 {
+        display: none;
+    }
+
+    .hero .c2 {
+        left: 62%;
+        top: 385px;
+        width: 140px;
+    }
+
+    .hero .c3 {
+        left: 58%;
+        top: 455px;
+        width: 90px;
+    }
+
+    .section-title {
+        font-size: 30px;
+    }
+
+    .section-head {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .grow-inner {
+        padding: 64px 20px;
+    }
+
+    .grow-text .eyebrow,
+    .grow-text .section-title,
+    .grow-text .grow-sub,
+    .garden-link {
+        padding-left: 0;
+    }
+
+    .step {
+        padding: 16px 14px;
+        gap: 14px;
+    }
+
+    .step-title {
+        font-size: 19px;
+    }
+
+    .journal-card {
+        left: 12px;
+        bottom: 8px;
+        padding: 10px 14px 10px 10px;
+    }
+
+    .harvest-chip {
+        left: 12px;
+        top: 12px;
+    }
+
+    .market,
+    .gardens,
+    .forum {
+        padding: 64px 0;
+    }
+
+    .track-scroll {
+        margin: 24px -20px 0;
+    }
+
+    .track {
+        padding: 0 20px;
+    }
+
+    .card {
+        width: 260px;
+    }
+
+    .roles {
+        padding: 24px 0 64px;
+    }
+
+    /* Plant goes above the text so the list and button get the full card width */
+    .role-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 28px 24px;
+    }
+
+    .role-text {
+        align-self: stretch;
+    }
+
+    .role-text h3 {
+        font-size: 26px;
+    }
+
+    .role-text ul {
+        font-size: 16px;
+    }
+
+    .role-plant {
+        order: -1;
+        width: 72px;
+        height: auto;
+    }
+
+    .garden-big .placeholder {
+        height: 220px;
+    }
+
+    .garden-small .placeholder {
+        width: 120px;
+        height: 110px;
+    }
+
+    .question {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    .dusk {
+        padding: 64px 0;
+    }
+
+    .tile {
+        padding: 24px;
+        gap: 28px;
+    }
+
+    .tile h3 {
+        font-size: 28px;
+    }
+
+    .footer {
+        padding: 40px 20px;
+    }
+}
+
+/* Very small phones: a smaller logo and no chevron so the avatar and menu button still fit */
+@media (max-width: 379px) {
+    .navbar {
+        gap: 8px;
+    }
+
+    .logo img,
+    .navbar.scrolled .logo img {
+        height: 32px;
+    }
+
+    .nav-actions {
+        gap: 8px;
+    }
+
+    .profile-button {
+        padding: 4px;
+    }
+
+    .profile-button img {
+        display: none;
+    }
+
+    .menu-button {
+        width: 44px;
+        height: 44px;
     }
 }

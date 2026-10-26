@@ -124,7 +124,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Jakarta'
 
 USE_I18N = True
 
@@ -144,6 +144,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/home/'
 
 # PWS serves HTTPS through a proxy, so Django needs to trust that origin for POST forms
 CSRF_TRUSTED_ORIGINS = ['https://paramita-santoso-urfunfarming.pws.cs.ui.ac.id']

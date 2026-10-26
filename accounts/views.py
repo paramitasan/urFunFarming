@@ -1,5 +1,6 @@
 import datetime
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
@@ -17,7 +18,7 @@ from accounts.models import Profile
 def register(request):
     # Signed-in users skip the form instead of seeing an empty one
     if request.user.is_authenticated:
-        return redirect('main:show_main')
+        return redirect(settings.LOGIN_REDIRECT_URL)
 
     form = RegisterForm()
 
@@ -36,12 +37,12 @@ def _login_target(request):
     target = request.POST.get('next') or request.GET.get('next')
     if target and url_has_allowed_host_and_scheme(target, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
         return target
-    return reverse('main:show_main')
+    return settings.LOGIN_REDIRECT_URL
 
 
 def login_user(request):
     if request.user.is_authenticated:
-        return redirect('main:show_main')
+        return redirect(settings.LOGIN_REDIRECT_URL)
 
     if request.method == 'POST':
         form = LoginForm(data=request.POST)
@@ -79,7 +80,7 @@ def form_errors(form):
 @require_POST
 def register_ajax(request):
     if request.user.is_authenticated:
-        return JsonResponse({'status': 'success', 'redirect': reverse('main:show_main')})
+        return JsonResponse({'status': 'success', 'redirect': settings.LOGIN_REDIRECT_URL})
 
     form = RegisterForm(request.POST)
 
@@ -94,7 +95,7 @@ def register_ajax(request):
 @require_POST
 def login_ajax(request):
     if request.user.is_authenticated:
-        return JsonResponse({'status': 'success', 'redirect': reverse('main:show_main')})
+        return JsonResponse({'status': 'success', 'redirect': settings.LOGIN_REDIRECT_URL})
 
     form = LoginForm(data=request.POST)
 

@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home - UrFunFarming{% endblock title %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock head %}
+
+{% block content %}
+<section class="hero hero-home" data-period="{{ period }}">
+    {% include 'partials/hero_sky.html' %}
+    {% include 'partials/grower_subnav.html' %}
+
+    <div class="hero-copy">
+        <h1>
+            <span class="line">{{ greeting }},</span>
+            <span class="line">{{ profile.display_name }}.</span>
+        </h1>
+
+        <p class="sub">
+            <span>{{ today|date:"l, j F" }}{% if last_login %} &middot; Last login {{ last_login|date:"j M, H:i" }}{% endif %}</span>
+            {% if details %}<span>{{ details }}</span>{% endif %}
+        </p>
+
+        <a class="outline-button home-edit" href="{% url 'accounts:profile' %}">
+            {% include 'svg/icons/user.svg' %}
+            Edit profile
+        </a>
+    </div>
+
+    {% include 'svg/skyline.svg' %}
+</section>
+
+<div class="container home-content">
+    {# TODO: tile links to gardens:mine, journal:index, care:index, gardens:explore and forum:index once those modules exist #}
+    <div class="launchpads">
+    {% if profile.is_grower %}
+    <section class="launchpad">
+        <div class="launch-heading">
+            <h2>Your growing tools</h2>
+            <p>Your gardens, journal and care plan.</p>
+        </div>
+        <div class="launch-row">
+            {% include 'partials/launch_tile.html' with tone='gardens' icon='svg/icons/gardens.svg' title='My gardens' text='Your gardens and what is planted in each one.' %}
+            {% include 'partials/launch_tile.html' with tone='journal' icon='svg/icons/journal.svg' title='Plant journal' text='Dated entries and photos for every planting.' %}
+            {% include 'partials/launch_tile.html' with tone='care' icon='svg/icons/care.svg' title='Plant care' text='This week’s tasks, planned around the forecast.' %}
+        </div>
+    </section>
+    {% endif %}
+
+    <section class="launchpad">
+        <div class="launch-heading">
+            <h2>Around the neighborhood</h2>
+            <p>Market, public gardens and the forum.</p>
+        </div>
+        <div class="launch-row">
+            {% url 'marketplace:index' as market_url %}
+            {% include 'partials/launch_tile.html' with tone='market' icon='svg/icons/market.svg' title='Market' text=market_text href=market_url %}
+            {% include 'partials/launch_tile.html' with tone='explore' icon='svg/icons/explore.svg' title='Explore gardens' text='See the public gardens behind the food.' %}
+            {% include 'partials/launch_tile.html' with tone='forum' icon='svg/icons/forum.svg' title='Forum' text='Ask growers a question or share what worked.' %}
+        </div>
+    </section>
+    </div>
+
+    <section class="home-profile" aria-label="Your profile">
+        <span class="avatar avatar-56">{{ profile.initials }}</span>
+        <div class="home-profile-text">
+            <p class="home-profile-name">{{ profile.display_name }} &middot; @{{ user.username }}</p>
+            <p>{% if details %}{{ details }} &middot; {% endif %}Member since {{ user.date_joined|date:"M Y" }}</p>
+        </div>
+        <div class="role-chips">
+            {% if profile.is_grower %}
+            <span class="role-chip">Grower</span>
+            {% else %}
+            <a class="role-chip role-chip-add" href="{% url 'accounts:profile' %}#roles">+ Add grower</a>
+            {% endif %}
+            {% if profile.is_buyer %}
+            <span class="role-chip">Buyer</span>
+            {% else %}
+            <a class="role-chip role-chip-add" href="{% url 'accounts:profile' %}#roles">+ Add buyer</a>
+            {% endif %}
+        </div>
+    </section>
+
+    {% if not profile.is_grower or not profile.is_buyer %}
+    <section class="role-band">
+        <div class="role-band-text">
+            {% if profile.is_grower %}
+            <h2>You&rsquo;re growing. Add buying any time.</h2>
+            <p>One account, both roles. Browse listings and arrange pickups with growers near you.</p>
+            {% else %}
+            <h2>You&rsquo;re buying. Add growing any time.</h2>
+            <p>One account, both roles. Gardens, a journal and care reminders are one click away.</p>
+            {% endif %}
+        </div>
+        <a class="pill-button" href="{% url 'accounts:profile' %}#roles">
+            {% if profile.is_grower %}Start buying{% else %}Start growing{% endif %}
+            {% include 'svg/icons/arrow.svg' %}
+        </a>
+    </section>
+    {% endif %}
+</div>
+{% endblock content %}
+
+{% block motion %}
+<script src="{% static 'js/hero-motion.js' %}"></script>
+<script src="{% static 'js/home-motion.js' %}"></script>
+{% endblock motion %}
