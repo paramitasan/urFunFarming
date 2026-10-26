@@ -1,7 +1,6 @@
 /* Log in and register pages */
 
 .auth-page {
-    --color-field: #C9DFCB;
     --color-error: #B5452F;
     --color-error-bg: #F8E3DE;
     position: relative;

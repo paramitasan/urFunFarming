@@ -1,22 +1,31 @@
 {% load static %}
 <header class="header">
     <nav class="navbar" aria-label="Main">
-        <a class="logo" href="{% url 'main:show_main' %}">
+        {% with page=request.resolver_match.url_name %}
+        <a class="logo" href="{% if user.is_authenticated %}{% url 'main:home' %}{% else %}{% url 'main:show_main' %}{% endif %}">
             <img src="{% static 'img/main-logo-with-text.png' %}" alt="UrFunFarming">
         </a>
 
         <div class="nav-menu" id="nav-menu">
             <ul class="nav-links">
+                {% if user.is_authenticated %}
+                <li><a href="{% url 'main:home' %}" data-label="Home"{% if page == 'home' %} aria-current="page"{% endif %}>Home</a></li>
+                {# TODO: point to market:index, forum:index and gardens:explore once those modules exist #}
+                <li><a href="#" data-label="Market">Market</a></li>
+                <li><a href="#" data-label="Forum">Forum</a></li>
+                <li><a href="#" data-label="Explore gardens">Explore gardens</a></li>
+                {% else %}
                 <li><a href="{% url 'main:show_main' %}#market" data-label="Market">Market</a></li>
                 <li><a href="{% url 'main:show_main' %}#forum" data-label="Forum">Forum</a></li>
-                <li><a href="{% url 'main:show_main' %}#gardens" data-label="Gardens">Gardens</a></li>
+                <li><a href="{% url 'main:show_main' %}#gardens" data-label="Explore gardens">Explore gardens</a></li>
+                {% endif %}
             </ul>
 
             {% if not user.is_authenticated %}
             <div class="menu-actions">
                 <a class="nav-login" href="{% url 'accounts:login' %}">Log in</a>
                 <a class="btn btn-small" href="{% url 'accounts:register' %}">
-                    Start growing
+                    Sign up
                     <span class="well">
                         <svg width="12" height="12" viewBox="11 11 12 12" fill="none" aria-hidden="true">
                             <path d="M12 22L22 12M22 19V12H15" stroke="#0B2E1D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -46,7 +55,7 @@
             {% else %}
             <a class="nav-login" href="{% url 'accounts:login' %}">Log in</a>
             <a class="btn btn-small" href="{% url 'accounts:register' %}">
-                Start growing
+                Sign up
                 <span class="well">
                     <svg width="12" height="12" viewBox="11 11 12 12" fill="none" aria-hidden="true">
                         <path d="M12 22L22 12M22 19V12H15" stroke="#0B2E1D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -60,5 +69,6 @@
                 <span></span>
             </button>
         </div>
+        {% endwith %}
     </nav>
 </header>

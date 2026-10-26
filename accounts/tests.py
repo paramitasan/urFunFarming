@@ -56,7 +56,7 @@ class RegisterTest(TestCase):
 class LoginLogoutTest(AccountTestCase):
     def test_login_success_sets_last_login_cookie(self):
         response = self.login(remember_me='on')
-        self.assertRedirects(response, reverse('main:show_main'))
+        self.assertRedirects(response, reverse('main:home'))
         self.assertIn('_auth_user_id', self.client.session)
         self.assertTrue(response.cookies['last_login'].value)
 
@@ -94,20 +94,19 @@ class LoginLogoutTest(AccountTestCase):
         self.assertTrue(response.url.startswith('/login'))
 
 
-class SignedInLandingTest(AccountTestCase):
+class SignedInPagesTest(AccountTestCase):
     def test_navbar_shows_display_name(self):
         self.client.force_login(self.user)
-        response = self.client.get(reverse('main:show_main'))
+        response = self.client.get(reverse('main:home'))
         self.assertContains(response, 'Muhammad Idris')
         self.assertContains(response, 'class="avatar">MI<')
         self.assertNotContains(response, 'class="nav-login"')
 
-    def test_landing_shows_last_login_and_grower_copy(self):
+    def test_home_shows_last_login_after_logging_in(self):
         self.login()
-        response = self.client.get(reverse('main:show_main'))
-        self.assertContains(response, 'Last login: ')
+        response = self.client.get(reverse('main:home'))
+        self.assertContains(response, 'Last login ')
         self.assertContains(response, 'Add buying any time.')
-        self.assertContains(response, 'Your role')
 
     def test_landing_stays_public(self):
         response = self.client.get(reverse('main:show_main'))
@@ -118,7 +117,7 @@ class SignedInLandingTest(AccountTestCase):
 
 class SessionPersistenceTest(AccountTestCase):
     def assert_still_signed_in(self):
-        response = self.client.get(reverse('main:show_main'))
+        response = self.client.get(reverse('main:home'))
         self.assertTrue(response.wsgi_request.user.is_authenticated)
         self.assertEqual(response.wsgi_request.user, self.user)
         self.assertContains(response, 'class="profile-button"')
@@ -135,8 +134,8 @@ class SessionPersistenceTest(AccountTestCase):
 
     def test_signed_in_user_skips_login_and_register(self):
         self.login(remember_me='on')
-        self.assertRedirects(self.client.get(reverse('accounts:login')), reverse('main:show_main'))
-        self.assertRedirects(self.client.get(reverse('accounts:register')), reverse('main:show_main'))
+        self.assertRedirects(self.client.get(reverse('accounts:login')), reverse('main:home'))
+        self.assertRedirects(self.client.get(reverse('accounts:register')), reverse('main:home'))
         self.assert_still_signed_in()
 
 
@@ -190,7 +189,7 @@ class AjaxAuthTest(AccountTestCase):
             'username': 'idris_k', 'password': 'tomato-Balcony-42', 'remember_me': 'on',
         })
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {'status': 'success', 'redirect': reverse('main:show_main')})
+        self.assertEqual(response.json(), {'status': 'success', 'redirect': reverse('main:home')})
         self.assertIn('sessionid', response.cookies)
         self.assertTrue(response.cookies['last_login'].value)
         self.assertEqual(int(self.client.session['_auth_user_id']), self.user.pk)
@@ -221,7 +220,7 @@ class AjaxAuthTest(AccountTestCase):
         self.login(remember_me='on')
         for name in ('accounts:login_ajax', 'accounts:register_ajax'):
             response = self.client.post(reverse(name), {})
-            self.assertEqual(response.json(), {'status': 'success', 'redirect': reverse('main:show_main')})
+            self.assertEqual(response.json(), {'status': 'success', 'redirect': reverse('main:home')})
         self.assertEqual(User.objects.count(), 1)
 
     def test_register_ajax_validation_errors(self):

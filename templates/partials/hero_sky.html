@@ -1,0 +1,25 @@
+{% load static %}
+<div class="sky" aria-hidden="true">
+    {% if period == 'night' %}
+    <div class="night-sky">
+        <span class="moon"></span>
+        <svg class="stars" viewBox="0 0 1440 420" preserveAspectRatio="xMidYMin slice">
+            <circle cx="160" cy="90" r="2.5"/><circle cx="310" cy="150" r="1.5"/><circle cx="480" cy="60" r="1.5"/><circle cx="620" cy="210" r="2.5"/>
+            <circle cx="760" cy="110" r="1.5"/><circle cx="900" cy="70" r="1.5"/><circle cx="1010" cy="240" r="2.5"/><circle cx="1120" cy="40" r="1.5"/>
+            <circle cx="1290" cy="300" r="1.5"/><circle cx="1390" cy="170" r="2.5"/><circle cx="240" cy="300" r="1.5"/><circle cx="1040" cy="380" r="1.5"/>
+            <circle cx="560" cy="330" r="2.5"/><circle cx="850" cy="290" r="1.5"/><circle cx="1240" cy="90" r="1.5"/>
+        </svg>
+    </div>
+    {% endif %}
+    <img class="sun" src="{% if period == 'evening' %}{% static 'img/sun-evening.svg' %}{% else %}{% static 'img/sun.svg' %}{% endif %}" alt="">
+    <img class="glow" src="{% static 'img/glow.svg' %}" alt="">
+    {% if period == 'night' %}
+    <img class="cloud c1" src="{% static 'img/cloud-1-night.svg' %}" alt="">
+    <img class="cloud c2" src="{% static 'img/cloud-2-night.svg' %}" alt="">
+    <img class="cloud c3" src="{% static 'img/cloud-3-night.svg' %}" alt="">
+    {% else %}
+    <img class="cloud c1" src="{% static 'img/cloud-1.svg' %}" alt="">
+    <img class="cloud c2" src="{% static 'img/cloud-2.svg' %}" alt="">
+    <img class="cloud c3" src="{% static 'img/cloud-3.svg' %}" alt="">
+    {% endif %}
+</div>

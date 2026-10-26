@@ -1,5 +1,6 @@
 import datetime
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
@@ -16,7 +17,7 @@ from accounts.models import Profile
 def register(request):
     # Signed-in users skip the form instead of seeing an empty one
     if request.user.is_authenticated:
-        return redirect('main:show_main')
+        return redirect(settings.LOGIN_REDIRECT_URL)
 
     form = RegisterForm()
 
@@ -33,7 +34,7 @@ def register(request):
 
 def login_user(request):
     if request.user.is_authenticated:
-        return redirect('main:show_main')
+        return redirect(settings.LOGIN_REDIRECT_URL)
 
     if request.method == 'POST':
         form = LoginForm(data=request.POST)
@@ -44,7 +45,7 @@ def login_user(request):
             # Unchecked "Remember me" ends the session when the browser closes
             if not request.POST.get('remember_me'):
                 request.session.set_expiry(0)
-            response = HttpResponseRedirect(reverse('main:show_main'))
+            response = HttpResponseRedirect(settings.LOGIN_REDIRECT_URL)
             response.set_cookie('last_login', str(datetime.datetime.now()))
             return response
     else:
@@ -71,7 +72,7 @@ def form_errors(form):
 @require_POST
 def register_ajax(request):
     if request.user.is_authenticated:
-        return JsonResponse({'status': 'success', 'redirect': reverse('main:show_main')})
+        return JsonResponse({'status': 'success', 'redirect': settings.LOGIN_REDIRECT_URL})
 
     form = RegisterForm(request.POST)
 
@@ -86,7 +87,7 @@ def register_ajax(request):
 @require_POST
 def login_ajax(request):
     if request.user.is_authenticated:
-        return JsonResponse({'status': 'success', 'redirect': reverse('main:show_main')})
+        return JsonResponse({'status': 'success', 'redirect': settings.LOGIN_REDIRECT_URL})
 
     form = LoginForm(data=request.POST)
 
@@ -95,7 +96,7 @@ def login_ajax(request):
         login(request, user)
         if not request.POST.get('remember_me'):
             request.session.set_expiry(0)
-        response = JsonResponse({'status': 'success', 'redirect': reverse('main:show_main')})
+        response = JsonResponse({'status': 'success', 'redirect': settings.LOGIN_REDIRECT_URL})
         response.set_cookie('last_login', str(datetime.datetime.now()))
         return response
 
