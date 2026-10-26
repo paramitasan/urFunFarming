@@ -10,7 +10,7 @@ function heroIntro(hero) {
     intro
         .to(q('.line'), { clipPath: 'inset(0 0 0% 0)', duration: 0.45, stagger: 0.06 }, 0)
         .to(q('#skyline .bld'), { scaleY: 1, opacity: 1, duration: 0.7, stagger: { each: 0.05, from: 'center' } }, 0.1)
-        // from() ends on the CSS opacity, so the dimmed night clouds stay dimmed
+        // from() ends on the CSS opacity, so the night clouds keep theirs
         .from(q('.cloud'), { opacity: 0, x: -15, duration: 0.8, stagger: 0.08 }, 0.3);
 
     [['.sub', 0.1], ['.ctas', 0.15], ['.home-edit', 0.15]].forEach(([selector, at]) => {

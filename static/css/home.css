@@ -33,18 +33,6 @@
     top: 400px;
 }
 
-/* Home's own night details; the shared period sky is in style.css */
-
-.hero-home[data-period="night"] .home-edit {
-    color: var(--color-surface);
-    background-color: rgba(251, 253, 251, 0.08);
-    border-color: #C9E2C4;
-}
-
-.hero-home[data-period="night"] .home-edit:hover {
-    background-color: rgba(251, 253, 251, 0.18);
-}
-
 /* The sub-nav takes up the space above the greeting */
 .hero-home .subnav-row + .hero-copy {
     padding-top: 31px;

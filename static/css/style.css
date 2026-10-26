@@ -52,7 +52,7 @@ ul {
 
 .header {
     position: fixed;
-    top: 24px;
+    top: 20px;
     left: 0;
     right: 0;
     display: flex;
@@ -62,7 +62,7 @@ ul {
     pointer-events: none;
 }
 
-/* Three columns so the links sit in the true center */
+/* Three columns so the links sit between the logo and the buttons, like the Figma nav */
 .navbar {
     position: relative;
     width: 100%;
@@ -72,7 +72,7 @@ ul {
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
     gap: 16px;
-    padding: 0 12px;
+    padding: 0 12px 0 24px;
     background-color: rgba(251, 253, 251, 0.85);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -91,7 +91,6 @@ ul {
 /* Even padding keeps the grid centred; the margin gives the logo Figma's 24px inset */
 .logo {
     justify-self: start;
-    margin-left: 12px;
 }
 
 .logo img {
@@ -409,8 +408,11 @@ ul {
     font-weight: 600;
     line-height: 1.2;
     color: var(--color-forest);
-    text-decoration: underline;
     text-underline-offset: 4px;
+}
+
+.link:hover {
+    text-decoration: underline;
 }
 
 /* Hero */
@@ -528,8 +530,9 @@ ul {
     margin-left: -120px;
 }
 
+/* Soft night: a pale dusk sky, so the text and buttons keep their day colours */
 .hero[data-period="night"] {
-    background-image: linear-gradient(to bottom, var(--color-ink), #1B4D38);
+    background-image: linear-gradient(to bottom, #C7CDE4, #D9E1E2 55%, var(--color-bg));
 }
 
 .hero[data-period="night"] .sun,
@@ -538,20 +541,20 @@ ul {
 }
 
 .hero[data-period="night"] .cloud {
-    opacity: 0.35;
+    opacity: 0.95;
 }
 
 .hero[data-period="night"] #skyline .back {
     opacity: 0.5;
 }
 
-.hero[data-period="night"] h1,
-.hero[data-period="night"] .ctas .link {
-    color: var(--color-surface);
+/* Every third window has its light on; the rest go grey */
+.hero[data-period="night"] #skyline [fill="#EEF3EA"] {
+    fill: #DEE3EE;
 }
 
-.hero[data-period="night"] .sub {
-    color: #C9E2C4;
+.hero[data-period="night"] #skyline .lit {
+    fill: #F4B84C;
 }
 
 .night-sky {
@@ -568,19 +571,19 @@ ul {
     inset: 0;
     width: 100%;
     height: 100%;
-    fill: var(--color-light);
-    opacity: 0.8;
+    fill: #FFFFFF;
+    opacity: 0.95;
 }
 
 .moon {
     position: absolute;
-    left: 81%;
+    left: 81.25%;
     top: 120px;
     width: 110px;
     height: 110px;
     border-radius: 50%;
-    background-color: var(--color-light);
-    box-shadow: 0 0 60px 10px rgba(245, 250, 246, 0.45);
+    background-color: #FBF5E2;
+    box-shadow: inset 0 0 0 2px #E9DDB4, 0 0 60px 18px rgba(255, 247, 220, 0.95);
 }
 
 /* Shared section parts */

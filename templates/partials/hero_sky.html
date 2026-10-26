@@ -13,7 +13,13 @@
     {% endif %}
     <img class="sun" src="{% if period == 'evening' %}{% static 'img/sun-evening.svg' %}{% else %}{% static 'img/sun.svg' %}{% endif %}" alt="">
     <img class="glow" src="{% static 'img/glow.svg' %}" alt="">
+    {% if period == 'night' %}
+    <img class="cloud c1" src="{% static 'img/cloud-1-night.svg' %}" alt="">
+    <img class="cloud c2" src="{% static 'img/cloud-2-night.svg' %}" alt="">
+    <img class="cloud c3" src="{% static 'img/cloud-3-night.svg' %}" alt="">
+    {% else %}
     <img class="cloud c1" src="{% static 'img/cloud-1.svg' %}" alt="">
     <img class="cloud c2" src="{% static 'img/cloud-2.svg' %}" alt="">
     <img class="cloud c3" src="{% static 'img/cloud-3.svg' %}" alt="">
+    {% endif %}
 </div>
