@@ -58,7 +58,8 @@
             {% url 'marketplace:index' as market_url %}
             {% include 'partials/launch_tile.html' with tone='market' icon='svg/icons/market.svg' title='Market' text=market_text href=market_url %}
             {% include 'partials/launch_tile.html' with tone='explore' icon='svg/icons/explore.svg' title='Explore gardens' text='See the public gardens behind the food.' %}
-            {% include 'partials/launch_tile.html' with tone='forum' icon='svg/icons/forum.svg' title='Forum' text='Ask growers a question or share what worked.' %}
+            {% url 'forum:forum_list' as forum_url %}
+            {% include 'partials/launch_tile.html' with tone='forum' icon='svg/icons/forum.svg' title='Forum' text='Ask growers a question or share what worked.' href=forum_url%}
         </div>
     </section>
     </div>
