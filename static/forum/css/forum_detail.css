@@ -1,0 +1,159 @@
+/* Forum detail page. Loads after forum.css, which provides the avatar, chip and variables. */
+
+.forum-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.forum-back:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+
+.forum-back:focus-visible {
+    outline: 2px solid var(--color-forest);
+    outline-offset: 4px;
+}
+
+/* The question */
+
+.forum-post {
+    margin-top: 20px;
+    padding: 32px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-band);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(18, 81, 51, 0.06);
+}
+
+.forum-post-title {
+    margin-top: 20px;
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.3px;
+    color: var(--color-forest);
+    overflow-wrap: anywhere;
+}
+
+.forum-post-body {
+    margin-top: 16px;
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--color-forest);
+    overflow-wrap: anywhere;
+}
+
+.forum-post-body p + p,
+.answer-body p + p {
+    margin-top: 12px;
+}
+
+/* Shows the whole photo. The list page crops it; this page never does. */
+.forum-detail-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 70vh;
+    margin-top: 20px;
+    border-radius: 12px;
+    background-color: var(--color-band);
+    object-fit: contain;
+}
+
+.forum-post-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.forum-post-foot .forum-card-foot {
+    margin-top: 0;
+}
+
+.forum-answered {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    background-color: var(--color-band);
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+/* Answers */
+
+.forum-answers {
+    margin-top: 40px;
+}
+
+.forum-answers h2 {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.answer-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.answer-card {
+    padding: 20px 24px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-band);
+    border-radius: 16px;
+}
+
+.forum-avatar-sm {
+    width: 36px;
+    height: 36px;
+    background-color: var(--color-accent);
+    font-size: 13px;
+    color: var(--color-forest);
+}
+
+.answer-body {
+    margin-top: 12px;
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--color-deep);
+    overflow-wrap: anywhere;
+}
+
+.answers-empty {
+    padding: 32px 24px;
+    background-color: var(--color-surface);
+    border: 1px dashed var(--color-field);
+    border-radius: 16px;
+    font-size: 15px;
+    text-align: center;
+    color: var(--color-deep);
+}
+
+@media (max-width: 639px) {
+    .forum-post {
+        padding: 20px;
+    }
+
+    .forum-post-title {
+        font-size: 26px;
+    }
+
+    .answer-card {
+        padding: 16px;
+    }
+}

@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ forum.title }} - UrFunFarming{% endblock title %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'forum/css/forum.css' %}">
+<link rel="stylesheet" href="{% static 'forum/css/forum_detail.css' %}">
+<script defer src="{% static 'forum/js/forum.js' %}"></script>
+{% endblock head %}
+
+{% block content %}
+<div class="container forum-page">
+
+    <a class="forum-back" href="{% url 'forum:forum_list' %}">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M14 8H2M7 3L2 8l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Back to forum
+    </a>
+
+    <article class="forum-post">
+
+        <div class="forum-card-top">
+            <span class="forum-avatar" aria-hidden="true">{% firstof forum.author.profile.initials forum.author.username|slice:":2"|upper %}</span>
+            <div class="forum-author">
+                <span class="forum-author-name">{% firstof forum.author.profile.display_name forum.author.username %}</span>
+                <time datetime="{{ forum.created_at|date:'c' }}">{{ forum.created_at|timesince }} ago</time>
+            </div>
+            <span class="forum-chip">{{ forum.get_topic_display }}</span>
+            {# TODO: Edit / Delete menu for the author goes here (edit and delete slice) #}
+        </div>
+
+        <h1 class="forum-post-title">{{ forum.title }}</h1>
+
+        <div class="forum-post-body">{{ forum.description|linebreaks }}</div>
+
+        {% if forum.image %}
+        <img class="forum-detail-image" src="{{ forum.image.url }}" alt="Photo attached to this question">
+        {% endif %}
+
+        {# TODO: weather context for this question goes here (planting and weather slice) #}
+
+        <div class="forum-post-foot">
+            <div class="forum-card-foot">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+                </svg>
+                <span>{{ replies|length }} answer{{ replies|length|pluralize }}</span>
+            </div>
+            {% if replies %}
+            <span class="forum-answered">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <path d="M2.5 7.5l3 3 6-6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Answered
+            </span>
+            {% endif %}
+        </div>
+
+    </article>
+
+    {# TODO: "Your answer" box goes here (replies slice) #}
+
+    <section class="forum-answers" aria-labelledby="answers-heading">
+        <h2 id="answers-heading">{{ replies|length }} answer{{ replies|length|pluralize }}</h2>
+
+        <div class="answer-list">
+            {% for reply in replies %}
+            <article class="answer-card">
+                <div class="forum-card-top">
+                    <span class="forum-avatar forum-avatar-sm" aria-hidden="true">{% firstof reply.author.profile.initials reply.author.username|slice:":2"|upper %}</span>
+                    <div class="forum-author">
+                        <span class="forum-author-name">{% firstof reply.author.profile.display_name reply.author.username %}</span>
+                        <time datetime="{{ reply.created_at|date:'c' }}">{{ reply.created_at|timesince }} ago</time>
+                    </div>
+                </div>
+                <div class="answer-body">{{ reply.body|linebreaks }}</div>
+            </article>
+            {% empty %}
+            <p class="answers-empty">No answers yet.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+</div>
+{% endblock content %}

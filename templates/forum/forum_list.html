@@ -73,13 +73,12 @@
                         <span class="forum-chip">{{ forum.get_topic_display }}</span>
                     </div>
 
-                    {# TODO: link the title to the detail page once forum:detail exists #}
-                    <h3 class="forum-title"><a href="#">{{ forum.title }}</a></h3>
+                    <h3 class="forum-title"><a href="{% url 'forum:forum_detail' forum.pk %}">{{ forum.title }}</a></h3>
 
                     {% if user.is_authenticated %}
                     <p class="forum-excerpt">
                         {{ forum.description|truncatechars:400|linebreaksbr }}
-                        {% if forum.description|length > 400 %}<a class="forum-more" href="#">Read more</a>{% endif %}
+                        {% if forum.description|length > 400 %}<a class="forum-more" href="{% url 'forum:forum_detail' forum.pk %}">Read more</a>{% endif %}
                     </p>
                     {% if forum.image %}
                     <img class="forum-image" src="{{ forum.image.url }}" alt="Photo attached to this question" loading="lazy">
