@@ -221,7 +221,7 @@
 
 .forum-more {
     font-weight: 500;
-    color: var(--color-deep);
+    color: var(--color-sage);
 }
 
 .forum-more:hover {
@@ -235,6 +235,7 @@
     margin-top: 14px;
     border-radius: 10px;
     object-fit: contain;
+    background-color: var(--color-band);
 }
 
 .forum-card-foot {
@@ -385,7 +386,7 @@
 .forum-notice a:focus-visible,
 .filters-head a:focus-visible,
 .filter-option input:focus-visible {
-    outline: 2px solid var(--color-forest);
+    outline: 2px solid var(--color-deep);
     outline-offset: 2px;
 }
 
