@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<br><br><br><br><br><br><br><br><br><br>
+  <h1>Discussion Forum ({{ total }})</h1>
+  <ul>
+    {% for forum in forums %}
+      <li>{{ forum.title }} · {{ forum.reply_count }} answers</li>
+    {% empty %}
+      <li>No questions yet.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}
