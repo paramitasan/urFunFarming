@@ -2,9 +2,9 @@
 {% with page=request.resolver_match.view_name %}
 <nav class="subnav-row" aria-label="Grower tools">
     <ul class="subnav">
-        {# TODO: link to gardens:mine, journal:index and care:index once those modules exist #}
+        {# TODO: link to gardens:mine and care:index once those modules exist #}
         <li><a href="#"{% if page == 'gardens:mine' %} aria-current="page"{% endif %}>{% include 'svg/icons/gardens.svg' %}My gardens</a></li>
-        <li><a href="#"{% if page == 'journal:index' %} aria-current="page"{% endif %}>{% include 'svg/icons/journal.svg' %}Plant journal</a></li>
+        <li><a href="{% url 'journal:index' %}"{% if page == 'journal:index' %} aria-current="page"{% endif %}>{% include 'svg/icons/journal.svg' %}Plant journal</a></li>
         <li><a href="#"{% if page == 'care:index' %} aria-current="page"{% endif %}>{% include 'svg/icons/care.svg' %}Plant care</a></li>
     </ul>
 </nav>
