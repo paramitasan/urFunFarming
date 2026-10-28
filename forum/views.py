@@ -19,7 +19,7 @@ FORUM_SORTS = {
 }
 
 def forum_list(request):
-    # Read and validate the query string
+    # Read and validate query string
     q = request.GET.get("q", "").strip()[:100]
     sort = request.GET.get("sort", "newest")
     if sort not in FORUM_SORTS:
@@ -163,15 +163,35 @@ def reply_create(request, pk):
         reply.author = request.user
         reply.save()
         return redirect(f"{reverse('forum:forum_detail', args=[pk])}#reply-{reply.pk}")
-    return _render_detail(request, forum, form)   # shows the error under the box
+    return _render_detail(_detail_url(request, pk, f"#reply-{reply.pk}"))
+
+REPLY_SORTS = {"oldest": "created_at", "newest": "-created_at"}
+DEFAULT_REPLY_SORT = "oldest"
+
+def _reply_sort(request):
+    sort = request.GET.get("sort")
+    return sort if sort in REPLY_SORTS else DEFAULT_REPLY_SORT
+
+
+def _detail_url(request, pk, anchor=""):
+    # keeps the chosen answer sort
+    url = reverse("forum:forum_detail", args=[pk])
+    sort = _reply_sort(request)
+    if sort != DEFAULT_REPLY_SORT:
+        url += f"?sort={sort}"
+    return url + anchor
+
 
 def _render_detail(request, forum, reply_form, editing=None, edit_form=None):
+    sort = _reply_sort(request)
     context = {
         "forum": forum,
-        "replies": forum.replies.select_related("author__profile"),
+        "replies": forum.replies.select_related("author__profile").order_by(REPLY_SORTS[sort]),
         "reply_form": reply_form,
         "editing_id": editing.pk if editing else None,
         "edit_form": edit_form,
+        "reply_sort": sort,
+        "sort_qs": "" if sort == DEFAULT_REPLY_SORT else f"?sort={sort}",
     }
     return render(request, "forum/forum_detail.html", context)
 
@@ -206,4 +226,4 @@ def reply_delete(request, pk):
     reply = _get_own_reply(request, pk)
     forum_pk = reply.forum_id
     reply.delete()
-    return redirect(f"{reverse('forum:forum_detail', args=[forum_pk])}#answers-heading")
+    return redirect(_detail_url(request, forum_pk, "#answers-heading"))

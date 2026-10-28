@@ -104,6 +104,23 @@
     color: var(--color-forest);
 }
 
+.answers-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+/* Reuses the list page's .forum-sort select look */
+.answers-sort {
+    flex-shrink: 0;
+    width: 190px;
+}
+
+.answers-sort select {
+    height: 48px;
+}
+
 .answer-list {
     display: flex;
     flex-direction: column;
@@ -300,6 +317,10 @@
 
     .answer-card {
         padding: 16px;
+    }
+
+    .answers-sort {
+        width: 150px;
     }
 
     .reply-box {
