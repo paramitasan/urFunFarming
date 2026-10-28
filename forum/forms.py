@@ -1,4 +1,5 @@
 from django import forms
+from django.core.files.storage import default_storage
 
 from .models import Forum
 
@@ -13,6 +14,7 @@ class ForumForm(forms.ModelForm):
         choices=[("", "Select the topic of your post")] + list(Forum.Topic.choices),
         error_messages={"required": "Select a topic"},
     )
+    remove_image = forms.BooleanField(required=False, widget=forms.HiddenInput)
 
     class Meta:
         model = Forum
@@ -45,3 +47,23 @@ class ForumForm(forms.ModelForm):
             if image.size > MAX_IMAGE_BYTES:
                 raise forms.ValidationError("Image must be 5 MB or smaller.")
         return image
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._old_image_name = self.instance.image.name if self.instance.pk else ""
+        if self.instance.pk:
+            self.fields["image"].label = "Upload new image"
+
+    def save(self, commit=True):
+        forum = super().save(commit=False)
+        new_upload = bool(self.files.get("image"))
+        remove = self.cleaned_data.get("remove_image") and not new_upload
+
+        if remove:
+            forum.image = None
+        if commit:
+            forum.save()
+            # Clearing deleted image from media/forum/
+            if self._old_image_name and (remove or new_upload):
+                default_storage.delete(self._old_image_name)
+        return forum

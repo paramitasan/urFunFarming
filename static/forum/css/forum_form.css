@@ -257,7 +257,7 @@
     outline-offset: 2px;
 }
 
-/* Error state, from the design */
+/* Error state */
 
 .has-error input[type="text"],
 .has-error select,

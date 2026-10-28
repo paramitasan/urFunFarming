@@ -1,6 +1,9 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Count
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
+from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 
 from .models import Forum
 from .forms import ForumForm
@@ -46,7 +49,6 @@ def forum_detail(request, pk):
 @login_required
 def forum_create(request):
     if request.method == "POST":
-        # request.FILES carries the uploaded image
         form = ForumForm(request.POST, request.FILES)
         if form.is_valid():
             forum = form.save(commit=False)
@@ -57,3 +59,37 @@ def forum_create(request):
         form = ForumForm()
 
     return render(request, "forum/forum_form.html", {"form": form})
+
+def _safe_next(request, default):
+    url = request.POST.get("next") or request.GET.get("next", "")
+    if url and url_has_allowed_host_and_scheme(
+        url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    ):
+        return url
+    return default
+
+@login_required
+def forum_edit(request, pk):
+    forum = get_object_or_404(Forum, pk=pk)
+
+    # Owner check: logged-in users who don't own the post get a 403.
+    if forum.author != request.user:
+        raise PermissionDenied
+
+    next_url = _safe_next(request, reverse("forum:forum_detail", args=[pk]))
+    current_image = forum.image
+
+    if request.method == "POST":
+        form = ForumForm(request.POST, request.FILES, instance=forum)
+        if form.is_valid():
+            form.save()
+            return redirect(next_url)
+    else:
+        form = ForumForm(instance=forum)
+
+    return render(request, "forum/forum_form.html", {
+        "form": form,
+        "next_url": next_url,
+        "current_image": current_image,
+        "has_image": bool(current_image) and not form["remove_image"].value(),
+    })

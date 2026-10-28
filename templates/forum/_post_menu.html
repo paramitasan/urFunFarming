@@ -1,0 +1,12 @@
+{# "..." menu, only for the post's author #}
+<details class="forum-menu">
+    <summary class="forum-menu-button" aria-label="Post actions">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <circle cx="4" cy="10" r="1.6"/><circle cx="10" cy="10" r="1.6"/><circle cx="16" cy="10" r="1.6"/>
+        </svg>
+    </summary>
+    <div class="forum-menu-list">
+        <a href="{% url 'forum:forum_edit' forum.pk %}?next={{ request.get_full_path|urlencode }}">Edit</a>
+        {# TODO: Delete (POST form) goes here in the delete slice #}
+    </div>
+</details>

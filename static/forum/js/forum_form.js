@@ -12,7 +12,6 @@ document.querySelectorAll("[data-char-counter]").forEach((box) => {
 });
 
 // Image picker: shows a thumbnail, the file name and a remove button once a file is chosen.
-// The form works without this script; the browser just shows its own file name.
 document.querySelectorAll("[data-upload]").forEach((upload) => {
     const input = upload.querySelector("input[type=file]");
     const dropzone = upload.querySelector(".ff-dropzone");
@@ -21,6 +20,7 @@ document.querySelectorAll("[data-upload]").forEach((upload) => {
     const name = upload.querySelector(".ff-file-name");
     const size = upload.querySelector(".ff-file-size");
     const remove = upload.querySelector(".ff-file-remove");
+    const removeFlag = upload.querySelector("input[name=remove_image]");
     if (!input || !dropzone || !row) return;
 
     let previewUrl = null;
@@ -38,6 +38,7 @@ document.querySelectorAll("[data-upload]").forEach((upload) => {
 
     const reset = () => {
         input.value = "";
+        if (removeFlag) removeFlag.value = "1";   // tells the server to delete the saved image
         clearPreview();
         row.hidden = true;
         dropzone.hidden = false;

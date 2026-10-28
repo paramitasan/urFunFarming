@@ -1,6 +1,5 @@
 /* Colours from Figma */
 
-
 :root {
     --color-bg: #E6F0DC;
     --color-light: #F5FAF6; /* Figma color/bg: light text and icons on dark green */
@@ -16,7 +15,6 @@
     --color-hairline: rgba(18, 81, 51, 0.12);
     --color-field: #C9DFCB;
 }
-
 
 * {
     margin: 0;

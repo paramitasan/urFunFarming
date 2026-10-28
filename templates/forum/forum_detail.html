@@ -28,7 +28,7 @@
                 <time datetime="{{ forum.created_at|date:'c' }}">{{ forum.created_at|timesince }} ago</time>
             </div>
             <span class="forum-chip">{{ forum.get_topic_display }}</span>
-            {# TODO: Edit / Delete menu for the author goes here (edit and delete slice) #}
+            {% if user == forum.author %}{% include "forum/_post_menu.html" %}{% endif %}
         </div>
 
         <h1 class="forum-post-title">{{ forum.title }}</h1>

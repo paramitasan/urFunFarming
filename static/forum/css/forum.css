@@ -390,6 +390,77 @@
     outline-offset: 2px;
 }
 
+/* Post author's "..." menu */
+
+.forum-menu {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.forum-chip + .forum-menu {
+    margin-left: 4px;
+}
+
+.forum-menu-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    list-style: none;
+    color: var(--color-deep);
+    cursor: pointer;
+}
+
+.forum-menu-button::-webkit-details-marker {
+    display: none;
+}
+
+.forum-menu-button:hover,
+.forum-menu[open] .forum-menu-button {
+    background-color: var(--color-band);
+}
+
+.forum-menu-button:focus-visible {
+    outline: 2px solid var(--color-deep);
+    outline-offset: 2px;
+}
+
+.forum-menu-list {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 10;
+    min-width: 140px;
+    padding: 6px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-band);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(18, 81, 51, 0.12);
+}
+
+.forum-menu-list a,
+.forum-menu-list button {
+    display: block;
+    width: 100%;
+    padding: 9px 12px;
+    background: none;
+    border: none;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: left;
+    color: var(--color-forest);
+    cursor: pointer;
+}
+
+.forum-menu-list a:hover,
+.forum-menu-list button:hover {
+    background-color: var(--color-band);
+}
+
 /* Tablets and phones: one column, filters before the results */
 
 @media (max-width: 1023px) {

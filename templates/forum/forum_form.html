@@ -47,9 +47,10 @@
 
         <div class="ff-field{% if form.image.errors %} has-error{% endif %}">
             <span class="ff-label">{{ form.image.label }}</span>
-            {# TODO (edit slice): show the current image with a remove option when form.instance.image exists #}
             <div class="ff-upload" data-upload>
-                <label class="ff-dropzone" for="{{ form.image.id_for_label }}">
+                {{ form.remove_image }}
+
+                <label class="ff-dropzone" for="{{ form.image.id_for_label }}"{% if has_image %} hidden{% endif %}>
                     <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
                         <path d="M4 9.5a2 2 0 0 1 2-2h2.6l1.4-2h8l1.4 2H22a2 2 0 0 1 2 2V21a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
                         <circle cx="14" cy="14.5" r="3.5" stroke="currentColor" stroke-width="1.6"/>
@@ -59,11 +60,11 @@
                     {{ form.image }}
                 </label>
 
-                <div class="ff-file" hidden>
-                    <img class="ff-file-thumb" alt="">
+                <div class="ff-file"{% if not has_image %} hidden{% endif %}>
+                    <img class="ff-file-thumb" alt=""{% if has_image %} src="{{ current_image.url }}"{% endif %}>
                     <div class="ff-file-info">
-                        <span class="ff-file-name"></span>
-                        <span class="ff-file-size"></span>
+                        <span class="ff-file-name">{% if has_image %}{{ current_image.name|cut:"forum/" }}{% endif %}</span>
+                        <span class="ff-file-size">{% if has_image %}Current image{% endif %}</span>
                     </div>
                     <button type="button" class="ff-file-remove" aria-label="Remove image">&times;</button>
                 </div>
@@ -72,8 +73,8 @@
         </div>
 
         <div class="ff-actions">
-            <a class="outline-button" href="{% if form.instance.pk %}{% url 'forum:forum_detail' form.instance.pk %}{% else %}{% url 'forum:forum_list' %}{% endif %}">Cancel</a>
-            <button type="submit" class="pill-button">{% if form.instance.pk %}Edit post{% else %}Create post{% endif %}</button>
+            <a class="outline-button" href="{% if next_url %}{{ next_url }}{% else %}{% url 'forum:forum_list' %}{% endif %}">Cancel</a>
+            <button type="submit" class="pill-button">{% if form.instance.pk %}Save changes{% else %}Create post{% endif %}</button>
         </div>
 
     </form>
