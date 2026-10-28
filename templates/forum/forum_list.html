@@ -63,7 +63,7 @@
             {% endif %}
 
             <div class="forum-cards">
-                {% for forum in forums %}
+                {% for forum in page_obj %}
                 <article class="forum-card">
 
                     <div class="forum-card-top">
@@ -111,7 +111,11 @@
                             <path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
                         </svg>
                     </span>
-                    <h3>No discussions yet</h3>
+                    {% if is_filtered %}
+                        <h3>No matching questions</h3>
+                        <p>Try a different search, or <a class="forum-more" href="{% url 'forum:forum_list' %}">reset the filters</a>.</p>
+                    {% else %}
+                        <h3>No discussions yet</h3>
                     <p>Start a forum and initiate discussions.</p>
                     <a class="pill-button"
                        href="{% if user.is_authenticated %}
@@ -124,9 +128,11 @@
                         </svg>
                         New post
                     </a>
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>
+            {% include "forum/_pagination.html" %}
         </section>
 
         <aside class="forum-filters" aria-label="Filters">

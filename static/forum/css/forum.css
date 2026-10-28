@@ -384,6 +384,60 @@
     color: var(--color-sage);
 }
 
+/* Pagination */
+
+.forum-count {
+    scroll-margin-top: 108px;
+}
+
+.forum-pagination {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 32px;
+}
+
+.page-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 6px;
+    background-color: var(--color-band);
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+a.page-link:hover {
+    background-color: var(--color-mint);
+}
+
+a.page-link:focus-visible {
+    outline: 2px solid var(--color-deep);
+    outline-offset: 2px;
+}
+
+.page-link.is-current {
+    background-color: var(--color-forest);
+    color: var(--color-light);
+}
+
+.page-link.is-disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.page-gap {
+    padding: 0 4px;
+    color: var(--color-sage);
+}
+
 /* Keyboard focus */
 
 .forum-title a:focus-visible,

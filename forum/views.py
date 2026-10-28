@@ -5,30 +5,83 @@ from django.core.exceptions import PermissionDenied
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
+from django.core.paginator import Paginator
+from django.db.models import Count, Exists, OuterRef, Q
 
 from .models import Forum, Reply
 from .forms import ForumForm, ReplyForm
 
+FORUMS_PER_PAGE = 10
+FORUM_SORTS = {
+    "newest": ("-created_at", "-pk"),
+    "oldest": ("created_at", "pk"),
+    "answers": ("-reply_count", "-created_at", "-pk"),
+}
+
 def forum_list(request):
+    # Read and validate the query string
+    q = request.GET.get("q", "").strip()[:100]
+    sort = request.GET.get("sort", "newest")
+    if sort not in FORUM_SORTS:
+        sort = "newest"
+    topic = request.GET.get("topic", "")
+    if topic not in Forum.Topic.values:
+        topic = ""
+    show = request.GET.get("show", "")
+    if show not in ("answered", "unanswered", "mine") or (
+        show == "mine" and not request.user.is_authenticated
+    ):
+        show = ""
+
+    # Search and "Show" first, the topic is applied after the counts
+    base = Forum.objects.all()
+    for word in q.split():
+        match = Q(title__icontains=word)
+        if request.user.is_authenticated:   # visitors only see titles
+            match |= Q(description__icontains=word)
+        base = base.filter(match)
+
+    has_reply = Exists(Reply.objects.filter(forum=OuterRef("pk")))
+    if show == "answered":
+        base = base.filter(has_reply)
+    elif show == "unanswered":
+        base = base.filter(~has_reply)
+    elif show == "mine":
+        base = base.filter(author=request.user)
+
+    counts = dict(base.order_by().values_list("topic").annotate(n=Count("id")))
+
+    forums = base.filter(topic=topic) if topic else base
     forums = (
-        Forum.objects
-        .select_related("author__profile")
+        forums.select_related("author__profile")
         .annotate(reply_count=Count("replies"))
+        .order_by(*FORUM_SORTS[sort])
     )
 
-    counts = dict(
-        Forum.objects.order_by().values_list("topic").annotate(n=Count("id"))
-    )
-    topics = [
-        {"value": value, "label": label, "count": counts.get(value, 0)}
-        for value, label in Forum.Topic.choices
-    ]
-    
+    paginator = Paginator(forums, FORUMS_PER_PAGE)
+    page_obj = paginator.get_page(request.GET.get("page"))   # bad page numbers are clamped
+
+    # Query string without "page", so the page links keep the search and filters
+    params = request.GET.copy()
+    params.pop("page", None)
+
     context = {
-        "forums": forums,
-        "total": forums.count(),
-        "topics": topics,
+        "page_obj": page_obj,
+        "page_range": list(
+            paginator.get_elided_page_range(page_obj.number, on_each_side=1, on_ends=1)
+        ),
+        "query": params.urlencode(),
+        "total": paginator.count,
+        "topics": [
+            {"value": value, "label": label, "count": counts.get(value, 0)}
+            for value, label in Forum.Topic.choices
+        ],
         "all_count": sum(counts.values()),
+        "q": q,
+        "selected_sort": sort,
+        "selected_topic": topic,
+        "selected_show": show,
+        "is_filtered": bool(q or topic or show),
     }
     return render(request, "forum/forum_list.html", context)
 

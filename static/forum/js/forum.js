@@ -3,7 +3,7 @@ document.addEventListener("change", (event) => {
     if (!event.target.matches("[data-autosubmit]")) return;
 
     const form = document.getElementById("forum-filters");
-    if (form) form.requestSubmit();
+    if (event.target.form) event.target.form.requestSubmit();
 });
 
 // "..." menu: close on outside click or Escape.
