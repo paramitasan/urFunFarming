@@ -4,11 +4,44 @@ from django.utils.html import strip_tags
 
 from journal.models import JournalEntry, Planting
 
+MAX_PHOTOS = 5
+MAX_PHOTO_SIZE = 5 * 1024 * 1024  # 5 MB
+PHOTO_FORMATS = ('JPEG', 'PNG', 'WEBP')
+PHOTO_ERROR = 'Use a JPG, PNG or WEBP under 5 MB.'
+
+
+class MultipleFileInput(forms.ClearableFileInput):
+    # Lets the file picker select more than one photo at once
+    allow_multiple_selected = True
+
+
+class MultipleImageField(forms.ImageField):
+    # Checks every chosen file like a normal ImageField and returns them as a list
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('widget', MultipleFileInput())
+        super().__init__(*args, **kwargs)
+
+    def clean(self, data, initial=None):
+        single_file_clean = super().clean
+        if isinstance(data, (list, tuple)):
+            return [single_file_clean(file, initial) for file in data]
+        return [single_file_clean(data, initial)] if data else []
+
 
 class JournalEntryForm(forms.ModelForm):
+    photos = MultipleImageField(
+        required=False,
+        widget=MultipleFileInput(attrs={'accept': 'image/jpeg,image/png,image/webp'}),
+        error_messages={'invalid_image': PHOTO_ERROR, 'invalid_extension': PHOTO_ERROR},
+    )
     photo_1 = forms.URLField(required=False, max_length=500, assume_scheme='https', widget=forms.HiddenInput)
     photo_2 = forms.URLField(required=False, max_length=500, assume_scheme='https', widget=forms.HiddenInput)
     photo_3 = forms.URLField(required=False, max_length=500, assume_scheme='https', widget=forms.HiddenInput)
+    photo_4 = forms.URLField(required=False, max_length=500, assume_scheme='https', widget=forms.HiddenInput)
+    photo_5 = forms.URLField(required=False, max_length=500, assume_scheme='https', widget=forms.HiddenInput)
+
+    # Photos the entry already has and keeps (set by the edit view), so the total stays at 5 or less
+    kept_photos = 0
 
     class Meta:
         model = JournalEntry
@@ -50,9 +83,25 @@ class JournalEntryForm(forms.ModelForm):
             raise ValidationError('Please write what you noticed.')
         return observation
     
+    def clean_photos(self):
+        photos = self.cleaned_data['photos']
+        for photo in photos:
+            # ImageField already opened the file with Pillow, so photo.image.format is the real format
+            if photo.size > MAX_PHOTO_SIZE or photo.image.format not in PHOTO_FORMATS:
+                raise ValidationError(PHOTO_ERROR)
+        return photos
+
+    def clean(self):
+        cleaned_data = super().clean()
+        total = self.kept_photos + len(cleaned_data.get('photos') or []) + len(self.photo_urls())
+        if total > MAX_PHOTOS:
+            self.add_error('photos', f'You can add up to {MAX_PHOTOS} photos to one entry.')
+        return cleaned_data
+
     def photo_urls(self):
         # The photo links that were filled in, in order, skipping empty ones
-        urls = [self.cleaned_data.get(name) for name in ('photo_1', 'photo_2', 'photo_3')]
+        names = ['photo_1', 'photo_2', 'photo_3', 'photo_4', 'photo_5']
+        urls = [self.cleaned_data.get(name) for name in names]
         return [url for url in urls if url]
 
 
