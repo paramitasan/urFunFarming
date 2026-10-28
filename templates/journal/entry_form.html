@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block title %}New Entry · Plant Journal{% endblock title %}
+
+{% block content %}
+{% include 'partials/grower_subnav.html' %}
+<h1>New Entry</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Save Entry</button>
+</form>
+{% endblock content %}

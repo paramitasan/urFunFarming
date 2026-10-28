@@ -1,8 +1,17 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from journal.models import JournalEntry, PlantJournal, Planting
+from accounts.models import Profile
+from journal.forms import NewEntryForm
+from journal.models import EntryPhoto, JournalEntry, PlantJournal, Planting
+
+
+def is_grower(user):
+    # Same lookup as accounts.views.me_json, so a user without a Profile doesn't crash
+    profile = Profile.objects.filter(user=user).first()
+    return profile is not None and profile.is_grower
 
 
 @login_required(login_url='/login')
@@ -55,3 +64,26 @@ def plant_detail(request, planting_id):
         'stage_steps': stage_steps,
     }
     return render(request, 'journal/plant_detail.html', context)
+
+
+@login_required(login_url='/login')
+def create_entry(request):
+    if not is_grower(request.user):
+        return render(request, 'journal/grower_required.html', status=403)
+
+    form = NewEntryForm(request.user, request.POST or None)
+
+    if request.method == 'POST' and form.is_valid():
+        entry = form.save()
+        for url in form.photo_urls():
+            EntryPhoto.objects.create(entry=entry, url=url)
+
+        journal, _ = PlantJournal.objects.get_or_create(planting=entry.planting)
+        journal.is_public = form.cleaned_data['visibility'] == 'public'
+        journal.save()
+
+        messages.success(request, 'Entry saved')
+        return redirect('journal:plant_detail', planting_id=entry.planting.pk)
+
+    context = {'form': form}
+    return render(request, 'journal/entry_form.html', context)

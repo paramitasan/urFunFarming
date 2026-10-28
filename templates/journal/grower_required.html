@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Growers only · UrFunFarming{% endblock title %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'journal/journal.css' %}">
+{% endblock head %}
+
+{% block content %}
+<div class="journal">
+    <div class="empty-card">
+        <span class="empty-icon">
+            <img src="{% static 'journal/icons/sprout.svg' %}" alt="" width="26" height="26">
+        </span>
+        <h1 class="journal-title">The plant journal is for growers</h1>
+        <p>Add the grower role to your profile to start keeping a journal for your plants.</p>
+        <a class="pill-button" href="{% url 'accounts:profile' %}">Go to my profile</a>
+    </div>
+</div>
+{% endblock content %}

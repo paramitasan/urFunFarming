@@ -10,6 +10,9 @@
 {% block content %}
 {% include 'partials/grower_subnav.html' %}
 <div class="journal">
+    {% for message in messages %}
+        <p role="status">{{ message }}</p>
+    {% endfor %}
     <a class="back-link" href="{% url 'journal:index' %}">
         <img src="{% static 'journal/icons/arrow-left.svg' %}" alt="" width="18" height="18">
         Back to journal
