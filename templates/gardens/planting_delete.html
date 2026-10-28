@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Delete {{ planting.crop }} · {{ garden.name }}{% endblock %}
+{% block content %}
+<section class="gardens-page" aria-labelledby="planting-delete-heading">
+    <a class="gardens-back-link" href="{% url 'gardens:planting_detail' garden.pk planting.pk %}">Back to planting</a>
+    <div class="garden-delete-panel">
+        <p class="gardens-eyebrow">{{ garden.name }}</p>
+        <h1 id="planting-delete-heading">Delete {{ planting.crop }}?</h1>
+        <p>This planting record will be permanently removed.</p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="gardens-actions">
+                <button class="gardens-button gardens-button-danger" type="submit">Delete planting</button>
+                <a class="gardens-button gardens-button-outline" href="{% url 'gardens:planting_detail' garden.pk planting.pk %}">Keep planting</a>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

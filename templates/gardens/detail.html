@@ -34,15 +34,19 @@
                 <p class="gardens-eyebrow">GROWING HERE</p>
                 <h2 id="plantings-heading">Plantings</h2>
             </div>
+            <a class="gardens-button gardens-button-outline" href="{% url 'gardens:planting_create' garden.pk %}">Add planting</a>
         </div>
         {% if garden.plantings.all %}
             <ul class="planting-list">
                 {% for planting in garden.plantings.all %}
-                    <li><span>{{ planting.crop }}</span><time datetime="{{ planting.planting_date|date:'Y-m-d' }}">Planted {{ planting.planting_date|date:'M j, Y' }}</time></li>
+                    <li>
+                        <a href="{% url 'gardens:planting_detail' garden.pk planting.pk %}">{{ planting.crop }}</a>
+                        <time datetime="{{ planting.planting_date|date:'Y-m-d' }}">Planted {{ planting.planting_date|date:'M j, Y' }}</time>
+                    </li>
                 {% endfor %}
             </ul>
         {% else %}
-            <p>No plantings recorded yet.</p>
+            <p>No plantings recorded yet. Add the first crop growing here.</p>
         {% endif %}
     </section>
 </section>

@@ -1,6 +1,6 @@
 from django import forms
 
-from gardens.models import Garden
+from gardens.models import Garden, Planting
 
 
 class GardenForm(forms.ModelForm):
@@ -31,3 +31,21 @@ class GardenForm(forms.ModelForm):
             field.widget.attrs['class'] = 'garden-field'
             if name == 'is_public':
                 field.widget.attrs['class'] = 'garden-checkbox'
+
+
+class PlantingForm(forms.ModelForm):
+    class Meta:
+        model = Planting
+        fields = ('crop', 'planting_date')
+        labels = {
+            'crop': 'Crop',
+            'planting_date': 'Planting date',
+        }
+        widgets = {
+            'planting_date': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'garden-field'

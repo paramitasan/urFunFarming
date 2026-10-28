@@ -6,6 +6,7 @@ from django.urls import reverse
 
 from accounts.models import Profile
 
+from gardens.forms import PlantingForm
 from gardens.models import Garden, Planting
 
 
@@ -168,3 +169,132 @@ class GardenOwnerViewTests(TestCase):
             for url in owner_urls + [detail_other_url]:
                 with self.subTest(user=user.username, url=url):
                     self.assertEqual(self.client.get(url).status_code, 403)
+
+
+@override_settings(PASSWORD_HASHERS=['django.contrib.auth.hashers.MD5PasswordHasher'])
+class PlantingOwnerViewTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.owner = User.objects.create_user(username='planting_owner', password='test-password')
+        cls.other_owner = User.objects.create_user(username='other_grower', password='test-password')
+        cls.buyer = User.objects.create_user(username='buyer', password='test-password')
+        Profile.objects.create(user=cls.owner, display_name='Planting Owner', is_grower=True)
+        Profile.objects.create(user=cls.other_owner, display_name='Other Grower', is_grower=True)
+        Profile.objects.create(user=cls.buyer, display_name='Buyer', is_buyer=True)
+        cls.garden = Garden.objects.create(
+            owner=cls.owner,
+            name='Balcony garden',
+            location='Depok',
+            growing_method='Container pots',
+        )
+        cls.other_garden = Garden.objects.create(
+            owner=cls.other_owner,
+            name='Rooftop garden',
+            location='Jakarta',
+            growing_method='Raised beds',
+        )
+        cls.planting = Planting.objects.create(
+            garden=cls.garden,
+            crop='Tomatoes',
+            planting_date=date(2026, 10, 1),
+        )
+
+    def setUp(self):
+        self.garden_url = reverse('gardens:detail', args=[self.garden.pk])
+        self.create_url = reverse('gardens:planting_create', args=[self.garden.pk])
+        self.detail_url = reverse('gardens:planting_detail', args=[self.garden.pk, self.planting.pk])
+        self.edit_url = reverse('gardens:planting_edit', args=[self.garden.pk, self.planting.pk])
+        self.delete_url = reverse('gardens:planting_delete', args=[self.garden.pk, self.planting.pk])
+
+    def planting_data(self, **changes):
+        data = {'crop': 'Lettuce', 'planting_date': '2026-10-12'}
+        data.update(changes)
+        return data
+
+    def test_owner_can_list_and_view_planting(self):
+        self.client.force_login(self.owner)
+
+        garden_response = self.client.get(self.garden_url)
+        detail_response = self.client.get(self.detail_url)
+
+        self.assertContains(garden_response, 'Tomatoes')
+        self.assertContains(garden_response, self.detail_url)
+        self.assertContains(detail_response, 'Planted Oct 1, 2026')
+        self.assertContains(
+            detail_response,
+            '<button class="gardens-button gardens-button-outline" type="button" disabled>Edit plant journal</button>',
+            html=True,
+        )
+
+    def test_owner_can_create_planting_only_in_url_garden(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.post(self.create_url, self.planting_data(garden=self.other_garden.pk))
+
+        planting = Planting.objects.get(crop='Lettuce')
+        self.assertEqual(planting.garden, self.garden)
+        self.assertRedirects(
+            response,
+            reverse('gardens:planting_detail', args=[self.garden.pk, planting.pk]),
+        )
+
+    def test_planting_form_requires_crop_and_date(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.post(self.create_url)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertContains(response, 'This field is required.', status_code=400)
+        self.assertEqual(set(PlantingForm().fields), {'crop', 'planting_date'})
+
+    def test_owner_can_edit_planting(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.post(self.edit_url, self.planting_data(crop='Cherry tomatoes'))
+
+        self.assertRedirects(response, self.detail_url)
+        self.planting.refresh_from_db()
+        self.assertEqual(self.planting.crop, 'Cherry tomatoes')
+
+    def test_delete_planting_requires_post_confirmation(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(self.delete_url)
+
+        self.assertContains(response, 'Delete Tomatoes?')
+        self.assertTrue(Planting.objects.filter(pk=self.planting.pk).exists())
+        response = self.client.post(self.delete_url)
+
+        self.assertRedirects(response, self.garden_url)
+        self.assertFalse(Planting.objects.filter(pk=self.planting.pk).exists())
+
+    def test_other_grower_cannot_read_or_change_planting(self):
+        self.client.force_login(self.other_owner)
+        self.assertEqual(self.client.get(self.detail_url).status_code, 404)
+        urls = (self.edit_url, self.delete_url)
+
+        for url in urls:
+            with self.subTest(method='GET', url=url):
+                self.assertEqual(self.client.get(url).status_code, 404)
+            with self.subTest(method='POST', url=url):
+                self.assertEqual(self.client.post(url, self.planting_data()).status_code, 404)
+
+        self.assertTrue(Planting.objects.filter(pk=self.planting.pk).exists())
+
+    def test_planting_cannot_be_accessed_through_wrong_garden_url(self):
+        self.client.force_login(self.owner)
+        wrong_detail_url = reverse('gardens:planting_detail', args=[self.other_garden.pk, self.planting.pk])
+
+        self.assertEqual(self.client.get(wrong_detail_url).status_code, 404)
+
+    def test_planting_routes_require_authentication_and_grower_role(self):
+        for url in (self.create_url, self.detail_url, self.edit_url, self.delete_url):
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, 302)
+                self.assertIn('/login/', response.url)
+
+        self.client.force_login(self.buyer)
+        for url in (self.create_url, self.detail_url, self.edit_url, self.delete_url):
+            with self.subTest(url=url):
+                self.assertEqual(self.client.get(url).status_code, 403)

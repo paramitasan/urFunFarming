@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}{% if planting %}Edit {{ planting.crop }}{% else %}Add planting{% endif %} · {{ garden.name }}{% endblock %}
+{% block content %}
+<section class="gardens-page" aria-labelledby="planting-form-heading">
+    <a class="gardens-back-link" href="{% if planting %}{% url 'gardens:planting_detail' garden.pk planting.pk %}{% else %}{% url 'gardens:detail' garden.pk %}{% endif %}">Cancel and go back</a>
+    <header class="gardens-page-heading">
+        <div>
+            <p class="gardens-eyebrow">{{ garden.name }}</p>
+            <h1 id="planting-form-heading">{% if planting %}Edit planting{% else %}Add planting{% endif %}</h1>
+        </div>
+    </header>
+    <form class="garden-form" method="post">
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="garden-form-errors" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+        {% for field in form %}
+            <div class="garden-form-field{% if field.errors %} has-error{% endif %}">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}<div class="garden-field-errors" role="alert">{{ field.errors }}</div>{% endif %}
+            </div>
+        {% endfor %}
+        <div class="gardens-actions">
+            <button class="gardens-button gardens-button-primary" type="submit">{% if planting %}Save changes{% else %}Add planting{% endif %}</button>
+            <a class="gardens-button gardens-button-outline" href="{% if planting %}{% url 'gardens:planting_detail' garden.pk planting.pk %}{% else %}{% url 'gardens:detail' garden.pk %}{% endif %}">Cancel</a>
+        </div>
+    </form>
+</section>
+{% endblock %}
