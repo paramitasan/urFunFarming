@@ -18,4 +18,11 @@
 {% else %}
     <p>This journal is private.</p>
 {% endif %}
+
+<ul>
+    {% for step in stage_steps %}
+        <li>{{ step.label }}: {{ step.status }}, {% if step.date %}{{ step.date|date:"j M Y" }}{% else %}Not yet{% endif %}</li>
+    {% endfor %}
+</ul>
+
 {% endblock content %}
