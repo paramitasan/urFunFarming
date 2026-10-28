@@ -121,7 +121,8 @@ def forum_edit(request, pk):
     if request.method == "POST":
         form = ForumForm(request.POST, request.FILES, instance=forum)
         if form.is_valid():
-            form.save()
+            if form.has_changed():
+                form.save()
             return redirect(next_url)
     else:
         form = ForumForm(instance=forum)
@@ -213,7 +214,8 @@ def reply_edit(request, pk):
     if request.method == "POST":
         form = ReplyForm(request.POST, instance=reply, auto_id="id_edit_%s")
         if form.is_valid():
-            form.save()
+            if form.has_changed():
+                form.save()
             return redirect(f"{reverse('forum:forum_detail', args=[forum.pk])}#reply-{reply.pk}")
     else:
         form = ReplyForm(instance=reply, auto_id="id_edit_%s")

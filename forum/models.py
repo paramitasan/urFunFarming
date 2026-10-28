@@ -1,7 +1,13 @@
 from django.db import models
 from django.conf import settings
+from datetime import timedelta
 
-class Forum(models.Model):
+class EditedMixin:
+    @property
+    def is_edited(self):
+        return self.updated_at - self.created_at > timedelta(seconds=1)
+    
+class Forum(EditedMixin, models.Model):
     class Topic(models.TextChoices):
         PLANT_CARE = "plant_care", "Plant care"
         HYDROPONICS = "hydroponics", "Hydroponics"
@@ -25,7 +31,7 @@ class Forum(models.Model):
     def __str__(self):
         return self.title
 
-class Reply(models.Model):
+class Reply(EditedMixin, models.Model):
     body = models.TextField(max_length=3000)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

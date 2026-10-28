@@ -71,7 +71,7 @@
                         <span class="forum-avatar" aria-hidden="true">{% firstof forum.author.profile.initials forum.author.username|slice:":2"|upper %}</span>
                         <div class="forum-author">
                             <span class="forum-author-name">{% firstof forum.author.profile.display_name forum.author.username %}</span>
-                            <time datetime="{{ forum.created_at|date:'c' }}">{{ forum.created_at|timesince }} ago</time>
+                            <time datetime="{{ forum.created_at|date:'c' }}">{{ forum.created_at|timesince }} ago{% if forum.is_edited %} (edited){% endif %}</time>
                         </div>
                         {% endif %}
                         <span class="forum-chip">{{ forum.get_topic_display }}</span>

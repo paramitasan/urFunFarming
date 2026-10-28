@@ -25,7 +25,7 @@
             <span class="forum-avatar" aria-hidden="true">{% firstof forum.author.profile.initials forum.author.username|slice:":2"|upper %}</span>
             <div class="forum-author">
                 <span class="forum-author-name">{% firstof forum.author.profile.display_name forum.author.username %}</span>
-                <time datetime="{{ forum.created_at|date:'c' }}">{{ forum.created_at|timesince }} ago</time>
+                <time datetime="{{ forum.created_at|date:'c' }}">{{ forum.created_at|timesince }} ago{% if forum.is_edited %} (edited){% endif %}</time>
             </div>
             <span class="forum-chip">{{ forum.get_topic_display }}</span>
             {% if user == forum.author %}{% include "forum/_post_menu.html" %}{% endif %}
@@ -93,7 +93,7 @@
                         <span class="forum-avatar forum-avatar-sm" aria-hidden="true">{% firstof reply.author.profile.initials reply.author.username|slice:":2"|upper %}</span>
                         <div class="forum-author">
                             <span class="forum-author-name">{% firstof reply.author.profile.display_name reply.author.username %}</span>
-                            <time datetime="{{ reply.created_at|date:'c' }}">{{ reply.created_at|timesince }} ago</time>
+                            <time datetime="{{ reply.created_at|date:'c' }}">{{ reply.created_at|timesince }} ago{% if reply.is_edited %} (edited){% endif %}</time>
                         </div>
                         <span class="forum-chip">Editing</span>
                     </div>
@@ -124,7 +124,7 @@
                     <span class="forum-avatar forum-avatar-sm" aria-hidden="true">{% firstof reply.author.profile.initials reply.author.username|slice:":2"|upper %}</span>
                     <div class="forum-author">
                         <span class="forum-author-name">{% firstof reply.author.profile.display_name reply.author.username %}</span>
-                        <time datetime="{{ reply.created_at|date:'c' }}">{{ reply.created_at|timesince }} ago</time>
+                        <time datetime="{{ reply.created_at|date:'c' }}">{{ reply.created_at|timesince }} ago{% if reply.is_edited %} (edited){% endif %}</time>
                     </div>
                     {% if user == reply.author %}{% include "forum/_reply_menu.html" %}{% endif %}
                 </div>
