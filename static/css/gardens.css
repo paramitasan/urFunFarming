@@ -176,7 +176,7 @@
 
 .garden-toolbar .garden-sort {
     flex-shrink: 0;
-    width: 240px;
+    width: 280px;
 }
 
 /* Fields */
@@ -209,13 +209,18 @@ textarea.garden-field {
     cursor: pointer;
 }
 
-/* Body: filters on the left, results on the right */
+/* Body: results on the left, filters on the right under the sort select */
 
 .garden-body {
     display: grid;
-    grid-template-columns: 280px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) 280px;
     align-items: start;
     gap: 32px;
+}
+
+.garden-body > aside {
+    grid-row: 1;
+    grid-column: 2;
 }
 
 /* Filters */
@@ -795,8 +800,12 @@ legend.garden-filter-label {
         padding-inline: 40px;
     }
 
+    .garden-toolbar .garden-sort {
+        width: 240px;
+    }
+
     .garden-body {
-        grid-template-columns: 240px minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr) 240px;
         gap: 24px;
     }
 
@@ -842,6 +851,11 @@ legend.garden-filter-label {
     .garden-body {
         grid-template-columns: minmax(0, 1fr);
         gap: 20px;
+    }
+
+    .garden-body > aside {
+        grid-row: auto;
+        grid-column: auto;
     }
 
     .garden-item,
