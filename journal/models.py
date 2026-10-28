@@ -61,9 +61,17 @@ class JournalEntry(models.Model):
 
 
 class EntryPhoto(models.Model):
+    # Each photo is either an uploaded file or a link, never both
     entry = models.ForeignKey(JournalEntry, on_delete=models.CASCADE, related_name='photos')
-    url = models.URLField(max_length=500)
+    image = models.ImageField(upload_to='journal/', blank=True)
+    url = models.URLField(max_length=500, blank=True)
 
     def __str__(self):
-        return self.url
+        return self.image.name or self.url
+
+    @property
+    def src(self):
+        # The address to put in <img src>, whichever kind of photo this is
+        return self.image.url if self.image else self.url
+
 
