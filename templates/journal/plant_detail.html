@@ -5,11 +5,13 @@
 {% block content %}
 {% include 'partials/grower_subnav.html' %}
 <h1>{{ planting.name }}</h1>
+<p>Started {{ started_on|date:"j M Y" }}, {{ days_growing }} days growing</p>
 
 {% if can_view %}
     {% for entry in entries %}
         <p>{{ entry.date }} {{ entry.time }}: {{ entry.height_cm }} cm, {{ entry.get_stage_display }}, {{ entry.get_health_display }}</p>
         <p>{{ entry.observation }}</p>
+        <p>{% if entry.height_change is None %}First entry{% else %}{% if entry.height_change >= 0 %}+{% endif %}{{ entry.height_change }} cm since last entry{% endif %}</p>
     {% empty %}
         <p>No entries yet.</p>
     {% endfor %}
