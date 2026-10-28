@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{% if entry %}Edit Entry{% elif planting %}New Entry for {{ planting.name }}{% else %}New Entry{% endif %} · Plant Journal{% endblock title %}
+{% block title %}{% if entry %}Edit Entry{% elif planting %}New Entry for {{ planting.crop }}{% else %}New Entry{% endif %} · Plant Journal{% endblock title %}
 
 {% block head %}
 <link rel="stylesheet" href="{% static 'journal/journal.css' %}">
@@ -27,7 +27,7 @@
 
     <header class="journal-title-block">
         <p class="journal-eyebrow">Plant journal · {% if entry %}Edit entry{% else %}New entry{% endif %}</p>
-        <h1 class="journal-title">{% if entry %}Edit Entry{% elif planting %}New Entry for {{ planting.name }}{% else %}New Entry{% endif %}</h1>
+        <h1 class="journal-title">{% if entry %}Edit Entry{% elif planting %}New Entry for {{ planting.crop }}{% else %}New Entry{% endif %}</h1>
         <p class="journal-subtitle">{% if entry %}Update what you wrote about this plant on {{ original_date|date:"j M Y" }}.{% else %}Log what changed since you last checked on this plant.{% endif %}</p>
     </header>
 
@@ -49,7 +49,7 @@
                 <img src="{% static 'journal/icons/sprout.svg' %}" alt="" width="22" height="22">
             </span>
             <div>
-                <strong>{{ planting.name }} · {{ planting.garden.name }}</strong>
+                <strong>{{ planting.crop }} · {{ planting.garden.name }}</strong>
                 {% if entry %}
                     <span>Editing the entry from {{ original_date|date:"j M Y" }} · {{ original_time|time:"H.i" }}</span>
                 {% elif latest %}
@@ -67,8 +67,7 @@
                 <label class="field-label" for="{{ form.planting.id_for_label }}">{{ form.planting.label }}</label>
                 {{ form.planting }}
                 {% include 'journal/field_errors.html' with field=form.planting %}
-                {# TODO: link to the gardens app once it is merged #}
-                <p class="field-hint">Don't see your plant? <a href="#">Add it in My gardens</a></p>
+                <p class="field-hint">Don't see your plant? <a href="{% url 'gardens:mine' %}">Add it in My gardens</a></p>
             </div>
             {% endif %}
 

@@ -1,23 +1,6 @@
-from django.contrib.auth.models import User
 from django.db import models
 
-
-# Temporary until the gardens app is merged
-class Garden(models.Model):
-    name = models.CharField(max_length=100)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gardens')
-
-    def __str__(self):
-        return self.name
-
-
-# Temporary until the gardens app is merged
-class Planting(models.Model):
-    name = models.CharField(max_length=100)
-    garden = models.ForeignKey(Garden, on_delete=models.CASCADE, related_name='plantings')
-
-    def __str__(self):
-        return self.name
+from gardens.models import Planting
 
 
 class PlantJournal(models.Model):
@@ -25,7 +8,7 @@ class PlantJournal(models.Model):
     is_public = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'Journal for {self.planting.name}'
+        return f'Journal for {self.planting.crop}'
 
 
 class JournalEntry(models.Model):
@@ -57,7 +40,7 @@ class JournalEntry(models.Model):
         verbose_name_plural = 'journal entries'
 
     def __str__(self):
-        return f'{self.planting.name} on {self.date}'
+        return f'{self.planting.crop} on {self.date}'
 
 
 class EntryPhoto(models.Model):

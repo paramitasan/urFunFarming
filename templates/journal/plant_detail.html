@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ planting.name }} · Plant Journal{% endblock title %}
+{% block title %}{{ planting.crop }} · Plant Journal{% endblock title %}
 
 {% block head %}
 <link rel="stylesheet" href="{% static 'journal/journal.css' %}">
@@ -14,8 +14,12 @@
         <p role="status">{{ message }}</p>
     {% endfor %}
     {% if from_garden %}
-        {# TODO: link to this garden's page once the gardens app is merged #}
-        <a class="back-link" href="#">
+        {% if is_owner %}
+            {% url 'gardens:detail' planting.garden.pk as garden_url %}
+        {% else %}
+            {% url 'gardens:public_detail' planting.garden.pk as garden_url %}
+        {% endif %}
+        <a class="back-link" href="{{ garden_url }}">
             <img src="{% static 'journal/icons/arrow-left.svg' %}" alt="" width="18" height="18">
             Back to {{ planting.garden.name }}
         </a>
@@ -30,7 +34,7 @@
         <div class="journal-title-block">
             <p class="journal-eyebrow">Plant journal · Timeline</p>
             <div class="journal-title-row">
-                <h1 class="journal-title">{{ planting.name }}</h1>
+                <h1 class="journal-title">{{ planting.crop }}</h1>
                 {% if can_view and entries %}
                     <span class="stage-tag" data-stage="{{ entries.0.stage }}">{{ entries.0.get_stage_display }}</span>
                 {% endif %}
@@ -96,7 +100,7 @@
                         {% if entry.photos.all %}
                         <div class="entry-photos">
                             {% for photo in entry.photos.all %}
-                                <img src="{{ photo.src }}" alt="Photo {{ forloop.counter }} of {{ planting.name }} on {{ entry.date|date:'j M Y' }}" loading="lazy">
+                                <img src="{{ photo.src }}" alt="Photo {{ forloop.counter }} of {{ planting.crop }} on {{ entry.date|date:'j M Y' }}" loading="lazy">
                             {% endfor %}
                         </div>
                         {% endif %}
@@ -110,7 +114,7 @@
                     <img src="{% static 'journal/icons/sprout.svg' %}" alt="" width="26" height="26">
                 </span>
                 <h3>No entries yet</h3>
-                <p>Log the first entry for {{ planting.name }} to start its timeline.</p>
+                <p>Log the first entry for {{ planting.crop }} to start its timeline.</p>
                 {% if is_owner %}
                     <a class="pill-button" href="{% url 'journal:create_plant_entry' planting.pk %}">
                         <img src="{% static 'journal/icons/plus.svg' %}" alt="" width="18" height="18">
@@ -142,8 +146,9 @@
                         <dd>{{ entries|length }}</dd>
                     </div>
                 </dl>
-                {# TODO: link to the gardens app once it is merged #}
-                <a class="outline-button" href="#">View in My gardens</a>
+                {% if is_owner %}
+                    <a class="outline-button" href="{% url 'gardens:planting_detail' planting.garden.pk planting.pk %}">View in My gardens</a>
+                {% endif %}
             </section>
 
             <section class="side-card">

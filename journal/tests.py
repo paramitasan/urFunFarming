@@ -13,7 +13,8 @@ from django.utils import timezone
 from django.utils.datastructures import MultiValueDict
 
 from accounts.models import Profile
-from journal.models import EntryPhoto, Garden, JournalEntry, PlantJournal, Planting
+from gardens.models import Garden, Planting
+from journal.models import EntryPhoto, JournalEntry, PlantJournal
 from journal.forms import PHOTO_ERROR, JournalEntryForm, NewEntryForm
 
 # Uploads made during tests go here, never into the real media/ folder
@@ -43,8 +44,8 @@ class JournalTestCase(TestCase):
         Profile.objects.create(user=self.buyer, display_name='Dewi', is_buyer=True)
 
         self.garden = Garden.objects.create(name='Tebet Rooftop Garden', owner=self.grower)
-        self.tomato = Planting.objects.create(name='Cherry Tomato', garden=self.garden)
-        self.chili = Planting.objects.create(name="Bird's eye chili", garden=self.garden)
+        self.tomato = Planting.objects.create(crop='Cherry Tomato', garden=self.garden, planting_date=date(2026, 9, 5))
+        self.chili = Planting.objects.create(crop="Bird's eye chili", garden=self.garden, planting_date=date(2026, 10, 1))
         self.journal = PlantJournal.objects.create(planting=self.tomato, is_public=False)
 
         self.first = JournalEntry.objects.create(
@@ -76,8 +77,6 @@ class JournalTestCase(TestCase):
 
 class ModelTest(JournalTestCase):
     def test_str(self):
-        self.assertEqual(str(self.garden), 'Tebet Rooftop Garden')
-        self.assertEqual(str(self.tomato), 'Cherry Tomato')
         self.assertEqual(str(self.journal), 'Journal for Cherry Tomato')
         self.assertEqual(str(self.latest), 'Cherry Tomato on 2026-10-24')
 
@@ -148,8 +147,9 @@ class PlantDetailTest(JournalTestCase):
     def test_started_on_and_days_growing(self):
         self.client.force_login(self.grower)
         response = self.client.get(self.detail_url(self.tomato))
-        self.assertEqual(response.context['started_on'], date(2026, 9, 12))
-        expected_days = (timezone.localdate() - date(2026, 9, 12)).days
+        # Counted from the planting date, not from the first entry
+        self.assertEqual(response.context['started_on'], date(2026, 9, 5))
+        expected_days = (timezone.localdate() - date(2026, 9, 5)).days
         self.assertEqual(response.context['days_growing'], expected_days)
 
     def test_stage_steps(self):
@@ -166,7 +166,7 @@ class PlantDetailTest(JournalTestCase):
         self.client.force_login(self.grower)
         response = self.client.get(self.detail_url(self.chili))
         self.assertContains(response, 'No entries yet')
-        self.assertIsNone(response.context['days_growing'])
+        self.assertEqual(response.context['entries'], [])
         self.assertEqual({step['status'] for step in response.context['stage_steps']}, {'next'})
 
     def test_back_link_goes_to_journal_by_default(self):
@@ -180,6 +180,7 @@ class PlantDetailTest(JournalTestCase):
         response = self.client.get(self.detail_url(self.tomato) + '?from=garden')
         self.assertContains(response, 'Back to Tebet Rooftop Garden')
         self.assertNotContains(response, 'Back to journal')
+        self.assertContains(response, f'href="{reverse("gardens:detail", args=[self.garden.pk])}"')
 
     def test_photos_show_on_the_card(self):
         EntryPhoto.objects.create(entry=self.latest, url='https://example.com/tomato.jpg')

@@ -5,8 +5,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from accounts.models import Profile
+from gardens.models import Planting
 from journal.forms import PHOTO_ERROR, JournalEntryForm, NewEntryForm
-from journal.models import EntryPhoto, JournalEntry, PlantJournal, Planting
+from journal.models import EntryPhoto, JournalEntry, PlantJournal
 
 
 def is_grower(user):
@@ -51,8 +52,8 @@ def plant_detail(request, planting_id):
         else:
             entry.height_change = None
 
-    started_on = entries[-1].date if entries else None
-    days_growing = (timezone.localdate() - started_on).days if started_on else None
+    started_on = planting.planting_date
+    days_growing = (timezone.localdate() - started_on).days
     
     # First date each stage was reached, going from the oldest entry up
     first_reached = {}

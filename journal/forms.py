@@ -2,7 +2,8 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.html import strip_tags
 
-from journal.models import JournalEntry, Planting
+from gardens.models import Planting
+from journal.models import JournalEntry
 
 MAX_PHOTOS = 5
 MAX_PHOTO_SIZE = 5 * 1024 * 1024  # 5 MB
