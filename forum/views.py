@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.http import require_POST
 
 from .models import Forum
 from .forms import ForumForm
@@ -93,3 +94,16 @@ def forum_edit(request, pk):
         "current_image": current_image,
         "has_image": bool(current_image) and not form["remove_image"].value(),
     })
+
+@login_required
+@require_POST
+def forum_delete(request, pk):
+    forum = get_object_or_404(Forum, pk=pk)
+    if forum.author != request.user:
+        raise PermissionDenied
+
+    image = forum.image
+    forum.delete()                 # replies go with it (CASCADE)
+    image.delete(save=False)       # remove the file from media/forum/
+
+    return redirect(_safe_next(request, reverse("forum:forum_list")))
