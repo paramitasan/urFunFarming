@@ -142,9 +142,47 @@
             <p class="field-hint">Also write down anything you did today, like watering, pruning or adding fertilizer.</p>
         </div>
 
-        {{ form.photo_1 }}
-        {{ form.photo_2 }}
-        {{ form.photo_3 }}
+        <div class="field" data-photo-box data-max-photos="5" data-trash-icon="{% static 'journal/icons/trash.svg' %}">
+            <span class="field-label">Photos</span>
+
+            <div class="photo-list" data-photo-list></div>
+
+            <div class="dropzone" data-dropzone>
+                <img src="{% static 'journal/icons/camera.svg' %}" alt="" width="32" height="32">
+                <p class="dropzone-title">Drag photos here</p>
+                <p class="dropzone-or">or</p>
+                {{ form.photos }}
+                <label class="small-button" for="{{ form.photos.id_for_label }}">Choose files</label>
+                <p class="dropzone-hint">Up to 5 photos. JPG, PNG or WEBP, up to 5 MB each. A photo from the same angle each time makes growth easier to compare.</p>
+            </div>
+            {{ form.photos.errors }}
+            <p class="field-error" data-upload-error hidden>Use a JPG, PNG or WEBP under 5 MB.</p>
+            <p class="field-hint" data-photo-full hidden>You've added 5 photos, the most for one entry.</p>
+
+            <div class="photo-link">
+                <label class="field-label" for="photo-link">Or add a photo by link</label>
+                <div class="photo-link-row">
+                    <input id="photo-link" type="url" inputmode="url" placeholder="https://example.com/my-plant.jpg" aria-describedby="photo-link-error photo-link-hint" data-link-input>
+                    <button class="small-button" type="button" data-link-add>
+                        <img src="{% static 'journal/icons/plus.svg' %}" alt="" width="16" height="16">
+                        Add link
+                    </button>
+                </div>
+                <p class="field-error" id="photo-link-error" data-link-error hidden>Couldn't load this image. Try a different link (Google Drive links usually don't work).</p>
+                <p class="field-hint" id="photo-link-hint">Paste a link to an image. If it doesn't show up, try a different link. Google Drive links usually don't work.</p>
+            </div>
+
+            {{ form.photo_1 }}
+            {{ form.photo_2 }}
+            {{ form.photo_3 }}
+            {{ form.photo_4 }}
+            {{ form.photo_5 }}
+            {{ form.photo_1.errors }}
+            {{ form.photo_2.errors }}
+            {{ form.photo_3.errors }}
+            {{ form.photo_4.errors }}
+            {{ form.photo_5.errors }}
+        </div>
 
         <div class="form-footer">
             <a class="outline-button" href="{{ back_url }}">Cancel</a>
