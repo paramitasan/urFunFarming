@@ -1,0 +1,7 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Indicator">
+<rect x="1" y="1" width="30" height="30" rx="15" fill="#FDEBD8"/>
+<rect x="1" y="1" width="30" height="30" rx="15" stroke="#D9653B" stroke-width="2"/>
+<circle id="Center" cx="16" cy="16" r="5" fill="#D9653B"/>
+</g>
+</svg>
