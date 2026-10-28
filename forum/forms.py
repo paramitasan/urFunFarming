@@ -1,7 +1,7 @@
 from django import forms
 from django.core.files.storage import default_storage
 
-from .models import Forum
+from .models import Forum, Reply
 
 MAX_IMAGE_BYTES = 5 * 1024 * 1024
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/mpo", "image/webp"}
@@ -67,3 +67,13 @@ class ForumForm(forms.ModelForm):
             if self._old_image_name and (remove or new_upload):
                 default_storage.delete(self._old_image_name)
         return forum
+
+class ReplyForm(forms.ModelForm):
+    class Meta:
+        model = Reply
+        fields = ["body"]
+        labels = {"body": "Your answer"}
+        error_messages = {"body": {"required": "Answer can’t be empty"}}
+        widgets = {
+            "body": forms.Textarea(attrs={"placeholder": "Share your thoughts...", "rows": 4}),
+        }

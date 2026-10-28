@@ -6,8 +6,8 @@ from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from .models import Forum
-from .forms import ForumForm
+from .models import Forum, Reply
+from .forms import ForumForm, ReplyForm
 
 def forum_list(request):
     forums = (
@@ -107,3 +107,30 @@ def forum_delete(request, pk):
     image.delete(save=False)       # remove the file from media/forum/
 
     return redirect(_safe_next(request, reverse("forum:forum_list")))
+
+def _render_detail(request, forum, reply_form):
+    context = {
+        "forum": forum,
+        "replies": forum.replies.select_related("author__profile"),
+        "reply_form": reply_form,
+    }
+    return render(request, "forum/forum_detail.html", context)
+
+# Visitors only see titles on the list page, viewing full discussion requires login.
+@login_required
+def forum_detail(request, pk):
+    forum = get_object_or_404(Forum.objects.select_related("author__profile"), pk=pk)
+    return _render_detail(request, forum, ReplyForm())
+
+@login_required
+@require_POST
+def reply_create(request, pk):
+    forum = get_object_or_404(Forum.objects.select_related("author__profile"), pk=pk)
+    form = ReplyForm(request.POST)
+    if form.is_valid():
+        reply = form.save(commit=False)
+        reply.forum = forum
+        reply.author = request.user
+        reply.save()
+        return redirect(f"{reverse('forum:forum_detail', args=[pk])}#reply-{reply.pk}")
+    return _render_detail(request, forum, form)   # shows the error under the box

@@ -60,14 +60,26 @@
 
     </article>
 
-    {# TODO: "Your answer" box goes here (replies slice) #}
+    <section class="reply-box" id="your-answer">
+        <form method="post" action="{% url 'forum:reply_create' forum.pk %}#your-answer" novalidate data-reply-form>
+            {% csrf_token %}
+            <label class="reply-label" for="{{ reply_form.body.id_for_label }}">{{ reply_form.body.label }}</label>
+            <div class="reply-field{% if reply_form.body.errors %} has-error{% endif %}">
+                {{ reply_form.body }}
+            </div>
+            {% if reply_form.body.errors %}<p class="reply-error">{{ reply_form.body.errors.0 }}</p>{% endif %}
+            <div class="reply-actions">
+                <button type="submit" class="pill-button" data-reply-submit>Post answer</button>
+            </div>
+        </form>
+    </section>
 
     <section class="forum-answers" aria-labelledby="answers-heading">
         <h2 id="answers-heading">{{ replies|length }} answer{{ replies|length|pluralize }}</h2>
 
         <div class="answer-list">
             {% for reply in replies %}
-            <article class="answer-card">
+            <article class="answer-card" id="reply-{{ reply.pk }}">
                 <div class="forum-card-top">
                     <span class="forum-avatar forum-avatar-sm" aria-hidden="true">{% firstof reply.author.profile.initials reply.author.username|slice:":2"|upper %}</span>
                     <div class="forum-author">

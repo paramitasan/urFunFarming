@@ -20,3 +20,16 @@ document.addEventListener("keydown", (event) => {
         menu.querySelector("summary").focus();
     });
 });
+
+// "Post answer" stays disabled until the box has something other than spaces.
+document.querySelectorAll("[data-reply-form]").forEach((form) => {
+    const textarea = form.querySelector("textarea");
+    const submit = form.querySelector("[data-reply-submit]");
+    if (!textarea || !submit) return;
+
+    const sync = () => {
+        submit.disabled = textarea.value.trim() === "";
+    };
+    textarea.addEventListener("input", sync);
+    sync();
+});

@@ -206,7 +206,8 @@
     color: var(--color-forest);
 }
 
-.forum-title a:hover {
+.forum-title a:hover,
+.forum-card-foot a:hover {
     text-decoration: underline;
     text-underline-offset: 4px;
 }
@@ -374,8 +375,12 @@
 }
 
 .filter-count {
+    flex-shrink: 0;
+    width: 36px;                        /* same box for every row */
     margin-left: auto;
     font-size: 12px;
+    text-align: center;                  
+    font-variant-numeric: tabular-nums;  /* equal-width digits */
     color: var(--color-sage);
 }
 

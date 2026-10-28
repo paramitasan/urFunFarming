@@ -144,6 +144,82 @@
     color: var(--color-deep);
 }
 
+/* Your answer */
+
+.reply-box {
+    margin-top: 24px;
+    padding: 24px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-band);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(18, 81, 51, 0.06);
+    scroll-margin-top: 108px;
+}
+
+.reply-label {
+    display: block;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.reply-field {
+    margin-top: 12px;
+}
+
+.reply-field textarea {
+    display: block;
+    width: 100%;
+    min-height: 120px;
+    padding: 14px 18px;
+    background-color: #FFFFFF;
+    border: 1.5px solid var(--color-field);
+    border-radius: 14px;
+    resize: vertical;
+    font-family: inherit;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--color-forest);
+}
+
+.reply-field textarea::placeholder {
+    color: var(--color-sage);
+}
+
+.reply-field textarea:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(33, 195, 126, 0.2);
+}
+
+.reply-field.has-error textarea {
+    border: 2px solid #B5452F;
+}
+
+.reply-error {
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #B5452F;
+}
+
+.reply-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+}
+
+/* Empty box: the button is faded. Typing turns it back to the normal green. */
+.reply-actions .pill-button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.reply-actions .pill-button:disabled:hover {
+    background-color: var(--color-accent);
+}
+
 @media (max-width: 639px) {
     .forum-post {
         padding: 20px;
@@ -154,6 +230,10 @@
     }
 
     .answer-card {
+        padding: 16px;
+    }
+
+    .reply-box {
         padding: 16px;
     }
 }

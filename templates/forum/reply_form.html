@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Add answer - UrFunFarming{% endblock title %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'forum/css/forum_form.css' %}">
+<script defer src="{% static 'forum/js/forum_form.js' %}"></script>
+{% endblock head %}
+
+{% block content %}
+<div class="container forum-form-page">
+    <form class="forum-form-card" method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="forum-form-heading">
+            <h1>Add Answer</h1>
+            <p>On “{{ forum.title }}”</p>
+        </div>
+
+        <div class="ff-field{% if form.body.errors %} has-error{% endif %}">
+            <label for="{{ form.body.id_for_label }}">{{ form.body.label }}</label>
+            <div class="ff-textarea" data-char-counter>
+                {{ form.body }}
+                <span class="ff-counter">0 / 3000</span>
+            </div>
+            {% if form.body.errors %}<p class="ff-error">{{ form.body.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div class="ff-actions">
+            <a class="outline-button" href="{{ cancel_url }}">Cancel</a>
+            <button type="submit" class="pill-button">Save answer</button>
+        </div>
+    </form>
+</div>
+{% endblock content %}
