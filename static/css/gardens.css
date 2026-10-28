@@ -928,3 +928,12 @@ legend.garden-filter-label {
         font-size: 16px;
     }
 }
+
+/* Windows High Contrast: native radios, so the selected filter still shows */
+
+@media (forced-colors: active) {
+    .garden-radio input {
+        -webkit-appearance: auto;
+        appearance: auto;
+    }
+}

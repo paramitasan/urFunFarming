@@ -259,6 +259,45 @@ ul {
     }
 }
 
+/* Dropdowns: one look in every browser and on every platform.
+   Module classes (.garden-select, .market-input, ...) still set their own sizes and colours. */
+
+select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    padding-right: 40px;
+    background: #FFFFFF url('../img/chevron-down.svg') no-repeat right 14px center;
+    font: inherit;
+    color: var(--color-forest);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+/* The open list keeps light colours even when the computer is in dark mode */
+select option {
+    background-color: #FFFFFF;
+    color: var(--color-ink);
+}
+
+select:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Windows High Contrast: use the native control so the arrow follows the system colours.
+   !important because the module classes also switch the native look off. */
+@media (forced-colors: active) {
+    select {
+        -webkit-appearance: auto !important;
+        -moz-appearance: auto !important;
+        appearance: auto !important;
+        background-image: none !important;
+    }
+}
+
 /* Pill buttons and role chips, shared by Home and Profile */
 
 .outline-button,
