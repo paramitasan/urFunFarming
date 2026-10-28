@@ -1,12 +1,12 @@
 .gardens-page {
     width: min(100%, 1440px);
     margin: 0 auto;
-    padding: 108px 80px 96px;
+    padding: 140px 80px 96px;
 }
 
-.gardens-page > .subnav-row {
-    margin: 0 0 18px;
-    padding: 0;
+/* Owner pages: the shared grower sub-nav sits above the page, so the header starts 19px below it */
+.subnav-row + .gardens-page {
+    padding-top: 19px;
 }
 
 .gardens-page :focus-visible,
@@ -678,10 +678,6 @@
 @media (max-width: 700px) {
     .gardens-page {
         padding: 92px 20px 60px;
-    }
-
-    .gardens-page > .subnav-row {
-        margin: 0 0 16px;
     }
 
     .gardens-page h1 {

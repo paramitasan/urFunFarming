@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}{% if no_access %}No access{% else %}{{ planting.crop }} · {{ garden.name }}{% endif %}{% endblock %}
 {% block content %}
+{% if is_owner %}{% include 'partials/grower_subnav.html' %}{% endif %}
 <section class="gardens-page" aria-labelledby="planting-heading">
     {% if no_access %}
         {# Private garden and not the owner: show nothing about the plant itself #}

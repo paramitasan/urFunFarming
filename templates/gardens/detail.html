@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
 {% block title %}{{ garden.name }} · My gardens{% endblock %}
 {% block content %}
+{% include 'partials/grower_subnav.html' %}
 <section class="gardens-page" aria-labelledby="garden-heading">
-    {% include 'partials/grower_subnav.html' %}
     <a class="gardens-back-link" href="{% url 'gardens:mine' %}">Back to my gardens</a>
     <header class="gardens-page-heading">
         <div>

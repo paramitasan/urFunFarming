@@ -18,7 +18,7 @@ from gardens.models import Garden, Planting
 def _require_grower(request):
     # Only creating needs the grower role; owners keep access to what they already made
     if not getattr(getattr(request.user, 'profile', None), 'is_grower', False):
-        return render(request, 'gardens/grower_required.html', status=403)
+        return render(request, 'gardens/grower_required.html', {'nav_active': 'home'}, status=403)
     return None
 
 
@@ -108,6 +108,7 @@ def explore(request):
         {
             'filter_form': form,
             'gardens': gardens,
+            'nav_active': 'explore',
             'garden_count': garden_count,
             'methods': methods,
             'locations': locations,
@@ -138,6 +139,7 @@ def public_detail(request, pk):
             'plantings': plantings.values('crop', 'planting_date'),
             'filter_form': filter_form,
             'planting_count': planting_count,
+            'nav_active': 'explore',
         },
     )
 
@@ -178,7 +180,13 @@ def my_gardens(request):
     return render(
         request,
         'gardens/my_gardens.html',
-        {'gardens': gardens, 'garden_count': gardens.count(), 'filter_form': form, 'locations': locations},
+        {
+            'gardens': gardens,
+            'garden_count': gardens.count(),
+            'filter_form': form,
+            'locations': locations,
+            'nav_active': 'home',
+        },
     )
 
 
@@ -196,7 +204,12 @@ def create(request):
         garden.save()
         messages.success(request, 'Garden created.')
         return redirect('gardens:detail', pk=garden.pk)
-    return render(request, 'gardens/form.html', {'form': form}, status=400 if request.method == 'POST' else 200)
+    return render(
+        request,
+        'gardens/form.html',
+        {'form': form, 'nav_active': 'home'},
+        status=400 if request.method == 'POST' else 200,
+    )
 
 
 @login_required(login_url='/login')
@@ -213,6 +226,7 @@ def detail(request, pk):
             'plantings': plantings,
             'planting_count': planting_count,
             'filter_form': filter_form,
+            'nav_active': 'home',
         },
     )
 
@@ -230,7 +244,7 @@ def edit(request, pk):
     return render(
         request,
         'gardens/form.html',
-        {'form': form, 'garden': garden},
+        {'form': form, 'garden': garden, 'nav_active': 'home'},
         status=400 if request.method == 'POST' else 200,
     )
 
@@ -244,7 +258,7 @@ def delete(request, pk):
         garden.delete()
         messages.success(request, 'Garden deleted.')
         return redirect('gardens:mine')
-    return render(request, 'gardens/delete.html', {'garden': garden})
+    return render(request, 'gardens/delete.html', {'garden': garden, 'nav_active': 'home'})
 
 
 @login_required(login_url='/login')
@@ -265,7 +279,7 @@ def planting_create(request, garden_pk):
     return render(
         request,
         'gardens/planting_form.html',
-        {'form': form, 'garden': garden},
+        {'form': form, 'garden': garden, 'nav_active': 'home'},
         status=400 if request.method == 'POST' else 200,
     )
 
@@ -283,11 +297,21 @@ def planting_detail(request, garden_pk, planting_pk):
     garden = planting.garden
     is_owner = garden.owner_id == request.user.pk
     if not is_owner and not (garden.is_public and garden.owner.is_active):
-        return render(request, 'gardens/planting_detail.html', {'no_access': True}, status=403)
+        return render(
+            request,
+            'gardens/planting_detail.html',
+            {'no_access': True, 'nav_active': 'explore'},
+            status=403,
+        )
     return render(
         request,
         'gardens/planting_detail.html',
-        {'garden': garden, 'planting': planting, 'is_owner': is_owner},
+        {
+            'garden': garden,
+            'planting': planting,
+            'is_owner': is_owner,
+            'nav_active': 'home' if is_owner else 'explore',
+        },
     )
 
 
@@ -304,7 +328,7 @@ def planting_edit(request, garden_pk, planting_pk):
     return render(
         request,
         'gardens/planting_form.html',
-        {'form': form, 'garden': planting.garden, 'planting': planting},
+        {'form': form, 'garden': planting.garden, 'planting': planting, 'nav_active': 'home'},
         status=400 if request.method == 'POST' else 200,
     )
 
@@ -318,4 +342,8 @@ def planting_delete(request, garden_pk, planting_pk):
         planting.delete()
         messages.success(request, 'Planting deleted.')
         return redirect('gardens:detail', pk=garden_pk)
-    return render(request, 'gardens/planting_delete.html', {'garden': planting.garden, 'planting': planting})
+    return render(
+        request,
+        'gardens/planting_delete.html',
+        {'garden': planting.garden, 'planting': planting, 'nav_active': 'home'},
+    )

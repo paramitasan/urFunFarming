@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}{% if planting %}Edit {{ planting.crop }}{% else %}Add planting{% endif %} · {{ garden.name }}{% endblock %}
 {% block content %}
+{% include 'partials/grower_subnav.html' %}
 <section class="gardens-page" aria-labelledby="planting-form-heading">
     <a class="gardens-back-link" href="{% if planting %}{% url 'gardens:planting_detail' garden.pk planting.pk %}{% else %}{% url 'gardens:detail' garden.pk %}{% endif %}">Cancel and go back</a>
     <header class="gardens-page-heading">

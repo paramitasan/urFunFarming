@@ -633,3 +633,68 @@ class GardenPrivacyRuleTests(TestCase):
         for url in public_pages:
             with self.subTest(url=url):
                 self.assertNotContains(self.client.get(url), 'Spare key under the blue pot.')
+
+
+class GardenNavigationTests(TestCase):
+    HOME_ACTIVE = '<a href="/home/" data-label="Home" aria-current="page">Home</a>'
+    EXPLORE_ACTIVE = '<a href="/gardens/explore/" data-label="Explore gardens" aria-current="page">Explore gardens</a>'
+    SUBNAV = 'aria-label="Grower tools"'
+    MY_GARDENS_ACTIVE = 'href="/gardens/mine/" aria-current="page"'
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.owner = User.objects.create_user(username='nav_owner', password='test-password')
+        cls.visitor = User.objects.create_user(username='nav_visitor', password='test-password')
+        Profile.objects.create(user=cls.owner, display_name='Nav Owner', is_grower=True)
+        Profile.objects.create(user=cls.visitor, display_name='Nav Visitor', is_grower=True)
+        cls.garden = Garden.objects.create(
+            owner=cls.owner, name='Rooftop', location='Tebet', growing_method='Hydroponic', is_public=True,
+        )
+        cls.planting = Planting.objects.create(garden=cls.garden, crop='Pak choy', planting_date=date(2026, 10, 9))
+
+    def test_owner_pages_highlight_home_and_show_my_gardens_subnav(self):
+        self.client.force_login(self.owner)
+        urls = (
+            reverse('gardens:mine'),
+            reverse('gardens:create'),
+            reverse('gardens:detail', args=[self.garden.pk]),
+            reverse('gardens:edit', args=[self.garden.pk]),
+            reverse('gardens:planting_create', args=[self.garden.pk]),
+            reverse('gardens:planting_detail', args=[self.garden.pk, self.planting.pk]),
+        )
+        for url in urls:
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertContains(response, self.HOME_ACTIVE, html=True)
+                self.assertNotContains(response, self.EXPLORE_ACTIVE, html=True)
+                self.assertContains(response, self.SUBNAV, count=1)
+                self.assertContains(response, self.MY_GARDENS_ACTIVE)
+
+    def test_public_pages_highlight_explore_without_subnav(self):
+        self.client.force_login(self.visitor)
+        urls = (
+            reverse('gardens:explore'),
+            reverse('gardens:public_detail', args=[self.garden.pk]),
+            reverse('gardens:planting_detail', args=[self.garden.pk, self.planting.pk]),
+        )
+        for url in urls:
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertContains(response, self.EXPLORE_ACTIVE, html=True)
+                self.assertNotContains(response, self.HOME_ACTIVE, html=True)
+                self.assertNotContains(response, self.SUBNAV)
+
+    def test_logged_out_visitors_see_explore_highlighted(self):
+        response = self.client.get(reverse('gardens:public_detail', args=[self.garden.pk]))
+
+        self.assertContains(response, self.EXPLORE_ACTIVE, html=True)
+        self.assertNotContains(response, self.SUBNAV)
+
+    def test_home_page_keeps_its_subnav_with_nothing_active(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse('main:home'))
+
+        self.assertContains(response, self.HOME_ACTIVE, html=True)
+        self.assertContains(response, self.SUBNAV, count=1)
+        self.assertNotContains(response, self.MY_GARDENS_ACTIVE)

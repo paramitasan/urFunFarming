@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Delete {{ garden.name }} · UrFunFarming{% endblock %}
 {% block content %}
+{% include 'partials/grower_subnav.html' %}
 <section class="gardens-page" aria-labelledby="garden-delete-heading">
     <a class="gardens-back-link" href="{% url 'gardens:detail' garden.pk %}">Back to garden</a>
     <div class="garden-delete-panel">

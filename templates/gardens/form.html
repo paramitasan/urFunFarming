@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}{% if garden %}Edit {{ garden.name }}{% else %}Add a garden{% endif %} · UrFunFarming{% endblock %}
 {% block content %}
+{% include 'partials/grower_subnav.html' %}
 <section class="gardens-page" aria-labelledby="garden-form-heading">
     <a class="gardens-back-link" href="{% if garden %}{% url 'gardens:detail' garden.pk %}{% else %}{% url 'gardens:mine' %}{% endif %}">Cancel and go back</a>
     <header class="gardens-page-heading">
