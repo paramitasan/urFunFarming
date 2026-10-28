@@ -4,7 +4,7 @@
 
 {% block content %}
 {% include 'partials/grower_subnav.html' %}
-<h1>New Entry</h1>
+<h1>{% if planting %}New Entry for {{ planting.name }}{% else %}New Entry{% endif %}</h1>
 <form method="post">
     {% csrf_token %}
     {{ form.as_p }}

@@ -1,10 +1,11 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from accounts.models import Profile
-from journal.forms import NewEntryForm
+from journal.forms import JournalEntryForm, NewEntryForm
 from journal.models import EntryPhoto, JournalEntry, PlantJournal, Planting
 
 
@@ -67,11 +68,25 @@ def plant_detail(request, planting_id):
 
 
 @login_required(login_url='/login')
-def create_entry(request):
+def create_entry(request, planting_id=None):
     if not is_grower(request.user):
         return render(request, 'journal/grower_required.html', status=403)
 
-    form = NewEntryForm(request.user, request.POST or None)
+    planting = None
+    latest = None
+    if planting_id is not None:
+        # Opened from a plant's page: the plant is fixed and must be the user's own
+        planting = get_object_or_404(Planting, pk=planting_id)
+        if planting.garden.owner != request.user:
+            raise PermissionDenied
+        latest = planting.journal_entries.first()
+        initial = {'stage': latest.stage} if latest else {}
+        form = JournalEntryForm(
+            request.user, request.POST or None, initial=initial, instance=JournalEntry(planting=planting),
+        )
+        del form.fields['planting']
+    else:
+        form = NewEntryForm(request.user, request.POST or None)
 
     if request.method == 'POST' and form.is_valid():
         entry = form.save()
@@ -79,11 +94,17 @@ def create_entry(request):
             EntryPhoto.objects.create(entry=entry, url=url)
 
         journal, _ = PlantJournal.objects.get_or_create(planting=entry.planting)
-        journal.is_public = form.cleaned_data['visibility'] == 'public'
-        journal.save()
+        # Only the general form has the Private/Public choice
+        if 'visibility' in form.cleaned_data:
+            journal.is_public = form.cleaned_data['visibility'] == 'public'
+            journal.save()
 
         messages.success(request, 'Entry saved')
         return redirect('journal:plant_detail', planting_id=entry.planting.pk)
 
-    context = {'form': form}
+    context = {
+        'form': form,
+        'planting': planting,
+        'latest': latest,
+    }
     return render(request, 'journal/entry_form.html', context)
