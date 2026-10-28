@@ -2,52 +2,67 @@
 {% block title %}{{ garden.name }} · My gardens{% endblock %}
 {% block content %}
 <section class="gardens-page" aria-labelledby="garden-heading">
+    {% include 'partials/grower_subnav.html' %}
     <a class="gardens-back-link" href="{% url 'gardens:mine' %}">Back to my gardens</a>
     <header class="gardens-page-heading">
         <div>
-            <p class="gardens-eyebrow">{% if garden.is_public %}PUBLIC GARDEN{% else %}PRIVATE GARDEN{% endif %}</p>
-            <h1 id="garden-heading">{{ garden.name }}</h1>
-            <p>{{ garden.location }} · {{ garden.growing_method }}</p>
+            <p class="gardens-eyebrow">MODULE 2 · GARDENS</p>
+            <h1 id="garden-heading">Plants in {{ garden.name }}</h1>
+            <p>{{ garden.location }} · {{ garden.is_public|yesno:'Public garden,Private garden' }} · {{ garden.plantings.count }} plants</p>
         </div>
         <div class="gardens-actions">
-            <a class="gardens-button gardens-button-outline" href="{% url 'gardens:edit' garden.pk %}">Edit garden</a>
-            <a class="gardens-button gardens-button-danger" href="{% url 'gardens:delete' garden.pk %}">Delete garden</a>
+            <a class="gardens-button gardens-button-primary" href="{% url 'gardens:planting_create' garden.pk %}">Add plant</a>
+            <a class="gardens-text-link" href="{% url 'gardens:edit' garden.pk %}">Edit garden</a>
+            <a class="gardens-text-link" href="{% url 'gardens:delete' garden.pk %}">Delete garden</a>
         </div>
     </header>
 
-    {% if garden.public_summary %}
-        <section class="garden-section" aria-labelledby="garden-summary-heading">
-            <h2 id="garden-summary-heading">Public summary</h2>
-            <p>{{ garden.public_summary|linebreaksbr }}</p>
-        </section>
-    {% endif %}
-    {% if garden.private_notes %}
-        <section class="garden-section" aria-labelledby="garden-notes-heading">
-            <h2 id="garden-notes-heading">Private notes</h2>
-            <p>{{ garden.private_notes|linebreaksbr }}</p>
-        </section>
-    {% endif %}
-
-    <section class="garden-section" aria-labelledby="plantings-heading">
-        <div class="garden-section-heading">
-            <div>
-                <p class="gardens-eyebrow">GROWING HERE</p>
-                <h2 id="plantings-heading">Plantings</h2>
-            </div>
-            <a class="gardens-button gardens-button-outline" href="{% url 'gardens:planting_create' garden.pk %}">Add planting</a>
-        </div>
-        {% if garden.plantings.all %}
-            <ul class="planting-list">
-                {% for planting in garden.plantings.all %}
-                    <li>
-                        <a href="{% url 'gardens:planting_detail' garden.pk planting.pk %}">{{ planting.crop }}</a>
-                        <time datetime="{{ planting.planting_date|date:'Y-m-d' }}">Planted {{ planting.planting_date|date:'M j, Y' }}</time>
-                    </li>
+    <form class="garden-layout owner-garden-layout" method="get" action="{% url 'gardens:detail' garden.pk %}">
+        <div class="garden-toolbar">
+            <label class="garden-search-field" for="plant-search">
+                <span class="garden-search-icon" aria-hidden="true">⌕</span>
+                <span class="garden-visually-hidden">{{ filter_form.q.label }}</span>
+                <input id="plant-search" type="search" name="q" value="{{ filter_form.q.value|default_if_none:'' }}" placeholder="Search plants in this garden...">
+            </label>
+            <label class="garden-visually-hidden" for="plant-sort">Sort plants</label>
+            <select class="garden-field garden-sort" id="plant-sort" name="sort">
+                {% for value, label in filter_form.sort.field.choices %}
+                    <option value="{{ value }}"{% if filter_form.sort.value == value %} selected{% endif %}>{{ label }}</option>
                 {% endfor %}
-            </ul>
-        {% else %}
-            <p>No plantings recorded yet. Add the first crop growing here.</p>
-        {% endif %}
-    </section>
+            </select>
+        </div>
+        <aside class="owner-garden-summary" aria-label="Garden description">
+            <span class="public-grower-avatar" aria-hidden="true">{% include 'svg/icons/gardens.svg' %}</span>
+            <h2>{{ garden.name }}</h2>
+            <p>{{ garden.location }} · {{ garden.growing_method }}</p>
+            {% if garden.public_summary %}<p>{{ garden.public_summary }}</p>{% endif %}
+            {% if garden.private_notes %}<div class="owner-private-notes"><h3>Private notes</h3><p>{{ garden.private_notes }}</p></div>{% endif %}
+        </aside>
+        <div class="garden-results">
+            <p class="garden-results-count">{{ planting_count }} plant{{ planting_count|pluralize }} <span>{% if garden.is_public %}Public garden: all plants are public{% else %}Private garden: only you can see these plants{% endif %}</span></p>
+            {% if plantings %}
+                <div class="planting-cards">
+                    {% for planting in plantings %}
+                        <article class="planting-card">
+                            <span class="garden-item-icon" aria-hidden="true">{% include 'svg/icons/gardens.svg' %}</span>
+                            <div class="planting-card-content">
+                                <h2><a href="{% url 'gardens:planting_detail' garden.pk planting.pk %}">{{ planting.crop }}</a></h2>
+                                <p class="garden-card-meta"><span>Planted {{ planting.planting_date|date:'j M Y' }}</span><span class="garden-method-tag">{{ garden.growing_method }}</span></p>
+                                <button class="gardens-text-link garden-journal-placeholder" type="button" disabled>Open journal <span aria-hidden="true">→</span></button>
+                            </div>
+                            <a class="garden-day-tag" href="{% url 'gardens:planting_edit' garden.pk planting.pk %}">Edit</a>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <section class="gardens-empty-state" aria-labelledby="plants-empty-heading">
+                    <h2 id="plants-empty-heading">{% if filter_form.q.value %}No plants match this search{% else %}Nothing planted here yet{% endif %}</h2>
+                    <p>Add the first plant to {{ garden.name }}.</p>
+                    <a class="gardens-button gardens-button-primary" href="{% url 'gardens:planting_create' garden.pk %}">Add plant</a>
+                </section>
+            {% endif %}
+        </div>
+    </form>
+
 </section>
 {% endblock %}

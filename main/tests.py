@@ -58,6 +58,7 @@ class LandingPageTest(TestCase):
         response = self.client.get(reverse('main:show_main'))
 
         self.assertContains(response, 'Public balcony')
+        self.assertNotContains(response, 'css/gardens.css')
         self.assertContains(response, reverse('gardens:public_detail', args=[1]))
         self.assertContains(response, 'Landing Grower')
         self.assertNotContains(response, 'Private rooftop')

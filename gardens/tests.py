@@ -91,6 +91,22 @@ class GardenOwnerViewTests(TestCase):
         self.assertContains(response, 'Balcony garden')
         self.assertNotContains(response, 'Rooftop garden')
 
+    def test_owner_garden_list_filters_by_location_and_visibility(self):
+        Garden.objects.create(
+            owner=self.owner,
+            name='Rooftop herbs',
+            location='Jakarta',
+            growing_method='Hydroponics',
+            is_public=True,
+        )
+        self.client.force_login(self.owner)
+
+        response = self.client.get(self.mine_url, {'location': 'Jakarta', 'visibility': 'public'})
+
+        self.assertEqual(response.context['garden_count'], 1)
+        self.assertContains(response, 'Rooftop herbs')
+        self.assertNotContains(response, 'Balcony garden')
+
     def test_owner_is_assigned_by_server_and_can_create_garden(self):
         self.client.force_login(self.owner)
 
@@ -118,12 +134,26 @@ class GardenOwnerViewTests(TestCase):
         self.assertContains(response, 'This field is required.', status_code=400)
 
     def test_owner_can_view_and_update_private_garden_details(self):
+        Planting.objects.create(
+            garden=self.garden,
+            crop='Lettuce',
+            planting_date=date(2026, 10, 10),
+        )
         self.client.force_login(self.owner)
 
         detail_response = self.client.get(self.detail_url)
         edit_response = self.client.post(self.edit_url, self.garden_data(name='Updated garden'))
 
         self.assertContains(detail_response, 'Water before noon.')
+        self.assertContains(detail_response, 'Newest planted')
+        self.assertContains(detail_response, 'aria-label="Garden description"')
+        self.assertNotContains(detail_response, 'Filter plants')
+        self.assertNotContains(detail_response, 'Apply filters')
+        self.assertContains(
+            detail_response,
+            '<button class="gardens-text-link garden-journal-placeholder" type="button" disabled>Open journal <span aria-hidden="true">→</span></button>',
+            html=True,
+        )
         self.assertRedirects(edit_response, self.detail_url)
         self.garden.refresh_from_db()
         self.assertEqual(self.garden.name, 'Updated garden')
@@ -225,6 +255,23 @@ class PlantingOwnerViewTests(TestCase):
             '<button class="gardens-button gardens-button-outline" type="button" disabled>Edit plant journal</button>',
             html=True,
         )
+
+    def test_owner_planting_list_filters_by_crop_and_month(self):
+        Planting.objects.create(
+            garden=self.garden,
+            crop='Mint',
+            planting_date=date(2026, 9, 20),
+        )
+        self.client.force_login(self.owner)
+
+        by_crop = self.client.get(self.garden_url, {'q': 'tomato'})
+        by_month = self.client.get(self.garden_url, {'month': '9'})
+
+        self.assertEqual(by_crop.context['planting_count'], 1)
+        self.assertContains(by_crop, 'Tomatoes')
+        self.assertNotContains(by_crop, '>Mint<')
+        self.assertEqual(by_month.context['planting_count'], 1)
+        self.assertContains(by_month, 'Mint')
 
     def test_owner_can_create_planting_only_in_url_garden(self):
         self.client.force_login(self.owner)
@@ -347,9 +394,10 @@ class GardenDiscoveryViewTests(TestCase):
     def test_explore_shows_only_public_gardens_from_active_growers(self):
         response = self.client.get(reverse('gardens:explore'))
 
+        self.assertContains(response, 'css/gardens.css')
         self.assertContains(response, 'Sunny Balcony')
         self.assertContains(response, 'Public Grower')
-        self.assertContains(response, '2 plantings')
+        self.assertContains(response, '2 plants')
         self.assertNotContains(response, 'Hidden Garden')
         self.assertNotContains(response, 'Inactive Grower Garden')
         self.assertNotContains(response, 'Never show these private notes.')
@@ -367,11 +415,14 @@ class GardenDiscoveryViewTests(TestCase):
 
         by_crop = self.client.get(url, {'q': 'basil'})
         by_method = self.client.get(url, {'method': 'Container pots'})
+        by_location = self.client.get(url, {'location': 'Jakarta'})
         no_match = self.client.get(url, {'q': 'unlisted crop'})
 
         self.assertEqual(by_crop.context['garden_count'], 1)
         self.assertContains(by_crop, 'Sunny Balcony')
         self.assertEqual(by_method.context['garden_count'], 1)
+        self.assertEqual(by_location.context['garden_count'], 1)
+        self.assertContains(by_location, 'Community Rooftop')
         self.assertEqual(no_match.context['garden_count'], 0)
         self.assertContains(no_match, 'No gardens found')
 
@@ -387,6 +438,8 @@ class GardenDiscoveryViewTests(TestCase):
         self.assertNotContains(response, 'Never show these private notes.')
         self.assertNotContains(response, 'Hidden private notes.')
         self.assertNotIn('private_notes', response.context['garden'])
+        self.assertNotContains(response, 'Filters')
+        self.assertContains(response, 'Newest planted')
 
     def test_private_and_inactive_gardens_have_no_public_detail(self):
         private_url = reverse('gardens:public_detail', args=[self.private_garden.pk])

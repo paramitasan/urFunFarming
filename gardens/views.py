@@ -6,7 +6,13 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods
 
-from gardens.forms import GardenExploreFilterForm, GardenForm, PlantingForm
+from gardens.forms import (
+    GardenExploreFilterForm,
+    GardenForm,
+    GardenListFilterForm,
+    PlantingFilterForm,
+    PlantingForm,
+)
 from gardens.models import Garden, Planting
 
 
@@ -39,6 +45,30 @@ def _public_gardens():
     return Garden.objects.filter(is_public=True, owner__is_active=True)
 
 
+def _filtered_plantings(garden, params):
+    form = PlantingFilterForm(params)
+    plantings = garden.plantings.all()
+    if form.is_valid():
+        query = form.cleaned_data['q']
+        month = form.cleaned_data['month']
+        method = form.cleaned_data['method']
+        if query:
+            plantings = plantings.filter(crop__icontains=query)
+        if month:
+            plantings = plantings.filter(planting_date__month=month)
+        if method and method != garden.growing_method:
+            plantings = plantings.none()
+        sort = form.cleaned_data['sort']
+        order = {'oldest': ('planting_date', 'crop', 'id'), 'name': ('crop', 'id')}.get(
+            sort,
+            ('-planting_date', 'crop', 'id'),
+        )
+        plantings = plantings.order_by(*order)
+    else:
+        plantings = plantings.none()
+    return form, plantings, plantings.count()
+
+
 @never_cache
 @require_GET
 def explore(request):
@@ -47,8 +77,10 @@ def explore(request):
     if request.user.is_authenticated:
         gardens = gardens.exclude(owner=request.user)
     methods = list(gardens.order_by('growing_method').values_list('growing_method', flat=True).distinct())
+    locations = list(gardens.order_by('location').values_list('location', flat=True).distinct())
     if form.is_valid():
         query = form.cleaned_data['q']
+        location = form.cleaned_data['location']
         method = form.cleaned_data['method']
         if query:
             gardens = gardens.filter(
@@ -58,20 +90,30 @@ def explore(request):
                 | Q(public_summary__icontains=query)
                 | Q(plantings__crop__icontains=query)
             ).distinct()
+        if location:
+            gardens = gardens.filter(location=location)
         if method:
             gardens = gardens.filter(growing_method=method)
     else:
         gardens = gardens.none()
     gardens = gardens.annotate(planting_count=Count('plantings', distinct=True))
     garden_count = gardens.count()
-    gardens = gardens.order_by('name', 'id').values(
-        'id', 'name', 'location', 'growing_method', 'public_summary', 'planting_count',
+    sort = form.cleaned_data['sort'] if form.is_valid() else 'newest'
+    order = {'oldest': ('created_at', 'id'), 'name': ('name', 'id')}.get(sort, ('-created_at', '-id'))
+    gardens = gardens.order_by(*order).values(
+        'id', 'name', 'location', 'growing_method', 'public_summary', 'planting_count', 'created_at',
         'owner__username', 'owner__profile__display_name',
     )
     return render(
         request,
         'gardens/explore.html',
-        {'filter_form': form, 'gardens': gardens, 'garden_count': garden_count, 'methods': methods},
+        {
+            'filter_form': form,
+            'gardens': gardens,
+            'garden_count': garden_count,
+            'methods': methods,
+            'locations': locations,
+        },
     )
 
 
@@ -85,10 +127,18 @@ def public_detail(request, pk):
         ),
         pk=pk,
     )
-    plantings = Planting.objects.filter(garden_id=garden['id']).order_by('-planting_date', 'crop').values(
-        'crop', 'planting_date',
+    garden_instance = Garden.objects.get(pk=garden['id'])
+    filter_form, plantings, planting_count = _filtered_plantings(garden_instance, request.GET)
+    return render(
+        request,
+        'gardens/public_detail.html',
+        {
+            'garden': garden,
+            'plantings': plantings.values('crop', 'planting_date'),
+            'filter_form': filter_form,
+            'planting_count': planting_count,
+        },
     )
-    return render(request, 'gardens/public_detail.html', {'garden': garden, 'plantings': plantings})
 
 
 @never_cache
@@ -97,8 +147,40 @@ def my_gardens(request):
     denied = _require_grower(request)
     if denied is not None:
         return denied
-    gardens = Garden.objects.filter(owner=request.user).prefetch_related('plantings')
-    return render(request, 'gardens/my_gardens.html', {'gardens': gardens})
+    form = GardenListFilterForm(request.GET)
+    gardens = Garden.objects.filter(owner=request.user)
+    locations = list(gardens.order_by('location').values_list('location', flat=True).distinct())
+    if form.is_valid():
+        query = form.cleaned_data['q']
+        location = form.cleaned_data['location']
+        visibility = form.cleaned_data['visibility']
+        if query:
+            gardens = gardens.filter(
+                Q(name__icontains=query)
+                | Q(location__icontains=query)
+                | Q(growing_method__icontains=query)
+                | Q(public_summary__icontains=query)
+                | Q(plantings__crop__icontains=query)
+            ).distinct()
+        if location:
+            gardens = gardens.filter(location=location)
+        if visibility == 'public':
+            gardens = gardens.filter(is_public=True)
+        elif visibility == 'private':
+            gardens = gardens.filter(is_public=False)
+        order = {
+            'oldest': ('created_at', 'id'),
+            'name': ('name', 'id'),
+        }.get(form.cleaned_data['sort'], ('-created_at', '-id'))
+        gardens = gardens.order_by(*order)
+    else:
+        gardens = gardens.none()
+    gardens = gardens.annotate(planting_count=Count('plantings', distinct=True)).prefetch_related('plantings')
+    return render(
+        request,
+        'gardens/my_gardens.html',
+        {'gardens': gardens, 'garden_count': gardens.count(), 'filter_form': form, 'locations': locations},
+    )
 
 
 @never_cache
@@ -124,7 +206,17 @@ def detail(request, pk):
     if denied is not None:
         return denied
     garden = _owned_garden(request, pk)
-    return render(request, 'gardens/detail.html', {'garden': garden})
+    filter_form, plantings, planting_count = _filtered_plantings(garden, request.GET)
+    return render(
+        request,
+        'gardens/detail.html',
+        {
+            'garden': garden,
+            'plantings': plantings,
+            'planting_count': planting_count,
+            'filter_form': filter_form,
+        },
+    )
 
 
 @never_cache
