@@ -1059,3 +1059,30 @@ class GardenReviewFixTests(TestCase):
         for url in pages:
             with self.subTest(url=url):
                 self.assertNotContains(self.client.get(url), 'Gate code 4417.')
+
+
+class GardenLinkTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.buyer = User.objects.create_user(username='link_buyer', password='test-password')
+        Profile.objects.create(user=cls.buyer, display_name='Link Buyer', is_buyer=True)
+
+    def test_footer_gardens_link_opens_explore_for_everyone(self):
+        footer_link = f'<a href="{reverse("gardens:explore")}">Gardens</a>'
+
+        self.assertContains(self.client.get(reverse('main:show_main')), footer_link, html=True)
+        self.client.force_login(self.buyer)
+        self.assertContains(self.client.get(reverse('main:home')), footer_link, html=True)
+
+    def test_grower_required_page_returns_to_home(self):
+        self.client.force_login(self.buyer)
+
+        response = self.client.get(reverse('gardens:create'))
+
+        self.assertContains(
+            response,
+            f'<a class="outline-button" href="{reverse("main:home")}">Return home</a>',
+            html=True,
+            status_code=403,
+        )
+        self.assertContains(response, f'href="{reverse("accounts:profile")}#roles"', status_code=403)
