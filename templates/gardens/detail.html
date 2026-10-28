@@ -47,11 +47,13 @@
                         {% endfor %}
                     </div>
                 {% else %}
-                    <section class="gardens-empty-state" aria-labelledby="plants-empty-heading">
-                        <h2 id="plants-empty-heading">{% if filter_form.q.value %}No plants match this search{% else %}Nothing planted here yet{% endif %}</h2>
-                        <p>Add the first plant to {{ garden.name }}.</p>
-                        <a class="pill-button" href="{% url 'gardens:planting_create' garden.pk %}">Add plant</a>
-                    </section>
+                    {% if has_plants %}
+                        {% url 'gardens:detail' garden.pk as reset_url %}
+                        {% include 'gardens/_empty_state.html' with heading_id='plants-empty-heading' title='No plants match these filters' text='Try a different search or clear the filters.' button_url=reset_url button_label='Reset filters' reset=True %}
+                    {% else %}
+                        {% url 'gardens:planting_create' garden.pk as create_url %}
+                        {% include 'gardens/_empty_state.html' with heading_id='plants-empty-heading' title='No plants yet' text='Add the first plant growing in this garden.' button_url=create_url button_label='Add plant' %}
+                    {% endif %}
                 {% endif %}
             </div>
         </div>

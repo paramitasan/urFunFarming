@@ -45,11 +45,12 @@
                         {% endfor %}
                     </div>
                 {% else %}
-                    <section class="gardens-empty-state" aria-labelledby="explore-empty-heading">
-                        <h2 id="explore-empty-heading">No gardens found</h2>
-                        <p>{% if filter_form.is_bound %}Try a different search or clear the filters.{% else %}There are no public gardens to show yet.{% endif %}</p>
-                        <a class="outline-button" href="{% url 'gardens:explore' %}">Reset filters</a>
-                    </section>
+                    {% if has_gardens %}
+                        {% url 'gardens:explore' as reset_url %}
+                        {% include 'gardens/_empty_state.html' with heading_id='explore-empty-heading' title='No gardens found' text='Try a different search or clear the filters.' button_url=reset_url button_label='Reset filters' reset=True %}
+                    {% else %}
+                        {% include 'gardens/_empty_state.html' with heading_id='explore-empty-heading' title='No gardens found' text='There are no public gardens from other growers yet.' %}
+                    {% endif %}
                 {% endif %}
             </div>
         </div>

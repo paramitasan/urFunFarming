@@ -586,9 +586,92 @@ legend.garden-filter-label {
     color: var(--color-deep);
 }
 
-/* Empty state, panels and forms */
+/* Empty state */
 
-.gardens-empty-state,
+.gardens-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 56px 40px;
+    border: 1.5px dashed var(--color-field);
+    border-radius: 20px;
+    background-color: var(--color-surface);
+    text-align: center;
+}
+
+.gardens-empty-state h2 {
+    font-size: 22px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.gardens-empty-state p {
+    font-size: 15px;
+    line-height: normal;
+    color: var(--color-deep);
+}
+
+/* Plant journal states (Module 3 hand-off) and No access */
+
+.journal-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    width: min(100%, 413px);
+    padding: 40px 32px;
+    border: 1px solid var(--color-band);
+    border-radius: 20px;
+    background-color: var(--color-surface);
+    box-shadow: 0 10px 30px rgba(18, 81, 51, 0.06);
+    text-align: center;
+}
+
+.journal-state-locked {
+    border: 1.5px dashed var(--color-field);
+    box-shadow: none;
+}
+
+.gardens-back-link + .journal-state {
+    margin-top: 24px;
+}
+
+.journal-well {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background-color: var(--color-band);
+}
+
+.journal-state-locked .journal-well {
+    background-color: var(--color-mist);
+}
+
+.journal-state h1,
+.journal-state h2 {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.journal-state p {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--color-deep);
+}
+
+.journal-state .pill-button:disabled {
+    cursor: not-allowed;
+}
+
+/* Panels and forms */
+
 .garden-delete-panel,
 .garden-form {
     padding: 24px;
@@ -597,17 +680,6 @@ legend.garden-filter-label {
     background-color: var(--color-surface);
 }
 
-.gardens-empty-state {
-    text-align: center;
-}
-
-.gardens-empty-state h2 {
-    font-size: 22px;
-    font-weight: 600;
-    color: var(--color-forest);
-}
-
-.gardens-empty-state p,
 .garden-delete-panel > p:not(.eyebrow) {
     margin: 8px 0 16px;
     font-size: 15px;

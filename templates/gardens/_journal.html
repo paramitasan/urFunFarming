@@ -1,0 +1,25 @@
+{% load static %}
+{# Module 3 include point: pass journal_entries, journal_url and journal_create_url to fill these states #}
+<section class="journal-states" aria-label="Plant journal">
+    {% if journal_entries %}
+        <div class="journal-state">
+            <span class="journal-well"><img src="{% static 'img/gardens/journal.svg' %}" alt=""></span>
+            <h2>Journal entries</h2>
+            <p>Dated entries with photos, newest first.</p>
+            <a class="gardens-text-link" href="{{ journal_url }}">Open full timeline {% include 'svg/icons/arrow.svg' %}</a>
+        </div>
+    {% else %}
+        <div class="journal-state">
+            <span class="journal-well"><img src="{% static 'img/gardens/journal.svg' %}" alt=""></span>
+            <h2>No journal yet</h2>
+            <p>This plant has no entries yet.</p>
+            {% if is_owner %}
+                {% if journal_create_url %}
+                    <a class="pill-button" href="{{ journal_create_url }}"><img src="{% static 'marketplace/img/imgIconPlus.svg' %}" alt="">Write the first entry</a>
+                {% else %}
+                    <button class="pill-button" type="button" disabled><img src="{% static 'marketplace/img/imgIconPlus.svg' %}" alt="">Write the first entry</button>
+                {% endif %}
+            {% endif %}
+        </div>
+    {% endif %}
+</section>

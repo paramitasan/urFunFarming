@@ -6,7 +6,9 @@
 <section class="gardens-page" aria-labelledby="planting-heading">
     {% if no_access %}
         {# Private garden and not the owner: show nothing about the plant itself #}
-        <div class="garden-delete-panel">
+        <a class="gardens-back-link" href="{% url 'gardens:explore' %}"><img src="{% static 'img/gardens/back.svg' %}" alt="">Back to Explore gardens</a>
+        <div class="journal-state journal-state-locked">
+            <span class="journal-well"><img src="{% static 'img/gardens/no-access.svg' %}" alt=""></span>
             <h1 id="planting-heading">No access</h1>
             <p>This garden is private, so its journal is only visible to the owner.</p>
         </div>
@@ -28,6 +30,7 @@
         </header>
 
         {# Module 3 (Plant Progress Journal) renders the journal for this planting here #}
+        {% include 'gardens/_journal.html' %}
     {% endif %}
 </section>
 {% endblock %}

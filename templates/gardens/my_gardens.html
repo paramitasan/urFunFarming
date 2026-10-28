@@ -47,11 +47,13 @@
                         {% endfor %}
                     </div>
                 {% else %}
-                    <section class="gardens-empty-state" aria-labelledby="gardens-empty-heading">
-                        <h2 id="gardens-empty-heading">{% if filter_form.q.value or filter_form.location.value or filter_form.visibility.value %}No gardens match these filters{% else %}Start with a growing space{% endif %}</h2>
-                        <p>Add your first garden, balcony, rooftop, or hydroponic setup.</p>
-                        <a class="pill-button" href="{% url 'gardens:create' %}">Create a garden</a>
-                    </section>
+                    {% if has_gardens %}
+                        {% url 'gardens:mine' as reset_url %}
+                        {% include 'gardens/_empty_state.html' with heading_id='gardens-empty-heading' title='No gardens match these filters' text='Try a different search or clear the filters.' button_url=reset_url button_label='Reset filters' reset=True %}
+                    {% else %}
+                        {% url 'gardens:create' as create_url %}
+                        {% include 'gardens/_empty_state.html' with heading_id='gardens-empty-heading' title='No gardens yet' text='Add your first one: a balcony, a rooftop bed or a hydroponic rack.' button_url=create_url button_label='Add your first garden' %}
+                    {% endif %}
                 {% endif %}
             </div>
         </div>

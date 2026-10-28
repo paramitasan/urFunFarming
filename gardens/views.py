@@ -119,6 +119,7 @@ def explore(request):
             'garden_count': garden_count,
             'methods': methods,
             'locations': locations,
+            'has_gardens': bool(locations),
         },
     )
 
@@ -137,7 +138,7 @@ def public_detail(request, pk):
     if garden['owner_id'] == request.user.pk:
         return redirect('gardens:detail', pk=pk)
     garden_instance = Garden.objects.get(pk=garden['id'])
-    filter_form, plantings, planting_count, _ = _filtered_plantings(garden_instance, request.GET)
+    filter_form, plantings, planting_count, methods = _filtered_plantings(garden_instance, request.GET)
     return render(
         request,
         'gardens/public_detail.html',
@@ -146,6 +147,7 @@ def public_detail(request, pk):
             'plantings': plantings,
             'filter_form': filter_form,
             'planting_count': planting_count,
+            'has_plants': bool(methods),
             'nav_active': 'explore',
         },
     )
@@ -205,6 +207,7 @@ def my_gardens(request):
             'filter_form': form,
             'locations': locations,
             'visibility_options': visibility_options,
+            'has_gardens': bool(locations),
             'nav_active': 'home',
         },
     )
@@ -246,6 +249,7 @@ def detail(request, pk):
             'plantings': plantings,
             'planting_count': planting_count,
             'methods': methods,
+            'has_plants': bool(methods),
             'filter_form': filter_form,
             'nav_active': 'home',
         },

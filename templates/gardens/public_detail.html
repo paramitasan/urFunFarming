@@ -34,7 +34,12 @@
                         {% endfor %}
                     </div>
                 {% else %}
-                    <section class="gardens-empty-state"><h2>No public plants found</h2><p>Try changing your search or filters.</p></section>
+                    {% if has_plants %}
+                        {% url 'gardens:public_detail' garden.id as reset_url %}
+                        {% include 'gardens/_empty_state.html' with heading_id='plants-empty-heading' title='No plants match this search' text='Try a different search.' button_url=reset_url button_label='Reset search' reset=True %}
+                    {% else %}
+                        {% include 'gardens/_empty_state.html' with heading_id='plants-empty-heading' title='No plants yet' text='This grower hasn’t added any plants to this garden yet.' %}
+                    {% endif %}
                 {% endif %}
             </div>
         </div>
