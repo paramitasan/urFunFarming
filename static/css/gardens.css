@@ -165,8 +165,14 @@
     border: 0;
     outline: none;
     background: transparent;
+    -webkit-appearance: none;
+    appearance: none;
     font: 400 16px/normal 'Poppins', sans-serif;
     color: var(--color-ink);
+}
+
+.garden-search-field input::-webkit-search-decoration {
+    -webkit-appearance: none;
 }
 
 .garden-search-field input::placeholder {
@@ -185,12 +191,17 @@
     width: 100%;
     min-width: 0;
     min-height: 56px;
+    -webkit-appearance: none;
     padding: 0 18px;
     border: 1.5px solid var(--color-field);
     border-radius: 14px;
     background-color: #FFFFFF;
     font: 500 15px/1.2 'Poppins', sans-serif;
     color: var(--color-forest);
+}
+
+.garden-field::-webkit-date-and-time-value {
+    text-align: left;
 }
 
 textarea.garden-field {
@@ -201,6 +212,7 @@ textarea.garden-field {
 }
 
 .garden-select {
+    -webkit-appearance: none;
     appearance: none;
     padding-right: 48px;
     background-image: url('../marketplace/img/imgIconChevron.svg');
@@ -306,6 +318,7 @@ legend.garden-filter-label {
     border: 1.5px solid var(--color-field);
     border-radius: 50%;
     background-color: #FFFFFF;
+    -webkit-appearance: none;
     appearance: none;
     cursor: pointer;
 }
