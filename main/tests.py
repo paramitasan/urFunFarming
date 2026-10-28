@@ -8,6 +8,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from accounts.models import Profile
+from gardens.models import Garden
 
 
 class LandingPageTest(TestCase):
@@ -33,6 +34,36 @@ class LandingPageTest(TestCase):
                     self.assertContains(response, 'class="moon"')
                 else:
                     self.assertNotContains(response, 'class="moon"')
+
+    def test_landing_uses_only_public_garden_cards(self):
+        owner = User.objects.create_user('landing_grower', password='test-password')
+        Profile.objects.create(user=owner, display_name='Landing Grower', is_grower=True)
+        Garden.objects.create(
+            owner=owner,
+            name='Public balcony',
+            location='Tebet',
+            growing_method='Container pots',
+            public_summary='Herbs grown in morning sun.',
+            private_notes='Do not expose these notes.',
+            is_public=True,
+        )
+        Garden.objects.create(
+            owner=owner,
+            name='Private rooftop',
+            location='Depok',
+            growing_method='Raised beds',
+            is_public=False,
+        )
+
+        response = self.client.get(reverse('main:show_main'))
+
+        self.assertContains(response, 'Public balcony')
+        self.assertNotContains(response, 'css/gardens.css')
+        self.assertContains(response, reverse('gardens:public_detail', args=[1]))
+        self.assertContains(response, 'Landing Grower')
+        self.assertNotContains(response, 'Private rooftop')
+        self.assertNotContains(response, 'Do not expose these notes.')
+        self.assertEqual(len(response.context['gardens']), 1)
 
 class HomePageTest(TestCase):
     def make_user(self, username, is_grower=False, is_buyer=False):
@@ -144,6 +175,14 @@ class HomePageTest(TestCase):
             self.assertContains(response, 'data-label="Explore gardens"')
             self.assertNotContains(response, 'data-label="Gardens"')
 
+        self.client.logout()
+        visitor_page = self.client.get(reverse('main:show_main'))
+        self.assertContains(visitor_page, f'href="{reverse("gardens:explore")}" data-label="Explore gardens"')
+        self.assertContains(visitor_page, f'href="{reverse("accounts:register")}"')
+        grower_page = self.home_as(self.grower)
+        self.assertContains(grower_page, f'href="{reverse("gardens:mine")}" data-tone="gardens"')
+        self.assertContains(grower_page, f'href="{reverse("gardens:explore")}" data-tone="explore"')
+
     def test_role_band_and_chips(self):
         grower_page = self.home_as(self.grower)
         self.assertContains(grower_page, 'Add buying any time.')
@@ -164,6 +203,21 @@ class HomePageTest(TestCase):
         self.assertContains(response, 'js/home-motion.js')
         self.client.logout()
         self.assertContains(self.client.get(reverse('main:show_main')), 'js/hero-motion.js')
+
+    def test_market_tile_links_to_marketplace_with_live_count(self):
+        from marketplace.models import HarvestListing
+        from marketplace.dates import jakarta_today
+
+        response = self.home_as(self.buyer)
+        self.assertContains(response, f'href="{reverse("marketplace:index")}" data-tone="market"')
+        self.assertContains(response, 'Browse harvests near you and arrange a pickup.')
+
+        HarvestListing.objects.create(
+            owner=self.grower, title='Fresh basil', description='Basil from the balcony.', category='herbs',
+            quantity=6, unit='bunch', price=12000, price_quantity=2, area='Tebet', city='Jakarta',
+            available_from=jakarta_today(), available_until=jakarta_today() + datetime.timedelta(days=3),
+        )
+        self.assertContains(self.home_as(self.buyer), '1 harvest near you right now.')
 
     def test_user_without_profile_gets_one(self):
         admin = User.objects.create_user('admin_k', password='tomato-Balcony-42')

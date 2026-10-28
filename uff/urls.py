@@ -24,6 +24,8 @@ urlpatterns = [
     path('', include('main.urls')),
     path('', include('accounts.urls')),
     path('journal/', include('journal.urls')),
+    path('marketplace/', include('marketplace.urls')),
+    path('gardens/', include('gardens.urls')),
 ]
 
 # Serves uploaded photos while DEBUG is on

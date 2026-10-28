@@ -1,0 +1,13 @@
+{% load static %}
+<article class="harvest-card">
+    <a class="harvest-photo" href="{{ listing.get_absolute_url }}" aria-label="View {{ listing.title }}">
+        {% if listing.image_url %}<img class="harvest-user-photo" src="{{ listing.image_url }}" alt="{{ listing.title }}" loading="lazy" referrerpolicy="no-referrer"><img class="harvest-photo-fallback" src="{% static 'marketplace/img/imgIconSprout.svg' %}" alt="" hidden>{% else %}<img src="{% static 'marketplace/img/imgIconSprout.svg' %}" alt="">{% endif %}
+        <span class="harvest-status{% if listing.price == 0 %} harvest-status-free{% endif %}">{{ listing.status_label }}</span>
+    </a>
+    <div class="harvest-card-body">
+        <h3><a href="{{ listing.get_absolute_url }}">{{ listing.title }}</a></h3>
+        <p class="harvest-price">{{ listing.price_label }}{% if listing.price %}<span> / {{ listing.price_unit_label }}</span>{% endif %}</p>
+        <p class="harvest-quantity">{{ listing.quantity_label }} available</p>
+        <div class="harvest-grower"><a class="harvest-grower-profile" href="{{ listing.get_absolute_url }}#grower"><span class="harvest-avatar" aria-hidden="true">{{ listing.grower_initials }}</span><span><strong>{{ listing.grower_name }}</strong><small>{{ listing.area }}</small></span></a><a class="harvest-view" href="{{ listing.get_absolute_url }}" aria-label="View {{ listing.title }}">View</a></div>
+    </div>
+</article>

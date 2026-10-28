@@ -1,6 +1,7 @@
 # Environments & Credentials
 env/
 venv/
+.venv/
 .env*
 
 # Django Database & Cache
@@ -15,3 +16,9 @@ media/
 .vscode/*
 !.vscode/settings.json
 .idea/
+
+# Local test output
+.coverage
+.coverage.*
+htmlcov/
+coverage.json

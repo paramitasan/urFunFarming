@@ -29,7 +29,7 @@
                     </svg>
                 </span>
             </a>
-            <a class="link" href="#market">Browse the market</a>
+            <a class="link" href="{% url 'marketplace:index' %}">Browse the market</a>
         </div>
     </div>
 
@@ -116,7 +116,7 @@
                 </button>
             </div>
 
-            <a class="link garden-link" href="#">
+            <a class="link garden-link" href="{% url 'accounts:register' %}">
                 Start your first garden
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
                     <path d="M1 6H11M6 11L11 6L6 1" stroke="#125133" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -130,10 +130,10 @@
     <div class="container">
         <div class="section-head">
             <h2 class="section-title">Fresh from nearby rooftops</h2>
-            <a class="link" href="#">See all listings</a>
+            <a class="link" href="{% url 'marketplace:index' %}">See all listings</a>
         </div>
         <p class="market-text">
-            Fifty listings from growers around the city, updated as they harvest.
+            {{ listing_count }} harvest listing{{ listing_count|pluralize }} from growers around the city, updated as they harvest.
             Prices are set by each grower.
         </p>
 
@@ -196,41 +196,41 @@
     <div class="container">
         <div class="section-head">
             <h2 class="section-title">Meet the gardens behind the food</h2>
-            <a class="link" href="#">Explore gardens</a>
+            <a class="link" href="{% url 'gardens:explore' %}">Explore gardens</a>
         </div>
 
         <div class="gardens-grid">
-            <div class="garden-big">
-                <div class="placeholder parallax" data-speed="-20">
-                    <img src="{% static 'img/no-image.png' %}" alt="No photo yet">
-                </div>
-                <h3>Atap Hijau Tebet</h3>
-                <p>Hydroponic NFT on an office rooftop. Four plantings, grown by Rina Wulandari.</p>
-            </div>
-
-            <div class="garden-list">
-                <div class="garden-small">
+            {% for garden in gardens %}
+                {% if forloop.first %}
+                    <article class="garden-big">
+                        <div class="placeholder parallax" data-speed="-20">
+                            <img src="{% static 'img/no-image.png' %}" alt="No photo yet">
+                        </div>
+                        <h3><a href="{% url 'gardens:public_detail' garden.id %}">{{ garden.name }}</a></h3>
+                        {% if garden.public_summary %}
+                            <p>{{ garden.public_summary|truncatewords:24 }}</p>
+                        {% else %}
+                            <p>{{ garden.growing_method }} in {{ garden.location }}.</p>
+                        {% endif %}
+                        <p>{{ garden.planting_count }} planting{{ garden.planting_count|pluralize }}, grown by {{ garden.owner__profile__display_name|default:garden.owner__username }}.</p>
+                    </article>
+                {% else %}
+                    {% if forloop.counter == 2 %}<div class="garden-list">{% endif %}
+                    <article class="garden-small">
                     <div class="placeholder parallax" data-speed="-10">
                         <img src="{% static 'img/no-image.png' %}" alt="No photo yet">
                     </div>
                     <div>
-                        <h3>Kebun Balkon Rawamangun</h3>
-                        <p>Soil pots on a third-floor balcony. Six plantings.</p>
-                        <span class="garden-owner">Bayu Pratama</span>
+                        <h3><a href="{% url 'gardens:public_detail' garden.id %}">{{ garden.name }}</a></h3>
+                        <p>{{ garden.growing_method }} in {{ garden.location }}. {{ garden.planting_count }} planting{{ garden.planting_count|pluralize }}.</p>
+                        <span class="garden-owner">{{ garden.owner__profile__display_name|default:garden.owner__username }}</span>
                     </div>
-                </div>
-
-                <div class="garden-small">
-                    <div class="placeholder parallax" data-speed="-10">
-                        <img src="{% static 'img/no-image.png' %}" alt="No photo yet">
-                    </div>
-                    <div>
-                        <h3>Rak Selada Cikini</h3>
-                        <p>Wick system in a shared courtyard. Two plantings.</p>
-                        <span class="garden-owner">Sekar Ayuningtyas</span>
-                    </div>
-                </div>
-            </div>
+                    </article>
+                    {% if forloop.last %}</div>{% endif %}
+                {% endif %}
+            {% empty %}
+                <p class="garden-empty">No public gardens yet. Sign up to create the first one.</p>
+            {% endfor %}
         </div>
     </div>
 </section>

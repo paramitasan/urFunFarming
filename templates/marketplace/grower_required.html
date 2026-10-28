@@ -1,0 +1,4 @@
+{% extends 'marketplace/base.html' %}
+{% block market_content %}
+<section class="market-panel market-delete-panel"><p class="market-eyebrow">SHARE YOUR HARVEST</p><h1>Ready to start growing?</h1><p>Add the “I grow food” role in your profile to list a harvest. You can be a grower and a buyer with the same account.</p><div class="market-form-actions"><a class="market-button market-button-primary" href="{% url 'accounts:profile' %}#roles">Update my roles</a><a class="market-button market-button-outline" href="{% url 'marketplace:index' %}">Browse the market</a></div></section>
+{% endblock %}

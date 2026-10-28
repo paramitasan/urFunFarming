@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}{{ garden.name }} · Explore gardens{% endblock %}
+{% block content %}
+<section class="gardens-page" aria-labelledby="public-garden-heading">
+    <a class="gardens-back-link" href="{% url 'gardens:explore' %}">Back to explore gardens</a>
+    <header class="gardens-page-heading">
+        <div>
+            <p class="gardens-eyebrow">PUBLIC GARDEN</p>
+            <h1 id="public-garden-heading">Plants in {{ garden.name }}</h1>
+            <p>{{ garden.location }} · Public garden · {{ planting_count }} plants</p>
+        </div>
+    </header>
+
+    <form class="garden-layout public-garden-layout" method="get" action="{% url 'gardens:public_detail' garden.id %}">
+        <div class="garden-toolbar">
+            <label class="garden-search-field" for="public-plant-search">
+                <span class="garden-search-icon" aria-hidden="true">⌕</span>
+                <span class="garden-visually-hidden">{{ filter_form.q.label }}</span>
+                <input id="public-plant-search" type="search" name="q" value="{{ filter_form.q.value|default_if_none:'' }}" placeholder="Search plants in this garden...">
+            </label>
+            <label class="garden-visually-hidden" for="public-plant-sort">Sort plants</label>
+            <select class="garden-field garden-sort" id="public-plant-sort" name="sort">
+                {% for value, label in filter_form.sort.field.choices %}
+                    <option value="{{ value }}"{% if filter_form.sort.value == value %} selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <aside class="public-grower-card">
+            <span class="public-grower-avatar" aria-hidden="true">{{ garden.owner__profile__display_name|default:garden.owner__username|slice:':1'|upper }}</span>
+            <h2>{{ garden.owner__profile__display_name|default:garden.owner__username }}</h2>
+            <p>Grower</p>
+            <p>{{ garden.growing_method }} in {{ garden.location }}</p>
+            {% if garden.public_summary %}<p>{{ garden.public_summary }}</p>{% endif %}
+        </aside>
+        <div class="garden-results">
+            <p class="garden-results-count">{{ planting_count }} plants <span>Public garden: all plants are public</span></p>
+            {% if plantings %}
+                <div class="planting-cards">
+                    {% for planting in plantings %}
+                        <article class="planting-card">
+                            <span class="garden-item-icon" aria-hidden="true">{% include 'svg/icons/gardens.svg' %}</span>
+                            <div class="planting-card-content">
+                                <h2>{{ planting.crop }}</h2>
+                                <p class="garden-card-meta"><span>Planted {{ planting.planting_date|date:'j M Y' }}</span><span class="garden-method-tag">{{ garden.growing_method }}</span></p>
+                                <button class="gardens-text-link garden-journal-placeholder" type="button" disabled>Open journal <span aria-hidden="true">→</span></button>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <section class="gardens-empty-state"><h2>No public plants found</h2><p>Try changing your search or filters.</p></section>
+            {% endif %}
+        </div>
+    </form>
+</section>
+{% endblock %}

@@ -1,0 +1,6 @@
+<div class="market-field{% if field.name == 'description' %} market-field-wide{% endif %}">
+    <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span aria-hidden="true"> *</span>{% endif %}</label>
+    {{ field }}
+    <p class="market-help" id="{{ field.id_for_label }}_help">{{ field.help_text }}</p>
+    <p class="market-field-error" id="{{ field.id_for_label }}_error" aria-live="polite">{% for error in field.errors %}{{ error }} {% endfor %}</p>
+</div>

@@ -1,7 +1,7 @@
 # Urban Farming Community and Local Harvest Marketplace
 
-**Platform-Based Programming — Midterm Group Project**  
-Faculty of Computer Science, Universitas Indonesia  
+**Platform-Based Programming — Midterm Group Project**
+Faculty of Computer Science, Universitas Indonesia
 Odd Semester 2026/2027
 
 This README describes the planned application and division of work for Checkpoint 1. The features below are implementation commitments, not claims of completed functionality.
@@ -83,6 +83,14 @@ Authentication, common templates, API utilities, repository setup, and deploymen
 
 Tests will cover successful and invalid form submissions, complete CRUD behavior, access restrictions, filtering, missing records, and API failures. Automated tests will use mocked weather responses. The project will target at least 80% code coverage, alongside manual checks of the main user journeys and mobile layout.
 
+## Marketplace implementation (Module 4)
+
+The `feat/harvest-marketplace` branch implements Marcel's harvest listing CRUD, authenticated contact visibility, owner permissions, interactive filtering, and Open-Meteo pickup-time filtering using the shared group design. It also connects the landing-page offers to the marketplace database.
+
+For setup, the repeatable **50-listing seed command**, JSON endpoints, verification, and the group integration checklist, see [docs/marketplace.md](docs/marketplace.md). The remaining modules and the final deployed integration must still be verified by the group.
+
 ## AI Assistance
 
 ChatGPT assisted with drafting this initial project description and module plan. The group will review the proposed scope and allocation together and will be responsible for implementation decisions, verification, and explaining the completed application.
+
+For Module 4, ChatGPT also assisted with the Django implementation, adaptation to the shared Figma design, tests, and integration documentation. See the module guide for the implementation scope and verification.

@@ -1,0 +1,17 @@
+{% load static %}
+{% if filter_form.errors %}<div class="market-error" role="alert"><strong>Please check your filters.</strong>{{ filter_form.errors }}</div>{% endif %}
+<div class="market-results-heading"><h2 tabindex="-1">{{ listing_count }} harvest{{ listing_count|pluralize }} {% if mine %}in your listings{% else %}available{% endif %}</h2><label class="market-sort"><span class="market-sr">Sort harvests</span><select name="sort" aria-label="Sort harvests">{% for value, label in filter_form.sort.field.choices %}<option value="{{ value }}"{% if filter_form.sort.value == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label></div>
+{% if page_obj.object_list %}
+<div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-4 market-cards">
+    {% for listing in page_obj %}<div class="col">{% include 'marketplace/_card.html' %}</div>{% endfor %}
+</div>
+<div class="market-results-footer"><p>Open a listing to see the grower's contact details and arrange pickup.</p>
+    {% if page_obj.paginator.num_pages > 1 %}<nav class="market-pagination" aria-label="Marketplace pages">
+        {% if page_obj.has_previous %}<a href="?{{ filter_query }}&amp;page={{ page_obj.previous_page_number }}" data-market-page aria-label="Previous page">‹</a>{% endif %}
+        {% for number in page_numbers %}{% if number == '…' %}<span aria-hidden="true">…</span>{% else %}<a href="?{{ filter_query }}&amp;page={{ number }}" data-market-page{% if number == page_obj.number %} aria-current="page"{% endif %}>{{ number }}</a>{% endif %}{% endfor %}
+        {% if page_obj.has_next %}<a href="?{{ filter_query }}&amp;page={{ page_obj.next_page_number }}" data-market-page aria-label="Next page">›</a>{% endif %}
+    </nav>{% endif %}
+</div>
+{% else %}
+<div class="market-empty"><img src="{% static 'marketplace/img/imgIconSprout.svg' %}" alt=""><h3>{% if mine %}No harvests here yet{% else %}No harvests match these filters{% endif %}</h3><p>{% if mine %}Your available and paused listings will appear here.{% else %}Try a different area or category, or check back for a new harvest.{% endif %}</p><a class="market-button market-button-outline" href="{% if mine %}{% url 'marketplace:create' %}{% else %}{% url 'marketplace:index' %}{% endif %}">{% if mine %}List your first harvest{% else %}Reset filters{% endif %}</a></div>
+{% endif %}

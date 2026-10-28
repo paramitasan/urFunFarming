@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Harvest Marketplace · UrFunFarming{% endblock %}
+{% block fonts %}{% endblock %}
+{% block vendor_scripts %}{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{% static 'vendor/bootstrap-grid.min.css' %}">
+<link rel="stylesheet" href="{% static 'marketplace/marketplace.css' %}">
+<script defer src="{% static 'marketplace/marketplace.js' %}"></script>
+{% endblock %}
+{% block content %}
+<a class="market-skip" href="#market-content">Skip to marketplace content</a>
+<div class="market-shell" id="market-content">
+    {% if messages %}<div class="market-messages" role="status">{% for message in messages %}<p>{{ message }}</p>{% endfor %}</div>{% endif %}
+    {% block market_content %}{% endblock %}
+</div>
+{% endblock %}
