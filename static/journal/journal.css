@@ -1,0 +1,125 @@
+/* Plant Progress Journal */
+
+/* Colors the site doesn't have yet, from the Figma stage and health styles */
+.journal {
+    --stage-seedling-text: #3B641C;
+    --stage-seedling-fill: #ECF5DF;
+    --stage-seedling-border: #D3E7BC;
+    --stage-vegetative-text: #1C5E43;
+    --stage-vegetative-fill: #DDF0E6;
+    --stage-vegetative-border: #BEDFCD;
+    --stage-flowering-text: #8A2D57;
+    --stage-flowering-fill: #F9E6EE;
+    --stage-flowering-border: #EFC9D9;
+    --stage-fruiting-text: #86460E;
+    --stage-fruiting-fill: #FDEBD8;
+    --stage-fruiting-border: #F4D0AC;
+    --stage-harvested-text: #4A3A8A;
+    --stage-harvested-fill: #ECE8F7;
+    --stage-harvested-border: #D5CEEE;
+
+    max-width: 1164px;
+    margin: 0 auto;
+    padding: 40px 16px 72px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Back link */
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    align-self: flex-start;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+    text-underline-offset: 4px;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+
+/* Page header */
+.journal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.journal-title-block {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.journal-eyebrow {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: normal;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--color-deep);
+}
+
+.journal-title-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+}
+
+.journal-title {
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.68px;
+    color: var(--color-forest);
+}
+
+.journal-subtitle {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-deep);
+}
+
+.journal-header .pill-button {
+    flex-shrink: 0;
+}
+
+
+/* Stage tag: one color set per growth stage */
+.stage-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border: 1px solid;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: normal;
+    white-space: nowrap;
+}
+
+.stage-tag[data-stage="seedling"] { color: var(--stage-seedling-text); background-color: var(--stage-seedling-fill); border-color: var(--stage-seedling-border); }
+.stage-tag[data-stage="vegetative"] { color: var(--stage-vegetative-text); background-color: var(--stage-vegetative-fill); border-color: var(--stage-vegetative-border); }
+.stage-tag[data-stage="flowering"] { color: var(--stage-flowering-text); background-color: var(--stage-flowering-fill); border-color: var(--stage-flowering-border); }
+.stage-tag[data-stage="fruiting"] { color: var(--stage-fruiting-text); background-color: var(--stage-fruiting-fill); border-color: var(--stage-fruiting-border); }
+.stage-tag[data-stage="harvested"] { color: var(--stage-harvested-text); background-color: var(--stage-harvested-fill); border-color: var(--stage-harvested-border); }
+
+@media (max-width: 639px) {
+    .journal-header {
+        flex-direction: column;
+    }
+
+    .journal-title {
+        font-size: 28px;
+    }
+}

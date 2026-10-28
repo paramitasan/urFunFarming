@@ -1,28 +1,60 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}{{ planting.name }} · Plant Journal{% endblock title %}
 
+{% block head %}
+<link rel="stylesheet" href="{% static 'journal/journal.css' %}">
+{% endblock head %}
+
 {% block content %}
 {% include 'partials/grower_subnav.html' %}
-<h1>{{ planting.name }}</h1>
-<p>Started {{ started_on|date:"j M Y" }}, {{ days_growing }} days growing</p>
+<div class="journal">
+    <a class="back-link" href="{% url 'journal:index' %}">
+        <img src="{% static 'journal/icons/arrow-left.svg' %}" alt="" width="18" height="18">
+        Back to journal
+    </a>
 
-{% if can_view %}
-    {% for entry in entries %}
-        <p>{{ entry.date }} {{ entry.time }}: {{ entry.height_cm }} cm, {{ entry.get_stage_display }}, {{ entry.get_health_display }}</p>
-        <p>{{ entry.observation }}</p>
-        <p>{% if entry.height_change is None %}First entry{% else %}{% if entry.height_change >= 0 %}+{% endif %}{{ entry.height_change }} cm since last entry{% endif %}</p>
-    {% empty %}
-        <p>No entries yet.</p>
-    {% endfor %}
-{% else %}
-    <p>This journal is private.</p>
-{% endif %}
+    <header class="journal-header">
+        <div class="journal-title-block">
+            <p class="journal-eyebrow">Plant journal · Timeline</p>
+            <div class="journal-title-row">
+                <h1 class="journal-title">{{ planting.name }}</h1>
+                {% if can_view and entries %}
+                    <span class="stage-tag" data-stage="{{ entries.0.stage }}">{{ entries.0.get_stage_display }}</span>
+                {% endif %}
+            </div>
+            {% if can_view and started_on %}
+                <p class="journal-subtitle">Started {{ started_on|date:"j M Y" }}</p>
+            {% endif %}
+        </div>
 
-<ul>
-    {% for step in stage_steps %}
-        <li>{{ step.label }}: {{ step.status }}, {% if step.date %}{{ step.date|date:"j M Y" }}{% else %}Not yet{% endif %}</li>
-    {% endfor %}
-</ul>
+        {% if is_owner %}
+            {# TODO: link to journal:create_entry in step 3 #}
+            <a class="pill-button" href="#">
+                <img src="{% static 'journal/icons/plus.svg' %}" alt="" width="18" height="18">
+                New Entry
+            </a>
+        {% endif %}
+    </header>
+
+    {% if can_view %}
+        {% for entry in entries %}
+            <p>{{ entry.date }} {{ entry.time }}: {{ entry.height_cm }} cm, {{ entry.get_stage_display }}, {{ entry.get_health_display }}</p>
+            <p>{{ entry.observation }}</p>
+            <p>{% if entry.height_change is None %}First entry{% else %}{% if entry.height_change >= 0 %}+{% endif %}{{ entry.height_change }} cm since last entry{% endif %}</p>
+        {% empty %}
+            <p>No entries yet.</p>
+        {% endfor %}
+    {% else %}
+        <p>This journal is private.</p>
+    {% endif %}
+
+    <ul>
+        {% for step in stage_steps %}
+            <li>{{ step.label }}: {{ step.status }}, {% if step.date %}{{ step.date|date:"j M Y" }}{% else %}Not yet{% endif %}</li>
+        {% endfor %}
+    </ul>
+</div>
 
 {% endblock content %}
