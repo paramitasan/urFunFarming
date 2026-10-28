@@ -24,6 +24,7 @@ class Forum(EditedMixin, models.Model):
     created_at = models.DateTimeField(auto_now_add=True)    # initiated once at Forum creation
     updated_at = models.DateTimeField(auto_now=True)        # initiated at the same time with created_at, updates
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="forum_posts")
+    is_answered = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["-created_at"]

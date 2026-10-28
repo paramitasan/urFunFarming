@@ -249,6 +249,20 @@
     color: var(--color-deep);
 }
 
+.forum-answered {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    background-color: var(--color-mint);
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-ink);
+}
+
 /* Empty state */
 
 .forum-empty {
@@ -526,6 +540,16 @@ a.page-link:focus-visible {
 
 .forum-menu-list .forum-menu-delete:hover {
     background-color: #F8E3DE;
+}
+
+.forum-menu-list .forum-menu-answered {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.forum-menu-list .forum-menu-answered[aria-pressed="true"] {
+    font-weight: 600;
 }
 
 /* Tablets and phones: one column, filters before the results */

@@ -78,19 +78,6 @@
     margin-top: 0;
 }
 
-.forum-answered {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 12px;
-    background-color: var(--color-band);
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 600;
-    line-height: normal;
-    color: var(--color-forest);
-}
-
 /* Answers */
 
 .forum-answers {

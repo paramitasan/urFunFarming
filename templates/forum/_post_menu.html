@@ -6,7 +6,21 @@
         </svg>
     </summary>
     <div class="forum-menu-list">
+        <form method="post" action="{% url 'forum:forum_toggle_answered' forum.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" class="forum-menu-answered" aria-pressed="{% if forum.is_answered %}true{% else %}false{% endif %}">
+                {% if forum.is_answered %}
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <path d="M2.5 7.5l3 3 6-6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                {% endif %}
+                Answered
+            </button>
+        </form>
+
         <a href="{% url 'forum:forum_edit' forum.pk %}?next={{ request.get_full_path|urlencode }}">Edit</a>
+        
         <form method="post" action="{% url 'forum:forum_delete' forum.pk %}">
             {% csrf_token %}
             {% if request.resolver_match.url_name == "forum_list" %}

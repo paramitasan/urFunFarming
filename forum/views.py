@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
-from django.db.models import Count, Exists, OuterRef, Q
+from django.db.models import Count, Q
 
 from .models import Forum, Reply
 from .forms import ForumForm, ReplyForm
@@ -41,11 +41,10 @@ def forum_list(request):
             match |= Q(description__icontains=word)
         base = base.filter(match)
 
-    has_reply = Exists(Reply.objects.filter(forum=OuterRef("pk")))
     if show == "answered":
-        base = base.filter(has_reply)
+        base = base.filter(is_answered=True)
     elif show == "unanswered":
-        base = base.filter(~has_reply)
+        base = base.filter(is_answered=False)
     elif show == "mine":
         base = base.filter(author=request.user)
 
@@ -146,6 +145,16 @@ def forum_delete(request, pk):
     image.delete(save=False)       # remove the file from media/forum/
 
     return redirect(_safe_next(request, reverse("forum:forum_list")))
+
+@login_required
+@require_POST
+def forum_toggle_answered(request, pk):
+    forum = get_object_or_404(Forum, pk=pk)
+    if forum.author != request.user:
+        raise PermissionDenied
+
+    Forum.objects.filter(pk=pk).update(is_answered=not forum.is_answered)
+    return redirect(_safe_next(request, reverse("forum:forum_detail", args=[pk])))
 
 # Visitors only see titles on the list page, viewing full discussion requires login.
 @login_required
