@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 
 class Garden(models.Model):
@@ -22,8 +23,11 @@ class Garden(models.Model):
 
 class Planting(models.Model):
     garden = models.ForeignKey(Garden, on_delete=models.CASCADE, related_name='plantings')
+    # Blank on plantings made before these fields existed; display_name and method fall back
+    name = models.CharField(max_length=100, blank=True)
     crop = models.CharField(max_length=100)
     planting_date = models.DateField()
+    growing_method = models.CharField(max_length=80, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -31,4 +35,17 @@ class Planting(models.Model):
         ordering = ['-planting_date', 'crop', 'id']
 
     def __str__(self):
-        return f'{self.crop} in {self.garden.name}'
+        return f'{self.display_name} in {self.garden.name}'
+
+    @property
+    def display_name(self):
+        return self.name or self.crop
+
+    @property
+    def method(self):
+        return self.growing_method or self.garden.growing_method
+
+    @property
+    def day_number(self):
+        # "Day 18" badge: days since planting, never negative for a planned date
+        return max((timezone.localdate() - self.planting_date).days, 0)

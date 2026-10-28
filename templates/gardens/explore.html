@@ -4,68 +4,55 @@
 <section class="gardens-page" aria-labelledby="explore-heading">
     <header class="gardens-page-heading">
         <div>
-            <p class="gardens-eyebrow">GROWN AROUND YOU</p>
+            <p class="eyebrow">MEET THE GARDENS BEHIND THE FOOD</p>
             <h1 id="explore-heading">Explore gardens</h1>
-            <p>Public gardens from growers around the city. Your own gardens are not listed here.</p>
+            <p class="gardens-subtitle">Public gardens from growers around the city. Your own gardens are not listed here.</p>
         </div>
     </header>
 
-    <form class="garden-layout" method="get" action="{% url 'gardens:explore' %}">
-        <div class="garden-toolbar">
-            <label class="garden-search-field" for="garden-search">
-                <span class="garden-search-icon" aria-hidden="true">⌕</span>
-                <span class="garden-visually-hidden">{{ filter_form.q.label }}</span>
-                <input id="garden-search" type="search" name="q" value="{{ filter_form.q.value|default_if_none:'' }}" placeholder="Search gardens...">
-            </label>
-            <label class="garden-visually-hidden" for="garden-sort">Sort gardens</label>
-            <select class="garden-field garden-sort" id="garden-sort" name="sort">
-                {% for value, label in filter_form.sort.field.choices %}
-                    <option value="{{ value }}"{% if filter_form.sort.value == value %} selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <aside class="garden-filters" aria-label="Filter public gardens">
-            <div class="garden-filter-heading"><h2>Filters</h2><a href="{% url 'gardens:explore' %}">Reset</a></div>
-            <label class="garden-filter-label" for="explore-location">Location</label>
-            <select class="garden-field" id="explore-location" name="location">
-                <option value="">All locations</option>
-                {% for location in locations %}
-                    <option value="{{ location }}"{% if filter_form.location.value == location %} selected{% endif %}>{{ location }}</option>
-                {% endfor %}
-            </select>
-            <fieldset class="garden-filter-group">
-                <legend>Growing method</legend>
-                <label class="garden-radio"><input type="radio" name="method" value=""{% if not filter_form.method.value %} checked{% endif %}><span>All</span></label>
-                {% for method in methods %}
-                    <label class="garden-radio"><input type="radio" name="method" value="{{ method }}"{% if filter_form.method.value == method %} checked{% endif %}><span>{{ method }}</span></label>
-                {% endfor %}
-            </fieldset>
-            <button class="gardens-button gardens-button-outline" type="submit">Apply filters</button>
-        </aside>
-        <div class="garden-results">
-            <p class="garden-results-count" role="status">{{ garden_count }} public gardens</p>
-            {% if gardens %}
-                <div class="gardens-list">
-                    {% for garden in gardens %}
-                        <article class="garden-item">
-                            <span class="garden-item-icon" aria-hidden="true">{% include 'svg/icons/gardens.svg' %}</span>
-                            <div class="garden-item-content">
-                                <h2><a href="{% url 'gardens:public_detail' garden.id %}">{{ garden.name }}</a></h2>
-                                <p class="garden-card-meta"><span>{{ garden.location }}</span><span>{{ garden.planting_count }} plants</span><span>by {{ garden.owner__profile__display_name|default:garden.owner__username }}</span></p>
-                                <p>{{ garden.public_summary|default:garden.growing_method|truncatewords:24 }}</p>
-                                <a class="gardens-text-link" href="{% url 'gardens:public_detail' garden.id %}">View plants <span aria-hidden="true">→</span></a>
-                            </div>
-                            <span class="garden-visibility" data-public="true">Public</span>
-                        </article>
-                    {% endfor %}
+    <form class="garden-layout" method="get" action="{% url 'gardens:explore' %}" data-autosubmit>
+        {% include 'gardens/_search_row.html' with search_label='Search gardens' placeholder='Search gardens…' sort_label='Sort gardens' %}
+
+        <div class="garden-body">
+            <aside class="garden-filters" aria-label="Filter public gardens">
+                <div class="garden-filter-heading"><h2>Filters</h2><a href="{% url 'gardens:explore' %}">Reset</a></div>
+                <div class="garden-filter-group">
+                    <label class="garden-filter-label" for="explore-location">Location</label>
+                    <select class="garden-field garden-select" id="explore-location" name="location">
+                        <option value="">All locations</option>
+                        {% for location in locations %}
+                            <option value="{{ location }}"{% if filter_form.location.value == location %} selected{% endif %}>{{ location }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
-            {% else %}
-                <section class="gardens-empty-state" aria-labelledby="explore-empty-heading">
-                    <h2 id="explore-empty-heading">No gardens found</h2>
-                    <p>{% if filter_form.is_bound %}Try a different search or clear the filters.{% else %}There are no public gardens to show yet.{% endif %}</p>
-                    <a class="gardens-button gardens-button-outline" href="{% url 'gardens:explore' %}">Reset filters</a>
-                </section>
-            {% endif %}
+                <hr>
+                <fieldset class="garden-filter-group">
+                    <legend class="garden-filter-label">Growing method</legend>
+                    <label class="garden-radio"><input type="radio" name="method" value=""{% if not filter_form.method.value %} checked{% endif %}><span>All</span></label>
+                    {% for method in methods %}
+                        <label class="garden-radio"><input type="radio" name="method" value="{{ method }}"{% if filter_form.method.value == method %} checked{% endif %}><span>{{ method }}</span></label>
+                    {% endfor %}
+                </fieldset>
+                <button class="outline-button garden-apply" type="submit">Apply filters</button>
+            </aside>
+
+            <div class="garden-results">
+                <p class="garden-results-count" role="status">{{ garden_count }} public garden{{ garden_count|pluralize }}</p>
+                {% if gardens %}
+                    <div class="gardens-list">
+                        {% for garden in gardens %}
+                            {% include 'gardens/_garden_card.html' with owner_view=False %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {% if has_gardens %}
+                        {% url 'gardens:explore' as reset_url %}
+                        {% include 'gardens/_empty_state.html' with heading_id='explore-empty-heading' title='No gardens found' text='Try a different search or clear the filters.' button_url=reset_url button_label='Reset filters' reset=True %}
+                    {% else %}
+                        {% include 'gardens/_empty_state.html' with heading_id='explore-empty-heading' title='No gardens found' text='There are no public gardens from other growers yet.' %}
+                    {% endif %}
+                {% endif %}
+            </div>
         </div>
     </form>
 </section>

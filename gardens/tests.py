@@ -1,8 +1,9 @@
-from datetime import date
+from datetime import date, timedelta
 
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 from accounts.models import Profile
 
@@ -142,18 +143,16 @@ class GardenOwnerViewTests(TestCase):
         self.client.force_login(self.owner)
 
         detail_response = self.client.get(self.detail_url)
+        edit_form_response = self.client.get(self.edit_url)
         edit_response = self.client.post(self.edit_url, self.garden_data(name='Updated garden'))
 
-        self.assertContains(detail_response, 'Water before noon.')
+        self.assertNotContains(detail_response, 'Water before noon.')
+        self.assertContains(edit_form_response, 'Water before noon.')
         self.assertContains(detail_response, 'Newest planted')
-        self.assertContains(detail_response, 'aria-label="Garden description"')
-        self.assertNotContains(detail_response, 'Filter plants')
-        self.assertNotContains(detail_response, 'Apply filters')
-        self.assertContains(
-            detail_response,
-            '<button class="gardens-text-link garden-journal-placeholder" type="button" disabled>Open journal <span aria-hidden="true">→</span></button>',
-            html=True,
-        )
+        self.assertContains(detail_response, 'aria-label="Filter plants"')
+        self.assertContains(detail_response, 'Planted in')
+        self.assertContains(detail_response, 'Open journal')
+        self.assertContains(detail_response, 'Private garden: only you can see these plants')
         self.assertRedirects(edit_response, self.detail_url)
         self.garden.refresh_from_db()
         self.assertEqual(self.garden.name, 'Updated garden')
@@ -185,20 +184,41 @@ class GardenOwnerViewTests(TestCase):
         self.assertRedirects(response, self.mine_url)
         self.assertFalse(Garden.objects.filter(pk=self.garden.pk).exists())
 
-    def test_owner_routes_require_login_and_grower_role(self):
-        detail_other_url = reverse('gardens:detail', args=[self.other_garden.pk])
+    def test_owner_routes_require_login(self):
         owner_urls = [self.mine_url, self.create_url, self.detail_url, self.edit_url, self.delete_url]
         for url in owner_urls:
             with self.subTest(url=url):
                 response = self.client.get(url)
-                self.assertEqual(response.status_code, 302)
-                self.assertIn('/login/', response.url)
+                self.assertRedirects(response, f'/login?next={url}', fetch_redirect_response=False)
 
+    def test_only_growers_can_create_gardens(self):
         for user in (self.buyer, self.no_profile):
             self.client.force_login(user)
-            for url in owner_urls + [detail_other_url]:
+            with self.subTest(user=user.username):
+                self.assertEqual(self.client.get(self.create_url).status_code, 403)
+                self.assertEqual(self.client.post(self.create_url, self.garden_data()).status_code, 403)
+
+        self.assertFalse(Garden.objects.filter(name='Courtyard garden').exists())
+
+    def test_non_owners_get_404_whatever_their_role(self):
+        for user in (self.buyer, self.no_profile, self.other_owner):
+            self.client.force_login(user)
+            for url in (self.detail_url, self.edit_url, self.delete_url):
                 with self.subTest(user=user.username, url=url):
-                    self.assertEqual(self.client.get(url).status_code, 403)
+                    self.assertEqual(self.client.get(url).status_code, 404)
+
+    def test_owner_without_grower_role_still_manages_own_garden(self):
+        Profile.objects.filter(user=self.owner).update(is_grower=False)
+        self.client.force_login(self.owner)
+
+        self.assertEqual(self.client.get(self.mine_url).status_code, 200)
+        self.assertEqual(self.client.get(self.detail_url).status_code, 200)
+        response = self.client.post(self.edit_url, self.garden_data(name='Renamed garden'))
+
+        self.assertRedirects(response, self.detail_url)
+        self.garden.refresh_from_db()
+        self.assertEqual(self.garden.name, 'Renamed garden')
+        self.assertEqual(self.client.get(self.create_url).status_code, 403)
 
 
 @override_settings(PASSWORD_HASHERS=['django.contrib.auth.hashers.MD5PasswordHasher'])
@@ -237,7 +257,7 @@ class PlantingOwnerViewTests(TestCase):
         self.delete_url = reverse('gardens:planting_delete', args=[self.garden.pk, self.planting.pk])
 
     def planting_data(self, **changes):
-        data = {'crop': 'Lettuce', 'planting_date': '2026-10-12'}
+        data = {'name': 'Butterhead', 'crop': 'Lettuce', 'planting_date': '2026-10-12', 'growing_method': ''}
         data.update(changes)
         return data
 
@@ -249,12 +269,8 @@ class PlantingOwnerViewTests(TestCase):
 
         self.assertContains(garden_response, 'Tomatoes')
         self.assertContains(garden_response, self.detail_url)
-        self.assertContains(detail_response, 'Planted Oct 1, 2026')
-        self.assertContains(
-            detail_response,
-            '<button class="gardens-button gardens-button-outline" type="button" disabled>Edit plant journal</button>',
-            html=True,
-        )
+        self.assertContains(detail_response, 'Planted 1 Oct 2026')
+        self.assertContains(detail_response, 'Container pots')
 
     def test_owner_planting_list_filters_by_crop_and_month(self):
         Planting.objects.create(
@@ -285,14 +301,15 @@ class PlantingOwnerViewTests(TestCase):
             reverse('gardens:planting_detail', args=[self.garden.pk, planting.pk]),
         )
 
-    def test_planting_form_requires_crop_and_date(self):
+    def test_planting_form_requires_name_crop_and_date(self):
         self.client.force_login(self.owner)
 
         response = self.client.post(self.create_url)
 
         self.assertEqual(response.status_code, 400)
-        self.assertContains(response, 'This field is required.', status_code=400)
-        self.assertEqual(set(PlantingForm().fields), {'crop', 'planting_date'})
+        self.assertContains(response, 'This field is required.', count=3, status_code=400)
+        self.assertEqual(set(PlantingForm().fields), {'name', 'crop', 'planting_date', 'growing_method'})
+        self.assertFalse(PlantingForm().fields['growing_method'].required)
 
     def test_owner_can_edit_planting(self):
         self.client.force_login(self.owner)
@@ -317,7 +334,9 @@ class PlantingOwnerViewTests(TestCase):
 
     def test_other_grower_cannot_read_or_change_planting(self):
         self.client.force_login(self.other_owner)
-        self.assertEqual(self.client.get(self.detail_url).status_code, 404)
+        response = self.client.get(self.detail_url)
+        self.assertContains(response, 'No access', status_code=403)
+        self.assertNotContains(response, 'Tomatoes', status_code=403)
         urls = (self.edit_url, self.delete_url)
 
         for url in urls:
@@ -334,17 +353,35 @@ class PlantingOwnerViewTests(TestCase):
 
         self.assertEqual(self.client.get(wrong_detail_url).status_code, 404)
 
-    def test_planting_routes_require_authentication_and_grower_role(self):
-        for url in (self.create_url, self.detail_url, self.edit_url, self.delete_url):
+    def test_planting_changes_require_login(self):
+        for url in (self.create_url, self.edit_url, self.delete_url):
             with self.subTest(url=url):
                 response = self.client.get(url)
-                self.assertEqual(response.status_code, 302)
-                self.assertIn('/login/', response.url)
+                self.assertRedirects(response, f'/login?next={url}', fetch_redirect_response=False)
 
+    def test_only_growers_can_add_plants(self):
         self.client.force_login(self.buyer)
-        for url in (self.create_url, self.detail_url, self.edit_url, self.delete_url):
+
+        self.assertEqual(self.client.get(self.create_url).status_code, 403)
+        self.assertEqual(self.client.post(self.create_url, self.planting_data()).status_code, 403)
+        self.assertFalse(Planting.objects.filter(crop='Lettuce').exists())
+
+    def test_buyer_cannot_change_someone_elses_planting(self):
+        self.client.force_login(self.buyer)
+
+        for url in (self.edit_url, self.delete_url):
             with self.subTest(url=url):
-                self.assertEqual(self.client.get(url).status_code, 403)
+                self.assertEqual(self.client.get(url).status_code, 404)
+                self.assertEqual(self.client.post(url, self.planting_data()).status_code, 404)
+        self.assertTrue(Planting.objects.filter(pk=self.planting.pk).exists())
+
+    def test_growers_cannot_add_plants_to_someone_elses_garden(self):
+        self.client.force_login(self.other_owner)
+
+        response = self.client.post(self.create_url, self.planting_data())
+
+        self.assertEqual(response.status_code, 404)
+        self.assertFalse(Planting.objects.filter(crop='Lettuce').exists())
 
 
 class GardenDiscoveryViewTests(TestCase):
@@ -454,3 +491,598 @@ class GardenDiscoveryViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context['garden_count'], 0)
         self.assertTrue(response.context['filter_form'].errors)
+
+@override_settings(PASSWORD_HASHERS=['django.contrib.auth.hashers.MD5PasswordHasher'])
+class GardenPrivacyRuleTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.owner = User.objects.create_user(username='rina', password='test-password')
+        cls.other_grower = User.objects.create_user(username='bayu', password='test-password')
+        cls.buyer = User.objects.create_user(username='sekar', password='test-password')
+        Profile.objects.create(user=cls.owner, display_name='Rina', is_grower=True)
+        Profile.objects.create(user=cls.other_grower, display_name='Bayu', is_grower=True)
+        Profile.objects.create(user=cls.buyer, display_name='Sekar', is_buyer=True)
+        cls.public_garden = Garden.objects.create(
+            owner=cls.owner,
+            name='Atap Hijau Tebet',
+            location='Tebet, Jakarta',
+            growing_method='Hydroponic',
+            public_summary='Hydroponic NFT on an office rooftop.',
+            private_notes='Spare key under the blue pot.',
+            is_public=True,
+        )
+        cls.private_garden = Garden.objects.create(
+            owner=cls.owner,
+            name='Secret Courtyard',
+            location='Kuningan, Jakarta',
+            growing_method='Soil pot',
+            private_notes='Neighbour waters on Sundays.',
+        )
+        cls.public_plant = Planting.objects.create(
+            garden=cls.public_garden, crop='Butterhead lettuce', planting_date=date(2026, 9, 18),
+        )
+        cls.private_plant = Planting.objects.create(
+            garden=cls.private_garden, crop='Hidden chili', planting_date=date(2026, 10, 1),
+        )
+
+    def plant_url(self, planting):
+        return reverse('gardens:planting_detail', args=[planting.garden_id, planting.pk])
+
+    def as_each_non_owner(self):
+        # Anonymous visitor, a buyer and another grower
+        yield 'anonymous'
+        for user in (self.buyer, self.other_grower):
+            self.client.force_login(user)
+            yield user.username
+        self.client.logout()
+
+    def test_private_garden_is_404_for_everyone_but_the_owner(self):
+        urls = (
+            reverse('gardens:detail', args=[self.private_garden.pk]),
+            reverse('gardens:public_detail', args=[self.private_garden.pk]),
+        )
+        for who in self.as_each_non_owner():
+            for url in urls:
+                with self.subTest(who=who, url=url):
+                    if who == 'anonymous' and 'explore' not in url:
+                        self.assertEqual(self.client.get(url).status_code, 302)
+                    else:
+                        self.assertEqual(self.client.get(url).status_code, 404)
+
+    def test_private_garden_plant_shows_no_access_without_details(self):
+        url = self.plant_url(self.private_plant)
+        for who in self.as_each_non_owner():
+            with self.subTest(who=who):
+                response = self.client.get(url)
+                self.assertContains(response, 'No access', status_code=403)
+                self.assertNotContains(response, 'Hidden chili', status_code=403)
+                self.assertNotContains(response, 'Secret Courtyard', status_code=403)
+
+    def test_private_garden_plant_is_visible_to_owner(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(self.plant_url(self.private_plant))
+
+        self.assertContains(response, 'Hidden chili')
+        self.assertContains(response, reverse('gardens:detail', args=[self.private_garden.pk]))
+
+    def test_every_plant_in_a_public_garden_is_public_and_read_only(self):
+        url = self.plant_url(self.public_plant)
+        edit_url = reverse('gardens:planting_edit', args=[self.public_garden.pk, self.public_plant.pk])
+        delete_url = reverse('gardens:planting_delete', args=[self.public_garden.pk, self.public_plant.pk])
+        for who in self.as_each_non_owner():
+            with self.subTest(who=who):
+                response = self.client.get(url)
+                self.assertContains(response, 'Butterhead lettuce')
+                self.assertNotContains(response, edit_url)
+                self.assertNotContains(response, delete_url)
+                self.assertContains(response, reverse('gardens:public_detail', args=[self.public_garden.pk]))
+
+    def test_plant_of_inactive_owner_is_not_public(self):
+        User.objects.filter(pk=self.owner.pk).update(is_active=False)
+
+        response = self.client.get(self.plant_url(self.public_plant))
+
+        self.assertContains(response, 'No access', status_code=403)
+
+    def test_owner_is_sent_from_their_public_page_to_their_own_view(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse('gardens:public_detail', args=[self.public_garden.pk]))
+
+        self.assertRedirects(response, reverse('gardens:detail', args=[self.public_garden.pk]))
+
+    def test_explore_never_lists_the_signed_in_users_own_gardens(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse('gardens:explore'))
+
+        self.assertNotContains(response, 'Atap Hijau Tebet')
+        self.assertEqual(response.context['garden_count'], 0)
+
+    def test_private_notes_only_appear_in_the_owners_edit_form(self):
+        self.client.force_login(self.owner)
+        owner_pages = (
+            reverse('gardens:mine'),
+            reverse('gardens:detail', args=[self.public_garden.pk]),
+            reverse('gardens:detail', args=[self.private_garden.pk]),
+            self.plant_url(self.public_plant),
+            self.plant_url(self.private_plant),
+        )
+        for url in owner_pages:
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertNotContains(response, 'Spare key under the blue pot.')
+                self.assertNotContains(response, 'Neighbour waters on Sundays.')
+
+        edit_response = self.client.get(reverse('gardens:edit', args=[self.public_garden.pk]))
+        self.assertContains(edit_response, 'Spare key under the blue pot.')
+
+        self.client.force_login(self.buyer)
+        public_pages = (
+            reverse('gardens:explore'),
+            reverse('gardens:public_detail', args=[self.public_garden.pk]),
+            self.plant_url(self.public_plant),
+        )
+        for url in public_pages:
+            with self.subTest(url=url):
+                self.assertNotContains(self.client.get(url), 'Spare key under the blue pot.')
+
+
+class GardenNavigationTests(TestCase):
+    HOME_ACTIVE = '<a href="/home/" data-label="Home" aria-current="page">Home</a>'
+    EXPLORE_ACTIVE = '<a href="/gardens/explore/" data-label="Explore gardens" aria-current="page">Explore gardens</a>'
+    SUBNAV = 'aria-label="Grower tools"'
+    MY_GARDENS_ACTIVE = 'href="/gardens/mine/" aria-current="page"'
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.owner = User.objects.create_user(username='nav_owner', password='test-password')
+        cls.visitor = User.objects.create_user(username='nav_visitor', password='test-password')
+        Profile.objects.create(user=cls.owner, display_name='Nav Owner', is_grower=True)
+        Profile.objects.create(user=cls.visitor, display_name='Nav Visitor', is_grower=True)
+        cls.garden = Garden.objects.create(
+            owner=cls.owner, name='Rooftop', location='Tebet', growing_method='Hydroponic', is_public=True,
+        )
+        cls.planting = Planting.objects.create(garden=cls.garden, crop='Pak choy', planting_date=date(2026, 10, 9))
+
+    def test_owner_pages_highlight_home_and_show_my_gardens_subnav(self):
+        self.client.force_login(self.owner)
+        urls = (
+            reverse('gardens:mine'),
+            reverse('gardens:create'),
+            reverse('gardens:detail', args=[self.garden.pk]),
+            reverse('gardens:edit', args=[self.garden.pk]),
+            reverse('gardens:planting_create', args=[self.garden.pk]),
+            reverse('gardens:planting_detail', args=[self.garden.pk, self.planting.pk]),
+        )
+        for url in urls:
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertContains(response, self.HOME_ACTIVE, html=True)
+                self.assertNotContains(response, self.EXPLORE_ACTIVE, html=True)
+                self.assertContains(response, self.SUBNAV, count=1)
+                self.assertContains(response, self.MY_GARDENS_ACTIVE)
+
+    def test_public_pages_highlight_explore_without_subnav(self):
+        self.client.force_login(self.visitor)
+        urls = (
+            reverse('gardens:explore'),
+            reverse('gardens:public_detail', args=[self.garden.pk]),
+            reverse('gardens:planting_detail', args=[self.garden.pk, self.planting.pk]),
+        )
+        for url in urls:
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertContains(response, self.EXPLORE_ACTIVE, html=True)
+                self.assertNotContains(response, self.HOME_ACTIVE, html=True)
+                self.assertNotContains(response, self.SUBNAV)
+
+    def test_logged_out_visitors_see_explore_highlighted(self):
+        response = self.client.get(reverse('gardens:public_detail', args=[self.garden.pk]))
+
+        self.assertContains(response, self.EXPLORE_ACTIVE, html=True)
+        self.assertNotContains(response, self.SUBNAV)
+
+    def test_home_page_keeps_its_subnav_with_nothing_active(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse('main:home'))
+
+        self.assertContains(response, self.HOME_ACTIVE, html=True)
+        self.assertContains(response, self.SUBNAV, count=1)
+        self.assertNotContains(response, self.MY_GARDENS_ACTIVE)
+
+
+class GardenDesignDataTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.owner = User.objects.create_user(username='design_owner', password='test-password')
+        cls.visitor = User.objects.create_user(username='design_visitor', password='test-password')
+        Profile.objects.create(user=cls.owner, display_name='Rina', is_grower=True, area='Tebet')
+        Profile.objects.create(user=cls.visitor, display_name='Bayu', is_grower=True)
+        cls.garden = Garden.objects.create(
+            owner=cls.owner,
+            name='Balcony rack, Tebet',
+            location='Tebet, Jakarta',
+            growing_method='Hydroponic',
+            public_summary='Small NFT rack on a west-facing balcony.',
+            is_public=True,
+        )
+        Garden.objects.create(owner=cls.owner, name='Rooftop beds', location='Tebet, Jakarta', growing_method='Soil')
+        cls.pak_choy = Planting.objects.create(
+            garden=cls.garden, name='Pak choy', crop='Leafy greens', planting_date=date(2026, 10, 9),
+        )
+        cls.chili = Planting.objects.create(
+            garden=cls.garden, name='Red chili', crop='Fruiting veg',
+            planting_date=date(2026, 9, 15), growing_method='Soil pot',
+        )
+
+    def test_planting_falls_back_to_crop_and_garden_method(self):
+        old_style = Planting.objects.create(garden=self.garden, crop='Tomatoes', planting_date=date(2026, 10, 1))
+
+        self.assertEqual(old_style.display_name, 'Tomatoes')
+        self.assertEqual(old_style.method, 'Hydroponic')
+        self.assertEqual(self.chili.display_name, 'Red chili')
+        self.assertEqual(self.chili.method, 'Soil pot')
+
+    def test_day_number_counts_days_since_planting(self):
+        today = timezone.localdate()
+        planting = Planting.objects.create(garden=self.garden, crop='Mint', planting_date=today - timedelta(days=18))
+        planned = Planting.objects.create(garden=self.garden, crop='Basil', planting_date=today + timedelta(days=3))
+
+        self.assertEqual(planting.day_number, 18)
+        self.assertEqual(planned.day_number, 0)
+
+    def test_owner_detail_filters_by_each_plants_own_method(self):
+        self.client.force_login(self.owner)
+        url = reverse('gardens:detail', args=[self.garden.pk])
+
+        everything = self.client.get(url)
+        hydroponic = self.client.get(url, {'method': 'Hydroponic'})
+        soil_pot = self.client.get(url, {'method': 'Soil pot'})
+
+        self.assertEqual(everything.context['methods'], ['Hydroponic', 'Soil pot'])
+        self.assertEqual([p.name for p in hydroponic.context['plantings']], ['Pak choy'])
+        self.assertEqual([p.name for p in soil_pot.context['plantings']], ['Red chili'])
+        self.assertContains(everything, 'Day ')
+        self.assertContains(everything, 'More actions for Pak choy')
+        self.assertContains(everything, reverse('gardens:planting_edit', args=[self.garden.pk, self.pak_choy.pk]))
+
+    def test_plant_search_matches_name_and_crop(self):
+        self.client.force_login(self.owner)
+        url = reverse('gardens:detail', args=[self.garden.pk])
+
+        by_name = self.client.get(url, {'q': 'pak'})
+        by_crop = self.client.get(url, {'q': 'fruiting'})
+
+        self.assertEqual(by_name.context['planting_count'], 1)
+        self.assertEqual(by_crop.context['planting_count'], 1)
+        self.assertContains(by_crop, 'Red chili')
+
+    def test_my_gardens_shows_visibility_counts_and_owner_menu(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse('gardens:mine'))
+
+        self.assertEqual(
+            response.context['visibility_options'],
+            [('', 'All', 2), ('public', 'Public', 1), ('private', 'Private', 1)],
+        )
+        self.assertContains(response, 'YOUR GROWING SPACES')
+        self.assertContains(response, reverse('gardens:edit', args=[self.garden.pk]))
+        self.assertContains(response, reverse('gardens:delete', args=[self.garden.pk]))
+        self.assertContains(response, 'Private')
+
+    def test_my_gardens_search_matches_plant_names(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse('gardens:mine'), {'q': 'pak choy'})
+
+        self.assertEqual(response.context['garden_count'], 1)
+        self.assertContains(response, 'Balcony rack, Tebet')
+
+    def test_explore_card_shows_owner_and_no_owner_menu(self):
+        self.client.force_login(self.visitor)
+
+        response = self.client.get(reverse('gardens:explore'))
+
+        self.assertContains(response, 'by Rina')
+        self.assertContains(response, 'member since')
+        self.assertNotContains(response, 'More actions for')
+        self.assertNotContains(response, 'Rooftop beds')
+
+    def test_visitor_detail_has_about_the_grower_and_no_owner_actions(self):
+        self.client.force_login(self.visitor)
+
+        response = self.client.get(reverse('gardens:public_detail', args=[self.garden.pk]))
+
+        self.assertContains(response, 'aria-label="About the grower"')
+        self.assertContains(response, 'Grower · Tebet')
+        self.assertContains(response, 'Public garden by Rina')
+        self.assertContains(response, f"{reverse('marketplace:index')}?grower=design_owner")
+        self.assertContains(response, 'Pak choy')
+        self.assertNotContains(response, 'More actions for')
+        self.assertNotContains(response, reverse('gardens:planting_create', args=[self.garden.pk]))
+        self.assertNotContains(response, reverse('gardens:planting_edit', args=[self.garden.pk, self.pak_choy.pk]))
+
+
+class GardenEmptyAndJournalStateTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.owner = User.objects.create_user(username='state_owner', password='test-password')
+        cls.newcomer = User.objects.create_user(username='state_newcomer', password='test-password')
+        cls.visitor = User.objects.create_user(username='state_visitor', password='test-password')
+        Profile.objects.create(user=cls.owner, display_name='State Owner', is_grower=True)
+        Profile.objects.create(user=cls.newcomer, display_name='Newcomer', is_grower=True)
+        Profile.objects.create(user=cls.visitor, display_name='Visitor', is_grower=True)
+        cls.garden = Garden.objects.create(
+            owner=cls.owner, name='Courtyard', location='Depok', growing_method='Soil pot', is_public=True,
+        )
+        cls.empty_garden = Garden.objects.create(
+            owner=cls.owner, name='Bare balcony', location='Depok', growing_method='Hydroponic', is_public=True,
+        )
+        cls.private_garden = Garden.objects.create(
+            owner=cls.owner, name='Back room', location='Depok', growing_method='Soil pot',
+        )
+        cls.planting = Planting.objects.create(
+            garden=cls.garden, name='Pak choy', crop='Leafy greens', planting_date=date(2026, 10, 9),
+        )
+        cls.private_planting = Planting.objects.create(
+            garden=cls.private_garden, name='Secret basil', crop='Herbs', planting_date=date(2026, 10, 9),
+        )
+
+    def test_my_gardens_empty_state_for_a_new_grower(self):
+        self.client.force_login(self.newcomer)
+
+        response = self.client.get(reverse('gardens:mine'))
+
+        self.assertContains(response, '0 gardens')
+        self.assertContains(response, 'No gardens yet')
+        self.assertContains(response, 'Add your first one: a balcony, a rooftop bed or a hydroponic rack.')
+        self.assertContains(response, 'Add your first garden')
+        self.assertContains(response, f'href="{reverse("gardens:create")}"')
+
+    def test_my_gardens_no_results_state_offers_reset(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse('gardens:mine'), {'q': 'nothing like this'})
+
+        self.assertContains(response, 'No gardens match these filters')
+        self.assertContains(response, 'Reset filters')
+        self.assertNotContains(response, 'No gardens yet')
+
+    def test_garden_without_plants_shows_add_plant_state(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse('gardens:detail', args=[self.empty_garden.pk]))
+
+        self.assertContains(response, 'No plants yet')
+        self.assertContains(response, reverse('gardens:planting_create', args=[self.empty_garden.pk]))
+
+    def test_garden_plant_filters_with_no_match_show_reset(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse('gardens:detail', args=[self.garden.pk]), {'month': '1'})
+
+        self.assertContains(response, 'No plants match these filters')
+        self.assertNotContains(response, 'No plants yet')
+
+    def test_visitor_empty_garden_has_no_add_button(self):
+        self.client.force_login(self.visitor)
+
+        response = self.client.get(reverse('gardens:public_detail', args=[self.empty_garden.pk]))
+
+        self.assertContains(response, 'No plants yet')
+        self.assertNotContains(response, reverse('gardens:planting_create', args=[self.empty_garden.pk]))
+
+    def test_explore_with_no_other_public_gardens(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse('gardens:explore'))
+
+        self.assertContains(response, 'No gardens found')
+        self.assertContains(response, 'There are no public gardens from other growers yet.')
+        self.assertNotContains(response, 'Reset filters')
+
+    def test_owner_plant_page_offers_the_first_journal_entry(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse('gardens:planting_detail', args=[self.garden.pk, self.planting.pk]))
+
+        self.assertContains(response, 'aria-label="Plant journal"')
+        self.assertContains(response, 'No journal yet')
+        self.assertContains(response, 'Write the first entry')
+
+    def test_visitor_plant_page_shows_no_journal_without_write_button(self):
+        self.client.force_login(self.visitor)
+
+        response = self.client.get(reverse('gardens:planting_detail', args=[self.garden.pk, self.planting.pk]))
+
+        self.assertContains(response, 'No journal yet')
+        self.assertNotContains(response, 'Write the first entry')
+
+    def test_private_plant_shows_only_the_no_access_card(self):
+        self.client.force_login(self.visitor)
+
+        response = self.client.get(
+            reverse('gardens:planting_detail', args=[self.private_garden.pk, self.private_planting.pk]),
+        )
+
+        self.assertContains(response, 'No access', status_code=403)
+        self.assertContains(response, 'only visible to the owner', status_code=403)
+        self.assertContains(response, 'journal-state-locked', status_code=403)
+        self.assertNotContains(response, 'Secret basil', status_code=403)
+        self.assertNotContains(response, 'Back room', status_code=403)
+        self.assertNotContains(response, 'Write the first entry', status_code=403)
+        self.assertNotContains(response, 'aria-label="Plant journal"', status_code=403)
+
+
+@override_settings(PASSWORD_HASHERS=['django.contrib.auth.hashers.MD5PasswordHasher'])
+class GardenReviewFixTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.owner = User.objects.create_user(username='fix_owner', password='test-password')
+        cls.visitor = User.objects.create_user(username='fix_visitor', password='test-password')
+        Profile.objects.create(user=cls.owner, display_name='Fix Owner', is_grower=True)
+        Profile.objects.create(user=cls.visitor, display_name='Fix Visitor', is_grower=True)
+        cls.garden = Garden.objects.create(
+            owner=cls.owner, name='Zed', location='Tebet', growing_method='Soil', is_public=True,
+            private_notes='Gate code 4417.',
+        )
+        cls.apple = Garden.objects.create(owner=cls.owner, name='apple', location='Tebet', growing_method='Soil')
+        cls.banana = Garden.objects.create(owner=cls.owner, name='Banana', location='Tebet', growing_method='Soil')
+        for crop in ('Basil', 'Tomato', 'Mint'):
+            Planting.objects.create(garden=cls.garden, name=crop, crop=crop, planting_date=date(2026, 10, 1))
+        cls.basil = cls.garden.plantings.get(name='Basil')
+
+    def test_card_plant_count_stays_full_while_searching(self):
+        self.client.force_login(self.visitor)
+        explore = self.client.get(reverse('gardens:explore'), {'q': 'basil'})
+        self.client.force_login(self.owner)
+        mine = self.client.get(reverse('gardens:mine'), {'q': 'basil'})
+
+        self.assertEqual([g['planting_count'] for g in explore.context['gardens']], [3])
+        self.assertEqual([g.planting_count for g in mine.context['gardens']], [3])
+        self.assertContains(explore, '3 plants')
+        self.assertContains(mine, '3 plants')
+
+    def test_visitor_subtitle_counts_every_plant_while_searching(self):
+        self.client.force_login(self.visitor)
+
+        response = self.client.get(reverse('gardens:public_detail', args=[self.garden.pk]), {'q': 'basil'})
+
+        self.assertContains(response, 'Public garden by Fix Owner · 3 plants')
+        self.assertEqual(response.context['planting_count'], 1)
+
+    def test_success_messages_show_on_the_next_gardens_page(self):
+        self.client.force_login(self.owner)
+        garden_data = {'name': 'Zed', 'location': 'Tebet', 'growing_method': 'Soil', 'is_public': 'on'}
+
+        edited = self.client.post(reverse('gardens:edit', args=[self.garden.pk]), garden_data, follow=True)
+        added = self.client.post(
+            reverse('gardens:planting_create', args=[self.garden.pk]),
+            {'name': 'Kale', 'crop': 'Leafy greens', 'planting_date': '2026-10-20', 'growing_method': ''},
+            follow=True,
+        )
+        deleted = self.client.post(reverse('gardens:delete', args=[self.apple.pk]), follow=True)
+
+        self.assertContains(edited, 'Garden updated.')
+        self.assertContains(added, 'Planting added.')
+        self.assertContains(deleted, 'Garden deleted.')
+        self.assertNotContains(self.client.get(reverse('gardens:mine')), 'Garden deleted.')
+
+    def test_owner_on_own_private_visitor_url_is_sent_to_owner_page(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse('gardens:public_detail', args=[self.apple.pk]))
+
+        self.assertRedirects(response, reverse('gardens:detail', args=[self.apple.pk]))
+        self.client.force_login(self.visitor)
+        self.assertEqual(self.client.get(reverse('gardens:public_detail', args=[self.apple.pk])).status_code, 404)
+
+    def test_unknown_sort_visibility_or_month_falls_back_to_defaults(self):
+        self.client.force_login(self.visitor)
+        explore = self.client.get(reverse('gardens:explore'), {'sort': 'bogus'})
+        plants = self.client.get(reverse('gardens:public_detail', args=[self.garden.pk]), {'month': 'abc', 'sort': 'x'})
+        self.client.force_login(self.owner)
+        mine = self.client.get(reverse('gardens:mine'), {'sort': 'bogus', 'visibility': 'secret'})
+
+        self.assertEqual(explore.context['garden_count'], 1)
+        self.assertEqual(plants.context['planting_count'], 3)
+        self.assertEqual(mine.context['garden_count'], 3)
+
+    def test_name_sort_ignores_letter_case(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse('gardens:mine'), {'sort': 'name'})
+
+        self.assertEqual([g.name for g in response.context['gardens']], ['apple', 'Banana', 'Zed'])
+
+    def test_owner_without_grower_role_sees_no_add_buttons(self):
+        Profile.objects.filter(user=self.owner).update(is_grower=False)
+        self.client.force_login(self.owner)
+
+        mine = self.client.get(reverse('gardens:mine'))
+        detail = self.client.get(reverse('gardens:detail', args=[self.banana.pk]))
+
+        self.assertNotContains(mine, f'href="{reverse("gardens:create")}"')
+        self.assertNotContains(detail, reverse('gardens:planting_create', args=[self.banana.pk]))
+        self.assertContains(detail, 'Add the grower role to your profile to add plants.')
+
+    def test_form_help_text_is_linked_for_screen_readers(self):
+        self.client.force_login(self.owner)
+
+        garden_form = self.client.get(reverse('gardens:edit', args=[self.garden.pk])).content.decode()
+        plant_form = self.client.get(reverse('gardens:planting_create', args=[self.garden.pk])).content.decode()
+
+        self.assertIn('aria-describedby="id_location_helptext"', garden_form)
+        self.assertIn('id="id_location_helptext"', garden_form)
+        self.assertIn('id="id_private_notes_helptext"', garden_form)
+        self.assertIn('id="id_growing_method_helptext"', plant_form)
+
+    def test_filters_keep_an_apply_button_for_keyboard_users(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse('gardens:mine'))
+
+        self.assertContains(
+            response,
+            '<button class="outline-button garden-apply" type="submit">Apply filters</button>',
+            html=True,
+        )
+
+    def test_explore_filter_options_skip_private_and_own_gardens(self):
+        Garden.objects.create(
+            owner=self.visitor, name='Hidden', location='Secret Street', growing_method='Aquaponics',
+        )
+        Garden.objects.create(
+            owner=self.visitor, name='Mine', location='My Street', growing_method='Wick', is_public=True,
+        )
+        self.client.force_login(self.visitor)
+
+        response = self.client.get(reverse('gardens:explore'))
+
+        self.assertEqual(response.context['locations'], ['Tebet'])
+        self.assertEqual(response.context['methods'], ['Soil'])
+        for text in ('Secret Street', 'Aquaponics', 'My Street', 'Wick'):
+            self.assertNotContains(response, text)
+
+    def test_private_notes_stay_off_delete_and_plant_form_pages(self):
+        self.client.force_login(self.owner)
+        pages = (
+            reverse('gardens:delete', args=[self.garden.pk]),
+            reverse('gardens:planting_create', args=[self.garden.pk]),
+            reverse('gardens:planting_edit', args=[self.garden.pk, self.basil.pk]),
+            reverse('gardens:planting_delete', args=[self.garden.pk, self.basil.pk]),
+        )
+        for url in pages:
+            with self.subTest(url=url):
+                self.assertNotContains(self.client.get(url), 'Gate code 4417.')
+
+
+class GardenLinkTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.buyer = User.objects.create_user(username='link_buyer', password='test-password')
+        Profile.objects.create(user=cls.buyer, display_name='Link Buyer', is_buyer=True)
+
+    def test_footer_gardens_link_opens_explore_for_everyone(self):
+        footer_link = f'<a href="{reverse("gardens:explore")}">Gardens</a>'
+
+        self.assertContains(self.client.get(reverse('main:show_main')), footer_link, html=True)
+        self.client.force_login(self.buyer)
+        self.assertContains(self.client.get(reverse('main:home')), footer_link, html=True)
+
+    def test_grower_required_page_returns_to_home(self):
+        self.client.force_login(self.buyer)
+
+        response = self.client.get(reverse('gardens:create'))
+
+        self.assertContains(
+            response,
+            f'<a class="outline-button" href="{reverse("main:home")}">Return home</a>',
+            html=True,
+            status_code=403,
+        )
+        self.assertContains(response, f'href="{reverse("accounts:profile")}#roles"', status_code=403)

@@ -1,0 +1,12 @@
+{% load static %}
+<section class="gardens-empty-state" aria-labelledby="{{ heading_id }}">
+    <h2 id="{{ heading_id }}">{{ title }}</h2>
+    <p>{{ text }}</p>
+    {% if button_url %}
+        {% if reset %}
+            <a class="outline-button" href="{{ button_url }}">{{ button_label }}</a>
+        {% else %}
+            <a class="pill-button" href="{{ button_url }}"><img src="{% static 'marketplace/img/imgIconPlus.svg' %}" alt="">{{ button_label }}</a>
+        {% endif %}
+    {% endif %}
+</section>

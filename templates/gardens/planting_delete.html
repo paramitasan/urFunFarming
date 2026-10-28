@@ -1,17 +1,19 @@
 {% extends 'base.html' %}
-{% block title %}Delete {{ planting.crop }} · {{ garden.name }}{% endblock %}
+{% load static %}
+{% block title %}Delete {{ planting.display_name }} · {{ garden.name }}{% endblock %}
 {% block content %}
+{% include 'partials/grower_subnav.html' %}
 <section class="gardens-page" aria-labelledby="planting-delete-heading">
-    <a class="gardens-back-link" href="{% url 'gardens:planting_detail' garden.pk planting.pk %}">Back to planting</a>
+    <a class="gardens-back-link" href="{% url 'gardens:detail' garden.pk %}"><img src="{% static 'img/gardens/back.svg' %}" alt="">Back to {{ garden.name }}</a>
     <div class="garden-delete-panel">
-        <p class="gardens-eyebrow">{{ garden.name }}</p>
-        <h1 id="planting-delete-heading">Delete {{ planting.crop }}?</h1>
+        <p class="eyebrow">{{ garden.name|upper }}</p>
+        <h1 id="planting-delete-heading">Delete {{ planting.display_name }}?</h1>
         <p>This planting record will be permanently removed.</p>
         <form method="post">
             {% csrf_token %}
             <div class="gardens-actions">
-                <button class="gardens-button gardens-button-danger" type="submit">Delete planting</button>
-                <a class="gardens-button gardens-button-outline" href="{% url 'gardens:planting_detail' garden.pk planting.pk %}">Keep planting</a>
+                <button class="pill-button gardens-danger" type="submit">Delete plant</button>
+                <a class="outline-button" href="{% url 'gardens:detail' garden.pk %}">Keep plant</a>
             </div>
         </form>
     </div>

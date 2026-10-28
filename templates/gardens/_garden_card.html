@@ -1,0 +1,39 @@
+{% load static %}
+{% if owner_view %}{% url 'gardens:detail' garden.id as garden_url %}{% else %}{% url 'gardens:public_detail' garden.id as garden_url %}{% endif %}
+{% firstof garden.owner__profile__display_name garden.owner__username as grower_name %}
+<article class="garden-item">
+    <div class="garden-photo" aria-hidden="true"></div>
+    <div class="garden-item-content">
+        <div class="garden-card-top">
+            <h2><a href="{{ garden_url }}">{{ garden.name }}</a></h2>
+            {% if garden.is_public or not owner_view %}
+                <span class="garden-visibility" data-public="true"><img src="{% static 'img/gardens/globe.svg' %}" alt="">Public</span>
+            {% else %}
+                <span class="garden-visibility" data-public="false"><img src="{% static 'img/gardens/lock.svg' %}" alt="">Private</span>
+            {% endif %}
+            {% if owner_view %}
+                <details class="garden-more">
+                    <summary aria-label="More actions for {{ garden.name }}"><img src="{% static 'img/gardens/more.svg' %}" alt=""></summary>
+                    <div class="garden-more-menu">
+                        <a href="{% url 'gardens:edit' garden.id %}">Edit</a>
+                        <a class="garden-more-delete" href="{% url 'gardens:delete' garden.id %}">Delete</a>
+                    </div>
+                </details>
+            {% endif %}
+        </div>
+        <p class="garden-card-meta">
+            <span><img src="{% static 'img/gardens/pin.svg' %}" alt="">{{ garden.location }}</span>
+            <span><img src="{% static 'img/gardens/sprout.svg' %}" alt="">{{ garden.planting_count }} plant{{ garden.planting_count|pluralize }}</span>
+            {% if not owner_view %}<span><img src="{% static 'img/gardens/user.svg' %}" alt="">by {{ grower_name }}</span>{% endif %}
+        </p>
+        <p class="garden-card-text">{{ garden.public_summary|default:garden.growing_method|truncatewords:30 }}</p>
+        <div class="garden-card-footer">
+            <a class="gardens-text-link" href="{{ garden_url }}">View plants {% include 'svg/icons/arrow.svg' %}</a>
+            {% if owner_view %}
+                <span class="garden-added">Added {{ garden.created_at|date:'j M Y' }}</span>
+            {% else %}
+                <span class="garden-added">{{ grower_name }} · member since {{ garden.owner__date_joined|date:'M Y' }}</span>
+            {% endif %}
+        </div>
+    </div>
+</article>
