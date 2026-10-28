@@ -1,11 +1,3 @@
-// Submits the search/filter form as soon as a sort or filter option changes.
-document.addEventListener("change", (event) => {
-    if (!event.target.matches("[data-autosubmit]")) return;
-
-    const form = document.getElementById("forum-filters");
-    if (event.target.form) event.target.form.requestSubmit();
-});
-
 // "..." menu: close on outside click or Escape.
 document.addEventListener("click", (event) => {
     document.querySelectorAll("details.forum-menu[open]").forEach((menu) => {
@@ -86,5 +78,40 @@ if (confirmDialog) {
     // Click on the dark backdrop closes it too
     confirmDialog.addEventListener("click", (event) => {
         if (event.target === confirmDialog) confirmDialog.close();
+    });
+}
+
+// Submits the search/filter form as soon as a sort or filter option changes.
+document.addEventListener("change", (event) => {
+    if (!event.target.matches("[data-autosubmit]")) return;
+
+    const form = document.getElementById("forum-filters");
+    if (event.target.form) event.target.form.requestSubmit();
+});
+
+// Search: submit 400 ms after the user stops typing.
+const searchBox = document.querySelector("[data-search]");
+if (searchBox) {
+    const FOCUS_KEY = "forum-search-focus";
+    let lastSent = searchBox.value.trim();
+    let timer;
+
+    // put the cursor back at the end of the text
+    if (sessionStorage.getItem(FOCUS_KEY)) {
+        sessionStorage.removeItem(FOCUS_KEY);
+        searchBox.focus({ preventScroll: true });
+        const end = searchBox.value.length;
+        searchBox.setSelectionRange(end, end);
+    }
+
+    searchBox.addEventListener("input", () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            const value = searchBox.value.trim();
+            if (value === lastSent) return;
+            lastSent = value;
+            sessionStorage.setItem(FOCUS_KEY, "1");
+            searchBox.form.requestSubmit();
+        }, 400);
     });
 }
