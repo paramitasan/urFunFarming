@@ -59,7 +59,7 @@
     </article>
 
     <section class="reply-box" id="your-answer">
-        <form method="post" action="{% url 'forum:reply_create' forum.pk %}#your-answer" novalidate data-reply-form>
+        <form method="post" action="{% url 'forum:reply_create' forum.pk %}{{ sort_qs }}#your-answer" novalidate data-reply-form>
             {% csrf_token %}
             <label class="reply-label" for="{{ reply_form.body.id_for_label }}">{{ reply_form.body.label }}</label>
             <div class="reply-field{% if reply_form.body.errors %} has-error{% endif %}">
@@ -73,13 +73,21 @@
     </section>
 
     <section class="forum-answers" aria-labelledby="answers-heading">
-        <h2 id="answers-heading">{{ replies|length }} answer{{ replies|length|pluralize }}</h2>
+        <div class="answers-head">
+            <h2 id="answers-heading">{{ replies|length }} answer{{ replies|length|pluralize }}</h2>
+            <form class="forum-sort answers-sort" method="get" action="{% url 'forum:forum_detail' forum.pk %}#answers-heading">
+                <select name="sort" data-autosubmit aria-label="Sort answers">
+                    <option value="oldest"{% if reply_sort == "oldest" %} selected{% endif %}>Oldest first</option>
+                    <option value="newest"{% if reply_sort == "newest" %} selected{% endif %}>Newest first</option>
+                </select>
+            </form>
+        </div>
 
         <div class="answer-list">
             {% for reply in replies %}
             {% if reply.pk == editing_id %}
             <article class="answer-card" id="reply-{{ reply.pk }}">
-                <form method="post" action="{% url 'forum:reply_edit' reply.pk %}" novalidate>
+                <form method="post" action="{% url 'forum:reply_edit' reply.pk %}{{ sort_qs }}" novalidate>
                     {% csrf_token %}
                     <div class="forum-card-top">
                         <span class="forum-avatar forum-avatar-sm" aria-hidden="true">{% firstof reply.author.profile.initials reply.author.username|slice:":2"|upper %}</span>
@@ -105,7 +113,7 @@
                     {% endif %}
 
                     <div class="reply-edit-actions">
-                        <a class="outline-button" href="{% url 'forum:forum_detail' forum.pk %}#reply-{{ reply.pk }}">Cancel</a>
+                        <a class="outline-button" href="{% url 'forum:forum_detail' forum.pk %}{{ sort_qs }}#reply-{{ reply.pk }}">Cancel</a>
                         <button type="submit" class="pill-button">Save changes</button>
                     </div>
                 </form>

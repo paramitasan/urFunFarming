@@ -6,8 +6,8 @@
         </svg>
     </summary>
     <div class="forum-menu-list">
-        <a href="{% url 'forum:reply_edit' reply.pk %}#reply-{{ reply.pk }}">Edit</a>
-        <form method="post" action="{% url 'forum:reply_delete' reply.pk %}">
+        <a href="{% url 'forum:reply_edit' reply.pk %}{{ sort_qs }}#reply-{{ reply.pk }}">Edit</a>
+        <form method="post" action="{% url 'forum:reply_delete' reply.pk %}{{ sort_qs }}">
             {% csrf_token %}
             <button type="submit" class="forum-menu-delete">Delete</button>
         </form>
