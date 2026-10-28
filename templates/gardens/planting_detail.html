@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}{{ planting.crop }} · {{ garden.name }}{% endblock %}
+{% block content %}
+<section class="gardens-page" aria-labelledby="planting-heading">
+    <a class="gardens-back-link" href="{% url 'gardens:detail' garden.pk %}">Back to {{ garden.name }}</a>
+    <header class="gardens-page-heading">
+        <div>
+            <p class="gardens-eyebrow">PLANTING IN {{ garden.name|upper }}</p>
+            <h1 id="planting-heading">{{ planting.crop }}</h1>
+            <p><time datetime="{{ planting.planting_date|date:'Y-m-d' }}">Planted {{ planting.planting_date|date:'M j, Y' }}</time></p>
+        </div>
+        <div class="gardens-actions">
+            <button class="gardens-button gardens-button-outline" type="button" disabled>Edit plant journal</button>
+            <a class="gardens-button gardens-button-outline" href="{% url 'gardens:planting_edit' garden.pk planting.pk %}">Edit planting</a>
+            <a class="gardens-button gardens-button-danger" href="{% url 'gardens:planting_delete' garden.pk planting.pk %}">Delete planting</a>
+        </div>
+    </header>
+</section>
+{% endblock %}

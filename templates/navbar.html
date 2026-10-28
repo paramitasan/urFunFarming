@@ -10,14 +10,14 @@
             <ul class="nav-links">
                 {% if user.is_authenticated %}
                 <li><a href="{% url 'main:home' %}" data-label="Home"{% if page == 'home' %} aria-current="page"{% endif %}>Home</a></li>
-                {# TODO: point to forum:index and gardens:explore once those modules exist #}
+                {# TODO: point to forum:index once that module exists #}
                 <li><a href="{% url 'marketplace:index' %}" data-label="Market"{% if request.resolver_match.app_name == 'marketplace' %} aria-current="page"{% endif %}>Market</a></li>
                 <li><a href="#" data-label="Forum">Forum</a></li>
-                <li><a href="#" data-label="Explore gardens">Explore gardens</a></li>
+                <li><a href="{% url 'gardens:explore' %}" data-label="Explore gardens"{% if request.resolver_match.view_name == 'gardens:explore' %} aria-current="page"{% endif %}>Explore gardens</a></li>
                 {% else %}
                 <li><a href="{% url 'marketplace:index' %}" data-label="Market"{% if request.resolver_match.app_name == 'marketplace' %} aria-current="page"{% endif %}>Market</a></li>
                 <li><a href="{% url 'main:show_main' %}#forum" data-label="Forum">Forum</a></li>
-                <li><a href="{% url 'main:show_main' %}#gardens" data-label="Explore gardens">Explore gardens</a></li>
+                <li><a href="{% url 'gardens:explore' %}" data-label="Explore gardens"{% if request.resolver_match.view_name == 'gardens:explore' %} aria-current="page"{% endif %}>Explore gardens</a></li>
                 {% endif %}
             </ul>
 

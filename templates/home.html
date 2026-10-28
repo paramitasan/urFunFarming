@@ -33,7 +33,7 @@
 </section>
 
 <div class="container home-content">
-    {# TODO: tile links to gardens:mine, journal:index, care:index, gardens:explore and forum:index once those modules exist #}
+    {# TODO: journal:index, care:index and forum:index once those modules exist #}
     <div class="launchpads">
     {% if profile.is_grower %}
     <section class="launchpad">
@@ -42,7 +42,8 @@
             <p>Your gardens, journal and care plan.</p>
         </div>
         <div class="launch-row">
-            {% include 'partials/launch_tile.html' with tone='gardens' icon='svg/icons/gardens.svg' title='My gardens' text='Your gardens and what is planted in each one.' %}
+            {% url 'gardens:mine' as my_gardens_url %}
+            {% include 'partials/launch_tile.html' with tone='gardens' icon='svg/icons/gardens.svg' title='My gardens' text='Your gardens and what is planted in each one.' href=my_gardens_url %}
             {% include 'partials/launch_tile.html' with tone='journal' icon='svg/icons/journal.svg' title='Plant journal' text='Dated entries and photos for every planting.' %}
             {% include 'partials/launch_tile.html' with tone='care' icon='svg/icons/care.svg' title='Plant care' text='This week’s tasks, planned around the forecast.' %}
         </div>
@@ -56,8 +57,9 @@
         </div>
         <div class="launch-row">
             {% url 'marketplace:index' as market_url %}
+            {% url 'gardens:explore' as explore_gardens_url %}
             {% include 'partials/launch_tile.html' with tone='market' icon='svg/icons/market.svg' title='Market' text=market_text href=market_url %}
-            {% include 'partials/launch_tile.html' with tone='explore' icon='svg/icons/explore.svg' title='Explore gardens' text='See the public gardens behind the food.' %}
+            {% include 'partials/launch_tile.html' with tone='explore' icon='svg/icons/explore.svg' title='Explore gardens' text='See the public gardens behind the food.' href=explore_gardens_url %}
             {% include 'partials/launch_tile.html' with tone='forum' icon='svg/icons/forum.svg' title='Forum' text='Ask growers a question or share what worked.' %}
         </div>
     </section>
