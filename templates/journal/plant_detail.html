@@ -88,7 +88,7 @@
                         {% if entry.photos.all %}
                         <div class="entry-photos">
                             {% for photo in entry.photos.all %}
-                                <img src="{{ photo.url }}" alt="Photo {{ forloop.counter }} of {{ planting.name }} on {{ entry.date|date:'j M Y' }}" loading="lazy">
+                                <img src="{{ photo.src }}" alt="Photo {{ forloop.counter }} of {{ planting.name }} on {{ entry.date|date:'j M Y' }}" loading="lazy">
                             {% endfor %}
                         </div>
                         {% endif %}
