@@ -5,6 +5,8 @@ from gardens import views
 app_name = 'gardens'
 
 urlpatterns = [
+    path('explore/', views.explore, name='explore'),
+    path('explore/<int:pk>/', views.public_detail, name='public_detail'),
     path('mine/', views.my_gardens, name='mine'),
     path('new/', views.create, name='create'),
     path('<int:garden_pk>/plantings/new/', views.planting_create, name='planting_create'),

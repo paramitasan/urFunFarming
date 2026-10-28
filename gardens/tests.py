@@ -298,3 +298,106 @@ class PlantingOwnerViewTests(TestCase):
         for url in (self.create_url, self.detail_url, self.edit_url, self.delete_url):
             with self.subTest(url=url):
                 self.assertEqual(self.client.get(url).status_code, 403)
+
+
+class GardenDiscoveryViewTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.owner = User.objects.create_user(username='public_grower', password='test-password')
+        cls.other_owner = User.objects.create_user(username='another_public_grower', password='test-password')
+        cls.inactive_owner = User.objects.create_user(username='inactive_grower', password='test-password', is_active=False)
+        Profile.objects.create(user=cls.owner, display_name='Public Grower', is_grower=True)
+        Profile.objects.create(user=cls.other_owner, display_name='Another Public Grower', is_grower=True)
+        Profile.objects.create(user=cls.inactive_owner, display_name='Inactive Grower', is_grower=True)
+        cls.public_garden = Garden.objects.create(
+            owner=cls.owner,
+            name='Sunny Balcony',
+            location='Depok',
+            growing_method='Container pots',
+            public_summary='Herbs and vegetables in the morning sun.',
+            private_notes='Never show these private notes.',
+            is_public=True,
+        )
+        cls.private_garden = Garden.objects.create(
+            owner=cls.owner,
+            name='Hidden Garden',
+            location='Jakarta',
+            growing_method='Raised beds',
+            public_summary='Private summary that must not appear.',
+            private_notes='Hidden private notes.',
+        )
+        cls.other_public_garden = Garden.objects.create(
+            owner=cls.other_owner,
+            name='Community Rooftop',
+            location='Jakarta',
+            growing_method='Raised beds',
+            is_public=True,
+        )
+        cls.inactive_garden = Garden.objects.create(
+            owner=cls.inactive_owner,
+            name='Inactive Grower Garden',
+            location='Bogor',
+            growing_method='Hydroponics',
+            is_public=True,
+        )
+        Planting.objects.create(garden=cls.public_garden, crop='Basil', planting_date=date(2026, 9, 20))
+        Planting.objects.create(garden=cls.public_garden, crop='Tomatoes', planting_date=date(2026, 10, 1))
+        Planting.objects.create(garden=cls.private_garden, crop='Private crop', planting_date=date(2026, 10, 2))
+
+    def test_explore_shows_only_public_gardens_from_active_growers(self):
+        response = self.client.get(reverse('gardens:explore'))
+
+        self.assertContains(response, 'Sunny Balcony')
+        self.assertContains(response, 'Public Grower')
+        self.assertContains(response, '2 plantings')
+        self.assertNotContains(response, 'Hidden Garden')
+        self.assertNotContains(response, 'Inactive Grower Garden')
+        self.assertNotContains(response, 'Never show these private notes.')
+
+    def test_signed_in_grower_does_not_see_their_own_garden_in_explore(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse('gardens:explore'))
+
+        self.assertNotContains(response, 'Sunny Balcony')
+        self.assertContains(response, 'Community Rooftop')
+
+    def test_explore_search_matches_garden_crop_and_filters_by_method(self):
+        url = reverse('gardens:explore')
+
+        by_crop = self.client.get(url, {'q': 'basil'})
+        by_method = self.client.get(url, {'method': 'Container pots'})
+        no_match = self.client.get(url, {'q': 'unlisted crop'})
+
+        self.assertEqual(by_crop.context['garden_count'], 1)
+        self.assertContains(by_crop, 'Sunny Balcony')
+        self.assertEqual(by_method.context['garden_count'], 1)
+        self.assertEqual(no_match.context['garden_count'], 0)
+        self.assertContains(no_match, 'No gardens found')
+
+    def test_public_detail_projects_only_approved_fields(self):
+        url = reverse('gardens:public_detail', args=[self.public_garden.pk])
+
+        response = self.client.get(url)
+
+        self.assertContains(response, 'Herbs and vegetables in the morning sun.')
+        self.assertContains(response, 'Public Grower')
+        self.assertContains(response, 'Basil')
+        self.assertContains(response, 'Tomatoes')
+        self.assertNotContains(response, 'Never show these private notes.')
+        self.assertNotContains(response, 'Hidden private notes.')
+        self.assertNotIn('private_notes', response.context['garden'])
+
+    def test_private_and_inactive_gardens_have_no_public_detail(self):
+        private_url = reverse('gardens:public_detail', args=[self.private_garden.pk])
+        inactive_url = reverse('gardens:public_detail', args=[self.inactive_garden.pk])
+
+        self.assertEqual(self.client.get(private_url).status_code, 404)
+        self.assertEqual(self.client.get(inactive_url).status_code, 404)
+
+    def test_invalid_search_is_handled_without_server_error(self):
+        response = self.client.get(reverse('gardens:explore'), {'q': 'x' * 101})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['garden_count'], 0)
+        self.assertTrue(response.context['filter_form'].errors)

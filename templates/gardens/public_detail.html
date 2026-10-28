@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}{{ garden.name }} · Explore gardens{% endblock %}
+{% block content %}
+<section class="gardens-page" aria-labelledby="public-garden-heading">
+    <a class="gardens-back-link" href="{% url 'gardens:explore' %}">Back to explore gardens</a>
+    <header class="gardens-page-heading">
+        <div>
+            <p class="gardens-eyebrow">PUBLIC GARDEN</p>
+            <h1 id="public-garden-heading">{{ garden.name }}</h1>
+            <p>{{ garden.location }} · {{ garden.growing_method }}</p>
+            <p>Grown by {{ garden.owner__profile__display_name|default:garden.owner__username }}</p>
+        </div>
+    </header>
+
+    {% if garden.public_summary %}
+        <section class="garden-section" aria-labelledby="public-summary-heading">
+            <h2 id="public-summary-heading">About this garden</h2>
+            <p>{{ garden.public_summary|linebreaksbr }}</p>
+        </section>
+    {% endif %}
+
+    <section class="garden-section" aria-labelledby="public-plantings-heading">
+        <p class="gardens-eyebrow">GROWING HERE</p>
+        <h2 id="public-plantings-heading">Plantings</h2>
+        {% if plantings %}
+            <ul class="planting-list">
+                {% for planting in plantings %}
+                    <li><span>{{ planting.crop }}</span><time datetime="{{ planting.planting_date|date:'Y-m-d' }}">Planted {{ planting.planting_date|date:'M j, Y' }}</time></li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No public plantings have been recorded for this garden.</p>
+        {% endif %}
+    </section>
+</section>
+{% endblock %}

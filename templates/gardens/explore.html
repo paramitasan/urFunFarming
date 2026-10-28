@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Explore gardens · UrFunFarming{% endblock %}
+{% block content %}
+<section class="gardens-page" aria-labelledby="explore-heading">
+    <header class="gardens-page-heading">
+        <div>
+            <p class="gardens-eyebrow">GROWN AROUND YOU</p>
+            <h1 id="explore-heading">Explore gardens</h1>
+            <p>Meet local growers and see what they are growing.</p>
+        </div>
+    </header>
+
+    <form class="garden-explore-filters" method="get" action="{% url 'gardens:explore' %}">
+        <div class="garden-form-field">
+            <label for="garden-search">{{ filter_form.q.label }}</label>
+            <input class="garden-field" id="garden-search" type="search" name="q" value="{{ filter_form.q.value|default_if_none:'' }}" maxlength="100" placeholder="Search gardens, crops, or areas">
+        </div>
+        <div class="garden-form-field">
+            <label for="garden-method">{{ filter_form.method.label }}</label>
+            <select class="garden-field" id="garden-method" name="method">
+                <option value="">All growing methods</option>
+                {% for method in methods %}
+                    <option value="{{ method }}"{% if filter_form.method.value == method %} selected{% endif %}>{{ method }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button class="gardens-button gardens-button-primary" type="submit">Search</button>
+        {% if request.GET %}<a class="gardens-text-link" href="{% url 'gardens:explore' %}">Clear filters</a>{% endif %}
+    </form>
+
+    <p class="garden-results-count" role="status">{{ garden_count }} public garden{{ garden_count|pluralize }}</p>
+    {% if gardens %}
+        <div class="gardens-list">
+            {% for garden in gardens %}
+                <article class="garden-item">
+                    <div class="garden-item-content">
+                        <p class="gardens-eyebrow">{{ garden.location }} · {{ garden.growing_method }}</p>
+                        <h2><a href="{% url 'gardens:public_detail' garden.id %}">{{ garden.name }}</a></h2>
+                        <p>Grown by {{ garden.owner__profile__display_name|default:garden.owner__username }}</p>
+                        {% if garden.public_summary %}<p>{{ garden.public_summary|truncatewords:28 }}</p>{% endif %}
+                        <p>{{ garden.planting_count }} planting{{ garden.planting_count|pluralize }}</p>
+                    </div>
+                    <a class="gardens-text-link" href="{% url 'gardens:public_detail' garden.id %}">View garden</a>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <section class="gardens-empty-state" aria-labelledby="explore-empty-heading">
+            <h2 id="explore-empty-heading">No gardens found</h2>
+            <p>{% if filter_form.is_bound %}Try a different search or clear the filters.{% else %}There are no public gardens to show yet.{% endif %}</p>
+            {% if filter_form.is_bound %}<a class="gardens-button gardens-button-outline" href="{% url 'gardens:explore' %}">Clear filters</a>{% endif %}
+        </section>
+    {% endif %}
+</section>
+{% endblock %}

@@ -3,6 +3,17 @@ from django import forms
 from gardens.models import Garden, Planting
 
 
+class GardenExploreFilterForm(forms.Form):
+    q = forms.CharField(
+        required=False,
+        max_length=100,
+        strip=True,
+        label='Search gardens',
+        widget=forms.SearchInput(attrs={'class': 'garden-field', 'placeholder': 'Search gardens, crops, or areas'}),
+    )
+    method = forms.CharField(required=False, max_length=80, strip=True, label='Growing method')
+
+
 class GardenForm(forms.ModelForm):
     class Meta:
         model = Garden
