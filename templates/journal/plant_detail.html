@@ -43,9 +43,10 @@
         <section class="timeline">
             <div class="section-heading">
                 <h2>Timeline</h2>
-                <span>Newest first</span>
+                {% if entries %}<span>Newest first</span>{% endif %}
             </div>
 
+            {% if entries %}
             <ol>
                 {% for entry in entries %}
                 <li class="timeline-entry">
@@ -91,10 +92,24 @@
                         {% endif %}
                     </article>
                 </li>
-                {% empty %}
-                <li><p>No entries yet.</p></li>
                 {% endfor %}
             </ol>
+            {% else %}
+            <div class="empty-card">
+                <span class="empty-icon">
+                    <img src="{% static 'journal/icons/sprout.svg' %}" alt="" width="26" height="26">
+                </span>
+                <h3>No entries yet</h3>
+                <p>Log the first entry for {{ planting.name }} to start its timeline.</p>
+                {% if is_owner %}
+                    {# TODO: link to journal:create_entry in step 3 #}
+                    <a class="pill-button" href="#">
+                        <img src="{% static 'journal/icons/plus.svg' %}" alt="" width="18" height="18">
+                        New Entry
+                    </a>
+                {% endif %}
+            </div>
+            {% endif %}
         </section>
         
         <aside class="journal-sidebar">
