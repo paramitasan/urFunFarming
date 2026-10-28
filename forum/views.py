@@ -1,8 +1,9 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Count
 from django.contrib.auth.decorators import login_required
 
 from .models import Forum
+from .forms import ForumForm
 
 def forum_list(request):
     forums = (
@@ -41,3 +42,18 @@ def forum_detail(request, pk):
         "replies": replies,
     }
     return render(request, "forum/forum_detail.html", context)
+
+@login_required
+def forum_create(request):
+    if request.method == "POST":
+        # request.FILES carries the uploaded image
+        form = ForumForm(request.POST, request.FILES)
+        if form.is_valid():
+            forum = form.save(commit=False)
+            forum.author = request.user
+            forum.save()
+            return redirect("forum:forum_detail", pk=forum.pk)
+    else:
+        form = ForumForm()
+
+    return render(request, "forum/forum_form.html", {"form": form})

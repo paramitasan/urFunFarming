@@ -18,7 +18,12 @@
             <p class="forum-sub">Ask growers a question, or share what worked for you.</p>
         </div>
         {# TODO: replace the "#" with the forum:add url once the create view exists #}
-        <a class="pill-button" href="{% if user.is_authenticated %}#{% else %}{% url 'accounts:login' %}?next={{ request.path }}{% endif %}">
+        <a class="pill-button"
+           href="{% if user.is_authenticated %}
+                   {% url 'forum:forum_create' %}
+                 {% else %}
+                   {% url 'accounts:login' %}?next={{ request.path }}
+                 {% endif %}">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                 <path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
             </svg>
@@ -102,7 +107,12 @@
                     </span>
                     <h3>No discussions yet</h3>
                     <p>Start a forum and initiate discussions.</p>
-                    <a class="pill-button" href="{% if user.is_authenticated %}#{% else %}{% url 'accounts:login' %}?next={{ request.path }}{% endif %}">
+                    <a class="pill-button"
+                       href="{% if user.is_authenticated %}
+                               {% url 'forum:forum_create' %}
+                             {% else %}
+                               {% url 'accounts:login' %}?next={{ request.path }}
+                             {% endif %}">
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                             <path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
                         </svg>

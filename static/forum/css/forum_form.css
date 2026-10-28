@@ -1,0 +1,297 @@
+/* New post / Edit post form. */
+
+.forum-form-page {
+    --color-error: #B5452F;
+    /* Clears the fixed navbar, same as the other forum pages */
+    padding-top: 132px;
+    padding-bottom: 96px;
+}
+
+.forum-form-card {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 36px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-band);
+    border-radius: 24px;
+    box-shadow: 0 16px 40px rgba(18, 81, 51, 0.08);
+}
+
+.forum-form-heading h1 {
+    font-size: 26px;
+    font-weight: 700;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.forum-form-heading p {
+    margin-top: 6px;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--color-deep);
+}
+
+/* Fields */
+
+.ff-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.ff-field > label,
+.ff-label {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.ff-field input[type="text"],
+.ff-field select {
+    width: 100%;
+    height: 52px;
+    padding: 0 18px;
+    background-color: #FFFFFF;
+    border: 1.5px solid var(--color-field);
+    border-radius: 14px;
+    font-family: inherit;
+    font-size: 16px;
+    color: var(--color-forest);
+}
+
+.ff-field input::placeholder,
+.ff-field textarea::placeholder {
+    color: var(--color-sage);
+}
+
+.ff-field select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 44px;
+    background-image: url('../../img/chevron-down.svg');
+    background-repeat: no-repeat;
+    background-position: right 18px center;
+    background-size: 14px;
+    cursor: pointer;
+}
+
+/* "Select the topic..." looks like a placeholder until a topic is picked */
+.ff-field select:has(option[value=""]:checked) {
+    color: var(--color-sage);
+}
+
+.ff-field select option {
+    color: var(--color-forest);
+}
+
+/* Description box with the counter inside it */
+
+.ff-textarea {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 132px;
+    padding: 14px 18px;
+    background-color: #FFFFFF;
+    border: 1.5px solid var(--color-field);
+    border-radius: 14px;
+}
+
+.ff-textarea textarea {
+    flex: 1;
+    width: 100%;
+    min-height: 84px;
+    padding: 0;
+    background: none;
+    border: none;
+    outline: none;
+    resize: vertical;
+    font-family: inherit;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--color-forest);
+}
+
+.ff-counter {
+    font-size: 13px;
+    line-height: normal;
+    text-align: right;
+    color: var(--color-sage);
+}
+
+.ff-field input[type="text"]:focus,
+.ff-field select:focus,
+.ff-textarea:focus-within {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(33, 195, 126, 0.2);
+}
+
+/* Image picker */
+
+.ff-dropzone {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 160px;
+    padding: 24px;
+    border: 1.5px dashed var(--color-sage);
+    border-radius: 14px;
+    text-align: center;
+    color: var(--color-accent);
+    cursor: pointer;
+}
+
+.ff-dropzone[hidden],
+.ff-file[hidden] {
+    display: none;
+}
+
+.ff-dropzone:hover,
+.ff-dropzone.is-dragging {
+    background-color: var(--color-band);
+    border-color: var(--color-accent);
+}
+
+/* The real file input covers the box, so clicking or dropping anywhere on it works */
+.ff-file-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.ff-dropzone:has(.ff-file-input:focus-visible) {
+    outline: 2px solid var(--color-forest);
+    outline-offset: 2px;
+}
+
+.ff-dropzone-button {
+    padding: 9px 20px;
+    border: 1.5px solid var(--color-forest);
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.ff-dropzone-hint {
+    font-size: 13px;
+    line-height: normal;
+    color: var(--color-deep);
+}
+
+/* Shown after a file is picked */
+
+.ff-file {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    background-color: #FFFFFF;
+    border: 1.5px solid var(--color-field);
+    border-radius: 14px;
+}
+
+.ff-file-thumb {
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.ff-file-info {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.4;
+}
+
+.ff-file-name {
+    overflow: hidden;
+    font-size: 15px;
+    font-weight: 500;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--color-forest);
+}
+
+.ff-file-size {
+    font-size: 13px;
+    color: var(--color-deep);
+}
+
+.ff-file-remove {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    background: none;
+    border: none;
+    border-radius: 50%;
+    font-size: 22px;
+    line-height: 1;
+    color: var(--color-deep);
+    cursor: pointer;
+}
+
+.ff-file-remove:hover {
+    background-color: var(--color-band);
+    color: var(--color-forest);
+}
+
+.ff-file-remove:focus-visible {
+    outline: 2px solid var(--color-forest);
+    outline-offset: 2px;
+}
+
+/* Error state, from the design */
+
+.has-error input[type="text"],
+.has-error select,
+.has-error .ff-textarea,
+.has-error .ff-dropzone {
+    border: 2px solid var(--color-error);
+}
+
+.ff-error {
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--color-error);
+}
+
+/* Buttons */
+
+.ff-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+@media (max-width: 639px) {
+    .forum-form-page {
+        padding-top: 104px;
+    }
+
+    .forum-form-card {
+        padding: 24px 20px;
+    }
+
+    .ff-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+}
