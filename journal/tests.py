@@ -275,3 +275,119 @@ class EntryFormTest(JournalTestCase):
         form.kept_photos = 4
         self.assertFalse(form.is_valid())
         self.assertIn('photos', form.errors)
+
+
+class CreateEntryTest(JournalTestCase):
+    new_url = reverse('journal:create_entry')
+
+    def plant_url(self, planting):
+        return reverse('journal:create_plant_entry', args=[planting.pk])
+
+    def toasts(self, response):
+        return [str(message) for message in response.context['messages']]
+
+    def test_visitor_is_sent_to_login(self):
+        response = self.client.get(self.new_url)
+        self.assertRedirects(response, '/login?next=/journal/new/', fetch_redirect_response=False)
+
+    def test_buyer_sees_the_growers_only_page(self):
+        self.client.force_login(self.buyer)
+        response = self.client.get(self.new_url)
+        self.assertEqual(response.status_code, 403)
+        self.assertTemplateUsed(response, 'journal/grower_required.html')
+
+    def test_new_entry_page_has_plant_and_visibility(self):
+        self.client.force_login(self.grower)
+        response = self.client.get(self.new_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('planting', response.context['form'].fields)
+        self.assertIn('visibility', response.context['form'].fields)
+        self.assertContains(response, 'Back to journal')
+
+    def test_saving_an_entry_with_photos_and_visibility(self):
+        self.client.force_login(self.grower)
+        data = self.entry_data(
+            planting=self.chili.pk, visibility='public',
+            photos=[make_image('leaf.png')], photo_1='https://example.com/chili.jpg',
+        )
+        response = self.client.post(self.new_url, data, follow=True)
+        self.assertRedirects(response, reverse('journal:plant_detail', args=[self.chili.pk]))
+        self.assertIn('Entry saved', self.toasts(response))
+
+        entry = self.chili.journal_entries.get()
+        self.assertEqual(entry.height_cm, 95)
+        self.assertEqual(entry.photos.count(), 2)
+        self.assertEqual(entry.photos.filter(url='https://example.com/chili.jpg').count(), 1)
+        # The chili had no journal yet, so saving made one with the chosen visibility
+        self.assertTrue(PlantJournal.objects.get(planting=self.chili).is_public)
+
+    def test_private_choice_makes_the_journal_private(self):
+        self.journal.is_public = True
+        self.journal.save()
+        self.client.force_login(self.grower)
+        self.client.post(self.new_url, self.entry_data(planting=self.tomato.pk, visibility='private'))
+        self.journal.refresh_from_db()
+        self.assertFalse(self.journal.is_public)
+
+    def test_plant_version_starts_on_the_current_stage(self):
+        self.client.force_login(self.grower)
+        response = self.client.get(self.plant_url(self.tomato))
+        form = response.context['form']
+        self.assertNotIn('planting', form.fields)
+        self.assertNotIn('visibility', form.fields)
+        self.assertEqual(form.initial['stage'], 'fruiting')
+        self.assertEqual(response.context['latest'], self.latest)
+        self.assertContains(response, 'New Entry for Cherry Tomato')
+        self.assertContains(response, 'Last time: 92 cm')
+
+    def test_plant_version_saves_without_changing_visibility(self):
+        self.journal.is_public = True
+        self.journal.save()
+        self.client.force_login(self.grower)
+        response = self.client.post(self.plant_url(self.tomato), self.entry_data())
+        self.assertRedirects(response, reverse('journal:plant_detail', args=[self.tomato.pk]))
+        self.assertEqual(self.tomato.journal_entries.count(), 4)
+        self.journal.refresh_from_db()
+        self.assertTrue(self.journal.is_public)
+
+    def test_plant_without_entries_says_so(self):
+        self.client.force_login(self.grower)
+        response = self.client.get(self.plant_url(self.chili))
+        self.assertIsNone(response.context['latest'])
+        self.assertContains(response, 'No entries yet')
+
+    def test_someone_elses_plant_gives_403(self):
+        self.client.force_login(self.other_grower)
+        response = self.client.post(self.plant_url(self.tomato), self.entry_data())
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(self.tomato.journal_entries.count(), 3)
+
+    def test_missing_plant_gives_404(self):
+        self.client.force_login(self.grower)
+        response = self.client.get(reverse('journal:create_plant_entry', args=[999]))
+        self.assertEqual(response.status_code, 404)
+
+    def test_empty_form_shows_the_required_banner(self):
+        self.client.force_login(self.grower)
+        response = self.client.post(self.new_url, {'visibility': 'private'})
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['missing_required'])
+        self.assertContains(response, 'Some required fields are empty. Fill them in to save this entry.')
+        self.assertEqual(JournalEntry.objects.count(), 3)
+
+    def test_other_errors_show_the_fixing_banner(self):
+        self.client.force_login(self.grower)
+        data = self.entry_data(planting=self.tomato.pk, visibility='private', height_cm=-5)
+        response = self.client.post(self.new_url, data)
+        self.assertFalse(response.context['missing_required'])
+        self.assertContains(response, 'Some fields need fixing.')
+
+    def test_bad_upload_shows_the_toast(self):
+        self.client.force_login(self.grower)
+        data = self.entry_data(
+            planting=self.tomato.pk, visibility='private',
+            photos=[SimpleUploadedFile('plant.jpg', b'not an image')],
+        )
+        response = self.client.post(self.new_url, data)
+        self.assertIn("Couldn't upload your photo", self.toasts(response))
+        self.assertEqual(JournalEntry.objects.count(), 3)
