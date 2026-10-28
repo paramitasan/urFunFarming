@@ -33,7 +33,16 @@
 
     <form class="form-card" method="post" enctype="multipart/form-data" novalidate>
         {% csrf_token %}
-
+        {% if form.errors %}
+        <div class="form-error-banner" role="alert">
+            <img src="{% static 'journal/icons/alert.svg' %}" alt="" width="18" height="18">
+            {% if missing_required %}
+                Some required fields are empty. Fill them in to save this entry.
+            {% else %}
+                Some fields need fixing. Check the messages below to save this entry.
+            {% endif %}
+        </div>
+        {% endif %}
         {% if planting %}
         <div class="plant-summary">
             <span class="plant-summary-icon">
@@ -55,7 +64,7 @@
             <div class="field">
                 <label class="field-label" for="{{ form.planting.id_for_label }}">{{ form.planting.label }}</label>
                 {{ form.planting }}
-                {{ form.planting.errors }}
+                {% include 'journal/field_errors.html' with field=form.planting %}
                 {# TODO: link to the gardens app once it is merged #}
                 <p class="field-hint">Don't see your plant? <a href="#">Add it in My gardens</a></p>
             </div>
@@ -64,13 +73,13 @@
             <div class="field">
                 <label class="field-label" for="{{ form.date.id_for_label }}">{{ form.date.label }}</label>
                 {{ form.date }}
-                {{ form.date.errors }}
+                {% include 'journal/field_errors.html' with field=form.date %}
             </div>
 
             <div class="field">
                 <label class="field-label" for="{{ form.time.id_for_label }}">{{ form.time.label }}</label>
                 {{ form.time }}
-                {{ form.time.errors }}
+                {% include 'journal/field_errors.html' with field=form.time %}
             </div>
 
             <div class="field">
@@ -79,7 +88,7 @@
                     {{ form.height_cm }}
                     <span>cm</span>
                 </div>
-                {{ form.height_cm.errors }}
+                {% include 'journal/field_errors.html' with field=form.height_cm %}
                 {% if latest %}<p class="field-hint">Last time: {{ latest.height_cm }} cm</p>{% endif %}
             </div>
         </div>
@@ -139,7 +148,7 @@
         <div class="field">
             <label class="field-label" for="{{ form.observation.id_for_label }}">{{ form.observation.label }}</label>
             {{ form.observation }}
-            {{ form.observation.errors }}
+            {% include 'journal/field_errors.html' with field=form.observation %}
             <p class="field-hint">Also write down anything you did today, like watering, pruning or adding fertilizer.</p>
         </div>
 
@@ -156,8 +165,11 @@
                 <label class="small-button" for="{{ form.photos.id_for_label }}">Choose files</label>
                 <p class="dropzone-hint">Up to 5 photos. JPG, PNG or WEBP, up to 5 MB each. A photo from the same angle each time makes growth easier to compare.</p>
             </div>
-            {{ form.photos.errors }}
-            <p class="field-error" data-upload-error hidden>Use a JPG, PNG or WEBP under 5 MB.</p>
+            {% include 'journal/field_errors.html' with field=form.photos %}
+            <p class="field-error" data-upload-error hidden>
+                <img src="{% static 'journal/icons/alert-small.svg' %}" alt="" width="16" height="16">
+                Use a JPG, PNG or WEBP under 5 MB.
+            </p>
             <p class="field-hint" data-photo-full hidden>You've added 5 photos, the most for one entry.</p>
 
             <div class="photo-link">
@@ -169,7 +181,10 @@
                         Add link
                     </button>
                 </div>
-                <p class="field-error" id="photo-link-error" data-link-error hidden>Couldn't load this image. Try a different link (Google Drive links usually don't work).</p>
+                <p class="field-error" id="photo-link-error" data-link-error hidden>
+                    <img src="{% static 'journal/icons/alert-small.svg' %}" alt="" width="16" height="16">
+                    Couldn't load this image. Try a different link (Google Drive links usually don't work).
+                </p>
                 <p class="field-hint" id="photo-link-hint">Paste a link to an image. If it doesn't show up, try a different link. Google Drive links usually don't work.</p>
             </div>
 
@@ -178,11 +193,11 @@
             {{ form.photo_3 }}
             {{ form.photo_4 }}
             {{ form.photo_5 }}
-            {{ form.photo_1.errors }}
-            {{ form.photo_2.errors }}
-            {{ form.photo_3.errors }}
-            {{ form.photo_4.errors }}
-            {{ form.photo_5.errors }}
+            {% include 'journal/field_errors.html' with field=form.photo_1 %}
+            {% include 'journal/field_errors.html' with field=form.photo_2 %}
+            {% include 'journal/field_errors.html' with field=form.photo_3 %}
+            {% include 'journal/field_errors.html' with field=form.photo_4 %}
+            {% include 'journal/field_errors.html' with field=form.photo_5 %}
         </div>
 
         <div class="form-footer">

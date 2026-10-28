@@ -105,6 +105,13 @@ def create_entry(request, planting_id=None):
         messages.success(request, 'Entry saved')
         return redirect('journal:plant_detail', planting_id=entry.planting.pk)
 
+    # The banner says "required fields are empty" only when that is really the problem
+    missing_required = any(
+        error.code == 'required'
+        for errors in form.errors.as_data().values()
+        for error in errors
+    )
+
     # Bad upload: show the "Couldn't upload your photo" toast as well as the field error
     if PHOTO_ERROR in form.errors.get('photos', []):
         messages.error(request, "Couldn't upload your photo")
@@ -113,5 +120,6 @@ def create_entry(request, planting_id=None):
         'form': form,
         'planting': planting,
         'latest': latest,
+        'missing_required': missing_required,
     }
     return render(request, 'journal/entry_form.html', context)
