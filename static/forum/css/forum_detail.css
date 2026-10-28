@@ -220,6 +220,75 @@
     background-color: var(--color-accent);
 }
 
+/* Answer "..." menu sits at the right edge (the post card gets this from its chip) */
+.answer-card .forum-menu {
+    margin-left: auto;
+}
+
+/* Edit answer */
+
+.reply-edit-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 14px 18px;
+    background-color: #FFFFFF;
+    border: 1.5px solid var(--color-field);
+    border-radius: 14px;
+}
+
+.reply-edit-field textarea {
+    width: 100%;
+    min-height: 84px;
+    padding: 0;
+    background: none;
+    border: none;
+    outline: none;
+    resize: vertical;
+    font-family: inherit;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--color-forest);
+}
+
+.reply-edit-field textarea::placeholder {
+    color: var(--color-sage);
+}
+
+.reply-counter {
+    font-size: 13px;
+    line-height: normal;
+    text-align: right;
+    color: var(--color-sage);
+}
+
+.reply-edit-field:focus-within {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(33, 195, 126, 0.2);
+}
+
+.reply-edit-field.has-error {
+    border: 2px solid #B5452F;
+}
+
+.reply-error {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.reply-error svg {
+    flex-shrink: 0;
+}
+
+.reply-edit-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 16px;
+}
+
 @media (max-width: 639px) {
     .forum-post {
         padding: 20px;
@@ -235,5 +304,10 @@
 
     .reply-box {
         padding: 16px;
+    }
+
+    .reply-edit-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
     }
 }

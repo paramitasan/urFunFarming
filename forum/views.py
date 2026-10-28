@@ -32,21 +32,6 @@ def forum_list(request):
     }
     return render(request, "forum/forum_list.html", context)
 
-# Visitors only see titles on the list page, viewing full discussion requires login.
-@login_required
-def forum_detail(request, pk):
-    forum = get_object_or_404(
-        Forum.objects.select_related("author__profile"),
-        pk=pk,
-    )
-    replies = forum.replies.select_related("author__profile")
-
-    context = {
-        "forum": forum,
-        "replies": replies,
-    }
-    return render(request, "forum/forum_detail.html", context)
-
 @login_required
 def forum_create(request):
     if request.method == "POST":
@@ -108,14 +93,6 @@ def forum_delete(request, pk):
 
     return redirect(_safe_next(request, reverse("forum:forum_list")))
 
-def _render_detail(request, forum, reply_form):
-    context = {
-        "forum": forum,
-        "replies": forum.replies.select_related("author__profile"),
-        "reply_form": reply_form,
-    }
-    return render(request, "forum/forum_detail.html", context)
-
 # Visitors only see titles on the list page, viewing full discussion requires login.
 @login_required
 def forum_detail(request, pk):
@@ -134,3 +111,46 @@ def reply_create(request, pk):
         reply.save()
         return redirect(f"{reverse('forum:forum_detail', args=[pk])}#reply-{reply.pk}")
     return _render_detail(request, forum, form)   # shows the error under the box
+
+def _render_detail(request, forum, reply_form, editing=None, edit_form=None):
+    context = {
+        "forum": forum,
+        "replies": forum.replies.select_related("author__profile"),
+        "reply_form": reply_form,
+        "editing_id": editing.pk if editing else None,
+        "edit_form": edit_form,
+    }
+    return render(request, "forum/forum_detail.html", context)
+
+def _get_own_reply(request, pk):
+    # returns reply or a 403 if the current user is not author
+    reply = get_object_or_404(
+        Reply.objects.select_related("forum__author__profile"), pk=pk
+    )
+    if reply.author != request.user:
+        raise PermissionDenied
+    return reply
+
+@login_required
+def reply_edit(request, pk):
+    reply = _get_own_reply(request, pk)
+    forum = reply.forum
+
+    # auto_id keeps this textarea's id different from the "Your answer" box
+    if request.method == "POST":
+        form = ReplyForm(request.POST, instance=reply, auto_id="id_edit_%s")
+        if form.is_valid():
+            form.save()
+            return redirect(f"{reverse('forum:forum_detail', args=[forum.pk])}#reply-{reply.pk}")
+    else:
+        form = ReplyForm(instance=reply, auto_id="id_edit_%s")
+
+    return _render_detail(request, forum, ReplyForm(), editing=reply, edit_form=form)
+
+@login_required
+@require_POST
+def reply_delete(request, pk):
+    reply = _get_own_reply(request, pk)
+    forum_pk = reply.forum_id
+    reply.delete()
+    return redirect(f"{reverse('forum:forum_detail', args=[forum_pk])}#answers-heading")

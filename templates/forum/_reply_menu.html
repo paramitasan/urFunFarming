@@ -1,0 +1,15 @@
+{# "..." menu for reply, only for author #}
+<details class="forum-menu">
+    <summary class="forum-menu-button" aria-label="Answer actions">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <circle cx="4" cy="10" r="1.6"/><circle cx="10" cy="10" r="1.6"/><circle cx="16" cy="10" r="1.6"/>
+        </svg>
+    </summary>
+    <div class="forum-menu-list">
+        <a href="{% url 'forum:reply_edit' reply.pk %}#reply-{{ reply.pk }}">Edit</a>
+        <form method="post" action="{% url 'forum:reply_delete' reply.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="forum-menu-delete">Delete</button>
+        </form>
+    </div>
+</details>

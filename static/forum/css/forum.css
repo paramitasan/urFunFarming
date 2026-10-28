@@ -470,6 +470,10 @@
     color: #B5452F;
 }
 
+.forum-menu-list .forum-menu-delete:hover {
+    background-color: #F8E3DE;
+}
+
 /* Tablets and phones: one column, filters before the results */
 
 @media (max-width: 1023px) {

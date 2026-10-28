@@ -33,3 +33,24 @@ document.querySelectorAll("[data-reply-form]").forEach((form) => {
     textarea.addEventListener("input", sync);
     sync();
 });
+
+// Edit answer: live "0 / 3000" counter.
+document.querySelectorAll("[data-char-counter]").forEach((box) => {
+    const textarea = box.querySelector("textarea");
+    const counter = box.querySelector(".reply-counter");
+    if (!textarea || !counter) return;
+
+    const update = () => {
+        counter.textContent = `${textarea.value.length} / ${textarea.maxLength}`;
+    };
+    textarea.addEventListener("input", update);
+    update();
+});
+
+// Edit answer: focus the box with the caret at the end of the text.
+const editingBox = document.querySelector(".answer-card textarea");
+if (editingBox && editingBox.closest(".reply-edit-field")) {
+    editingBox.focus();
+    const end = editingBox.value.length;
+    editingBox.setSelectionRange(end, end);
+}

@@ -79,6 +79,40 @@
 
         <div class="answer-list">
             {% for reply in replies %}
+            {% if reply.pk == editing_id %}
+            <article class="answer-card" id="reply-{{ reply.pk }}">
+                <form method="post" action="{% url 'forum:reply_edit' reply.pk %}" novalidate>
+                    {% csrf_token %}
+                    <div class="forum-card-top">
+                        <span class="forum-avatar forum-avatar-sm" aria-hidden="true">{% firstof reply.author.profile.initials reply.author.username|slice:":2"|upper %}</span>
+                        <div class="forum-author">
+                            <span class="forum-author-name">{% firstof reply.author.profile.display_name reply.author.username %}</span>
+                            <time datetime="{{ reply.created_at|date:'c' }}">{{ reply.created_at|timesince }} ago</time>
+                        </div>
+                        <span class="forum-chip">Editing</span>
+                    </div>
+
+                    <div class="reply-edit-field{% if edit_form.body.errors %} has-error{% endif %}" data-char-counter>
+                        {{ edit_form.body }}
+                        <span class="reply-counter">0 / 3000</span>
+                    </div>
+                    {% if edit_form.body.errors %}
+                    <p class="reply-error">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                            <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.4"/>
+                            <path d="M8 4.5v4M8 11v.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                        </svg>
+                        {{ edit_form.body.errors.0 }}
+                    </p>
+                    {% endif %}
+
+                    <div class="reply-edit-actions">
+                        <a class="outline-button" href="{% url 'forum:forum_detail' forum.pk %}#reply-{{ reply.pk }}">Cancel</a>
+                        <button type="submit" class="pill-button">Save changes</button>
+                    </div>
+                </form>
+            </article>
+            {% else %}
             <article class="answer-card" id="reply-{{ reply.pk }}">
                 <div class="forum-card-top">
                     <span class="forum-avatar forum-avatar-sm" aria-hidden="true">{% firstof reply.author.profile.initials reply.author.username|slice:":2"|upper %}</span>
@@ -86,9 +120,11 @@
                         <span class="forum-author-name">{% firstof reply.author.profile.display_name reply.author.username %}</span>
                         <time datetime="{{ reply.created_at|date:'c' }}">{{ reply.created_at|timesince }} ago</time>
                     </div>
+                    {% if user == reply.author %}{% include "forum/_reply_menu.html" %}{% endif %}
                 </div>
                 <div class="answer-body">{{ reply.body|linebreaks }}</div>
             </article>
+            {% endif %}
             {% empty %}
             <p class="answers-empty">No answers yet.</p>
             {% endfor %}
