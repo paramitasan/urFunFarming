@@ -39,13 +39,64 @@
     </header>
 
     {% if can_view %}
-        {% for entry in entries %}
-            <p>{{ entry.date }} {{ entry.time }}: {{ entry.height_cm }} cm, {{ entry.get_stage_display }}, {{ entry.get_health_display }}</p>
-            <p>{{ entry.observation }}</p>
-            <p>{% if entry.height_change is None %}First entry{% else %}{% if entry.height_change >= 0 %}+{% endif %}{{ entry.height_change }} cm since last entry{% endif %}</p>
-        {% empty %}
-            <p>No entries yet.</p>
-        {% endfor %}
+    <div class="journal-body">
+        <section class="timeline">
+            <div class="section-heading">
+                <h2>Timeline</h2>
+                <span>Newest first</span>
+            </div>
+
+            <ol>
+                {% for entry in entries %}
+                <li class="timeline-entry">
+                    <div class="timeline-rail" aria-hidden="true">
+                        <span class="timeline-dot" data-stage="{{ entry.stage }}"></span>
+                        <span class="timeline-line"></span>
+                    </div>
+
+                    <article class="entry-card">
+                        <div class="entry-head">
+                            <div class="entry-when">
+                                <span class="entry-date">{{ entry.date|date:"j M Y" }}</span>
+                                <span class="entry-time">{{ entry.time|time:"H.i" }}</span>
+                            </div>
+                            <div class="entry-tags">
+                                <span class="stage-tag" data-stage="{{ entry.stage }}">{{ entry.get_stage_display }}</span>
+                                <span class="health-tag" data-health="{{ entry.health }}">{{ entry.get_health_display }}</span>
+                                {% if is_owner %}
+                                    {# TODO: link to journal:edit_entry in step 4, delete in step 5 #}
+                                    <a class="icon-button" href="#" aria-label="Edit entry">
+                                        <img src="{% static 'journal/icons/edit.svg' %}" alt="" width="18" height="18">
+                                    </a>
+                                    <button class="icon-button icon-button-delete" type="button" aria-label="Delete entry">
+                                        <img src="{% static 'journal/icons/trash.svg' %}" alt="" width="18" height="18">
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <p class="entry-height">
+                            <strong>{{ entry.height_cm }} cm</strong>
+                            <span>{% if entry.height_change is None %}First entry{% else %}{% if entry.height_change >= 0 %}+{% endif %}{{ entry.height_change }} cm since last entry{% endif %}</span>
+                        </p>
+
+                        <p class="entry-note">{{ entry.observation|linebreaksbr }}</p>
+
+                        {% if entry.photos.all %}
+                        <div class="entry-photos">
+                            {% for photo in entry.photos.all %}
+                                <img src="{{ photo.url }}" alt="Photo {{ forloop.counter }} of {{ planting.name }} on {{ entry.date|date:'j M Y' }}" loading="lazy">
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </article>
+                </li>
+                {% empty %}
+                <li><p>No entries yet.</p></li>
+                {% endfor %}
+            </ol>
+        </section>
+    </div>
     {% else %}
         <p>This journal is private.</p>
     {% endif %}

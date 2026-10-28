@@ -17,6 +17,21 @@
     --stage-harvested-text: #4A3A8A;
     --stage-harvested-fill: #ECE8F7;
     --stage-harvested-border: #D5CEEE;
+    --stage-seedling-dot: #7FB24A;
+    --stage-vegetative-dot: #2F8F63;
+    --stage-flowering-dot: #D2668F;
+    --stage-fruiting-dot: #E08A36;
+    --stage-harvested-dot: #7C68C4;
+    --health-healthy-text: #125133;
+    --health-healthy-fill: #D9EDDF;
+    --health-healthy-dot: #21C37E;
+    --health-attention-text: #6E5100;
+    --health-attention-fill: #FFF2C6;
+    --health-attention-dot: #D9A300;
+    --health-pest-text: #B5452F;
+    --health-pest-fill: #F8E3DE;
+    --health-pest-dot: #B5452F;
+
 
     max-width: 1164px;
     margin: 0 auto;
@@ -114,6 +129,232 @@
 .stage-tag[data-stage="fruiting"] { color: var(--stage-fruiting-text); background-color: var(--stage-fruiting-fill); border-color: var(--stage-fruiting-border); }
 .stage-tag[data-stage="harvested"] { color: var(--stage-harvested-text); background-color: var(--stage-harvested-fill); border-color: var(--stage-harvested-border); }
 
+
+/* Health tag: dot plus label, no border */
+.health-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: normal;
+    white-space: nowrap;
+}
+
+.health-tag::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--dot);
+}
+
+.health-tag[data-health="healthy"] { --dot: var(--health-healthy-dot); color: var(--health-healthy-text); background-color: var(--health-healthy-fill); }
+.health-tag[data-health="attention"] { --dot: var(--health-attention-dot); color: var(--health-attention-text); background-color: var(--health-attention-fill); }
+.health-tag[data-health="pest"] { --dot: var(--health-pest-dot); color: var(--health-pest-text); background-color: var(--health-pest-fill); }
+
+
+/* Round icon buttons (edit, delete) */
+.icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border: 1px solid var(--color-field);
+    border-radius: 999px;
+    background-color: var(--color-surface);
+    cursor: pointer;
+}
+
+.icon-button:hover {
+    background-color: var(--color-band);
+}
+
+.icon-button-delete {
+    background-color: var(--health-pest-fill);
+    border-color: #F5CFCA;
+}
+
+.icon-button-delete:hover {
+    background-color: #F5CFCA;
+}
+
+.icon-button:focus-visible {
+    outline: 2px solid var(--color-forest);
+    outline-offset: 2px;
+}
+
+
+/* Timeline and sidebar side by side */
+.journal-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+}
+
+.timeline {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.section-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    line-height: normal;
+}
+
+.section-heading h2 {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.18px;
+    color: var(--color-forest);
+}
+
+.section-heading span {
+    font-size: 12.5px;
+    color: var(--color-deep);
+}
+
+
+/* One entry: rail with dot and line on the left, card on the right */
+.timeline-entry {
+    display: flex;
+    gap: 18px;
+}
+
+.timeline-rail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 20px;
+    flex-shrink: 0;
+    padding-top: 24px;
+}
+
+.timeline-dot {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    border: 3px solid var(--color-surface);
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px #D5D9D2;
+}
+
+.timeline-dot[data-stage="seedling"] { background-color: var(--stage-seedling-dot); }
+.timeline-dot[data-stage="vegetative"] { background-color: var(--stage-vegetative-dot); }
+.timeline-dot[data-stage="flowering"] { background-color: var(--stage-flowering-dot); }
+.timeline-dot[data-stage="fruiting"] { background-color: var(--stage-fruiting-dot); }
+.timeline-dot[data-stage="harvested"] { background-color: var(--stage-harvested-dot); }
+
+.timeline-line {
+    flex: 1;
+    width: 2px;
+    background-color: var(--color-field);
+}
+
+.timeline-entry:last-child .timeline-line {
+    display: none;
+}
+
+.entry-card {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 20px;
+    padding: 22px 24px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-hairline);
+    border-radius: 16px;
+}
+
+.entry-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.entry-when {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    line-height: normal;
+}
+
+.entry-date {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-forest);
+}
+
+.entry-time,
+.entry-height span {
+    font-size: 12.5px;
+    color: var(--color-deep);
+}
+
+.entry-tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.entry-height {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    line-height: normal;
+}
+
+.entry-height strong {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.52px;
+    color: var(--color-forest);
+}
+
+.entry-note {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--color-forest);
+    overflow-wrap: anywhere;
+}
+
+.entry-photos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.entry-photos img {
+    display: block;
+    width: 132px;
+    height: 100px;
+    object-fit: cover;
+    border: 1px solid var(--color-field);
+    border-radius: 10px;
+}
+
+@media (max-width: 900px) {
+    .journal-body {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
 @media (max-width: 639px) {
     .journal-header {
         flex-direction: column;
@@ -121,5 +362,21 @@
 
     .journal-title {
         font-size: 28px;
+    }
+
+    .timeline-entry {
+        gap: 10px;
+    }
+
+    .entry-card {
+        padding: 18px 16px;
+    }
+
+    .entry-head {
+        flex-direction: column;
+    }
+
+    .entry-tags {
+        justify-content: flex-start;
     }
 }
