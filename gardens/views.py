@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q, Value
-from django.db.models.functions import Coalesce, NullIf
+from django.db.models.functions import Coalesce, Lower, NullIf
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods
@@ -24,11 +24,7 @@ def _require_grower(request):
 
 
 def _owned_garden(request, pk):
-    return get_object_or_404(
-        Garden.objects.prefetch_related('plantings'),
-        pk=pk,
-        owner=request.user,
-    )
+    return get_object_or_404(Garden, pk=pk, owner=request.user)
 
 
 def _owned_planting(request, garden_pk, planting_pk):
@@ -42,6 +38,19 @@ def _owned_planting(request, garden_pk, planting_pk):
 
 def _public_gardens():
     return Garden.objects.filter(is_public=True, owner__is_active=True)
+
+
+def _search_gardens(gardens, query):
+    # A subquery keeps the plantings join out of the outer query, so planting_count stays the full count
+    matching = Garden.objects.filter(
+        Q(name__icontains=query)
+        | Q(location__icontains=query)
+        | Q(growing_method__icontains=query)
+        | Q(public_summary__icontains=query)
+        | Q(plantings__name__icontains=query)
+        | Q(plantings__crop__icontains=query)
+    ).values('pk')
+    return gardens.filter(pk__in=matching)
 
 
 def _filtered_plantings(garden, params):
@@ -63,10 +72,10 @@ def _filtered_plantings(garden, params):
         if method:
             plantings = plantings.filter(method_name=method)
         sort = form.cleaned_data['sort']
-        order = {'oldest': ('planting_date', 'sort_name', 'id'), 'name': ('sort_name', 'id')}.get(
-            sort,
-            ('-planting_date', 'sort_name', 'id'),
-        )
+        order = {
+            'oldest': ('planting_date', Lower('sort_name'), 'id'),
+            'name': (Lower('sort_name'), 'id'),
+        }.get(sort, ('-planting_date', Lower('sort_name'), 'id'))
         plantings = plantings.order_by(*order)
     else:
         plantings = plantings.none()
@@ -87,14 +96,7 @@ def explore(request):
         location = form.cleaned_data['location']
         method = form.cleaned_data['method']
         if query:
-            gardens = gardens.filter(
-                Q(name__icontains=query)
-                | Q(location__icontains=query)
-                | Q(growing_method__icontains=query)
-                | Q(public_summary__icontains=query)
-                | Q(plantings__name__icontains=query)
-                | Q(plantings__crop__icontains=query)
-            ).distinct()
+            gardens = _search_gardens(gardens, query)
         if location:
             gardens = gardens.filter(location=location)
         if method:
@@ -104,7 +106,7 @@ def explore(request):
     gardens = gardens.annotate(planting_count=Count('plantings', distinct=True))
     garden_count = gardens.count()
     sort = form.cleaned_data['sort'] if form.is_valid() else 'newest'
-    order = {'oldest': ('created_at', 'id'), 'name': ('name', 'id')}.get(sort, ('-created_at', '-id'))
+    order = {'oldest': ('created_at', 'id'), 'name': (Lower('name'), 'id')}.get(sort, ('-created_at', '-id'))
     gardens = gardens.order_by(*order).values(
         'id', 'name', 'location', 'growing_method', 'public_summary', 'planting_count', 'created_at',
         'owner__username', 'owner__date_joined', 'owner__profile__display_name',
@@ -127,16 +129,16 @@ def explore(request):
 @never_cache
 @require_GET
 def public_detail(request, pk):
+    # Explore never lists your own gardens, so the owner always gets their own view, public or private
+    if request.user.is_authenticated and Garden.objects.filter(pk=pk, owner=request.user).exists():
+        return redirect('gardens:detail', pk=pk)
     garden = get_object_or_404(
-        _public_gardens().values(
-            'id', 'name', 'location', 'growing_method', 'public_summary', 'owner_id',
+        _public_gardens().annotate(total_plantings=Count('plantings')).values(
+            'id', 'name', 'location', 'growing_method', 'public_summary', 'total_plantings',
             'owner__username', 'owner__profile__display_name', 'owner__profile__area',
         ),
         pk=pk,
     )
-    # Explore never lists your own gardens, so send the owner to their own view instead
-    if garden['owner_id'] == request.user.pk:
-        return redirect('gardens:detail', pk=pk)
     garden_instance = Garden.objects.get(pk=garden['id'])
     filter_form, plantings, planting_count, methods = _filtered_plantings(garden_instance, request.GET)
     return render(
@@ -166,14 +168,7 @@ def my_gardens(request):
         location = form.cleaned_data['location']
         visibility = form.cleaned_data['visibility']
         if query:
-            gardens = gardens.filter(
-                Q(name__icontains=query)
-                | Q(location__icontains=query)
-                | Q(growing_method__icontains=query)
-                | Q(public_summary__icontains=query)
-                | Q(plantings__name__icontains=query)
-                | Q(plantings__crop__icontains=query)
-            ).distinct()
+            gardens = _search_gardens(gardens, query)
         if location:
             gardens = gardens.filter(location=location)
         # Counts next to each Visibility option, before that filter is applied
@@ -189,7 +184,7 @@ def my_gardens(request):
             gardens = gardens.filter(is_public=False)
         order = {
             'oldest': ('created_at', 'id'),
-            'name': ('name', 'id'),
+            'name': (Lower('name'), 'id'),
         }.get(form.cleaned_data['sort'], ('-created_at', '-id'))
         gardens = gardens.order_by(*order)
     else:

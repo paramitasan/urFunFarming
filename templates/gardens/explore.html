@@ -33,7 +33,7 @@
                         <label class="garden-radio"><input type="radio" name="method" value="{{ method }}"{% if filter_form.method.value == method %} checked{% endif %}><span>{{ method }}</span></label>
                     {% endfor %}
                 </fieldset>
-                <noscript><button class="outline-button" type="submit">Apply filters</button></noscript>
+                <button class="outline-button garden-apply" type="submit">Apply filters</button>
             </aside>
 
             <div class="garden-results">

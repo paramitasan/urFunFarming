@@ -916,3 +916,146 @@ class GardenEmptyAndJournalStateTests(TestCase):
         self.assertNotContains(response, 'Back room', status_code=403)
         self.assertNotContains(response, 'Write the first entry', status_code=403)
         self.assertNotContains(response, 'aria-label="Plant journal"', status_code=403)
+
+
+@override_settings(PASSWORD_HASHERS=['django.contrib.auth.hashers.MD5PasswordHasher'])
+class GardenReviewFixTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.owner = User.objects.create_user(username='fix_owner', password='test-password')
+        cls.visitor = User.objects.create_user(username='fix_visitor', password='test-password')
+        Profile.objects.create(user=cls.owner, display_name='Fix Owner', is_grower=True)
+        Profile.objects.create(user=cls.visitor, display_name='Fix Visitor', is_grower=True)
+        cls.garden = Garden.objects.create(
+            owner=cls.owner, name='Zed', location='Tebet', growing_method='Soil', is_public=True,
+            private_notes='Gate code 4417.',
+        )
+        cls.apple = Garden.objects.create(owner=cls.owner, name='apple', location='Tebet', growing_method='Soil')
+        cls.banana = Garden.objects.create(owner=cls.owner, name='Banana', location='Tebet', growing_method='Soil')
+        for crop in ('Basil', 'Tomato', 'Mint'):
+            Planting.objects.create(garden=cls.garden, name=crop, crop=crop, planting_date=date(2026, 10, 1))
+        cls.basil = cls.garden.plantings.get(name='Basil')
+
+    def test_card_plant_count_stays_full_while_searching(self):
+        self.client.force_login(self.visitor)
+        explore = self.client.get(reverse('gardens:explore'), {'q': 'basil'})
+        self.client.force_login(self.owner)
+        mine = self.client.get(reverse('gardens:mine'), {'q': 'basil'})
+
+        self.assertEqual([g['planting_count'] for g in explore.context['gardens']], [3])
+        self.assertEqual([g.planting_count for g in mine.context['gardens']], [3])
+        self.assertContains(explore, '3 plants')
+        self.assertContains(mine, '3 plants')
+
+    def test_visitor_subtitle_counts_every_plant_while_searching(self):
+        self.client.force_login(self.visitor)
+
+        response = self.client.get(reverse('gardens:public_detail', args=[self.garden.pk]), {'q': 'basil'})
+
+        self.assertContains(response, 'Public garden by Fix Owner · 3 plants')
+        self.assertEqual(response.context['planting_count'], 1)
+
+    def test_success_messages_show_on_the_next_gardens_page(self):
+        self.client.force_login(self.owner)
+        garden_data = {'name': 'Zed', 'location': 'Tebet', 'growing_method': 'Soil', 'is_public': 'on'}
+
+        edited = self.client.post(reverse('gardens:edit', args=[self.garden.pk]), garden_data, follow=True)
+        added = self.client.post(
+            reverse('gardens:planting_create', args=[self.garden.pk]),
+            {'name': 'Kale', 'crop': 'Leafy greens', 'planting_date': '2026-10-20', 'growing_method': ''},
+            follow=True,
+        )
+        deleted = self.client.post(reverse('gardens:delete', args=[self.apple.pk]), follow=True)
+
+        self.assertContains(edited, 'Garden updated.')
+        self.assertContains(added, 'Planting added.')
+        self.assertContains(deleted, 'Garden deleted.')
+        self.assertNotContains(self.client.get(reverse('gardens:mine')), 'Garden deleted.')
+
+    def test_owner_on_own_private_visitor_url_is_sent_to_owner_page(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse('gardens:public_detail', args=[self.apple.pk]))
+
+        self.assertRedirects(response, reverse('gardens:detail', args=[self.apple.pk]))
+        self.client.force_login(self.visitor)
+        self.assertEqual(self.client.get(reverse('gardens:public_detail', args=[self.apple.pk])).status_code, 404)
+
+    def test_unknown_sort_visibility_or_month_falls_back_to_defaults(self):
+        self.client.force_login(self.visitor)
+        explore = self.client.get(reverse('gardens:explore'), {'sort': 'bogus'})
+        plants = self.client.get(reverse('gardens:public_detail', args=[self.garden.pk]), {'month': 'abc', 'sort': 'x'})
+        self.client.force_login(self.owner)
+        mine = self.client.get(reverse('gardens:mine'), {'sort': 'bogus', 'visibility': 'secret'})
+
+        self.assertEqual(explore.context['garden_count'], 1)
+        self.assertEqual(plants.context['planting_count'], 3)
+        self.assertEqual(mine.context['garden_count'], 3)
+
+    def test_name_sort_ignores_letter_case(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse('gardens:mine'), {'sort': 'name'})
+
+        self.assertEqual([g.name for g in response.context['gardens']], ['apple', 'Banana', 'Zed'])
+
+    def test_owner_without_grower_role_sees_no_add_buttons(self):
+        Profile.objects.filter(user=self.owner).update(is_grower=False)
+        self.client.force_login(self.owner)
+
+        mine = self.client.get(reverse('gardens:mine'))
+        detail = self.client.get(reverse('gardens:detail', args=[self.banana.pk]))
+
+        self.assertNotContains(mine, f'href="{reverse("gardens:create")}"')
+        self.assertNotContains(detail, reverse('gardens:planting_create', args=[self.banana.pk]))
+        self.assertContains(detail, 'Add the grower role to your profile to add plants.')
+
+    def test_form_help_text_is_linked_for_screen_readers(self):
+        self.client.force_login(self.owner)
+
+        garden_form = self.client.get(reverse('gardens:edit', args=[self.garden.pk])).content.decode()
+        plant_form = self.client.get(reverse('gardens:planting_create', args=[self.garden.pk])).content.decode()
+
+        self.assertIn('aria-describedby="id_location_helptext"', garden_form)
+        self.assertIn('id="id_location_helptext"', garden_form)
+        self.assertIn('id="id_private_notes_helptext"', garden_form)
+        self.assertIn('id="id_growing_method_helptext"', plant_form)
+
+    def test_filters_keep_an_apply_button_for_keyboard_users(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse('gardens:mine'))
+
+        self.assertContains(
+            response,
+            '<button class="outline-button garden-apply" type="submit">Apply filters</button>',
+            html=True,
+        )
+
+    def test_explore_filter_options_skip_private_and_own_gardens(self):
+        Garden.objects.create(
+            owner=self.visitor, name='Hidden', location='Secret Street', growing_method='Aquaponics',
+        )
+        Garden.objects.create(
+            owner=self.visitor, name='Mine', location='My Street', growing_method='Wick', is_public=True,
+        )
+        self.client.force_login(self.visitor)
+
+        response = self.client.get(reverse('gardens:explore'))
+
+        self.assertEqual(response.context['locations'], ['Tebet'])
+        self.assertEqual(response.context['methods'], ['Soil'])
+        for text in ('Secret Street', 'Aquaponics', 'My Street', 'Wick'):
+            self.assertNotContains(response, text)
+
+    def test_private_notes_stay_off_delete_and_plant_form_pages(self):
+        self.client.force_login(self.owner)
+        pages = (
+            reverse('gardens:delete', args=[self.garden.pk]),
+            reverse('gardens:planting_create', args=[self.garden.pk]),
+            reverse('gardens:planting_edit', args=[self.garden.pk, self.basil.pk]),
+            reverse('gardens:planting_delete', args=[self.garden.pk, self.basil.pk]),
+        )
+        for url in pages:
+            with self.subTest(url=url):
+                self.assertNotContains(self.client.get(url), 'Gate code 4417.')

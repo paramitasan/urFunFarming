@@ -5,13 +5,20 @@ from django import forms
 from gardens.models import Garden, Planting
 
 
+class FallbackChoiceField(forms.ChoiceField):
+    # An unknown value (old bookmark, edited URL) falls back to the default instead of failing the form
+    def clean(self, value):
+        value = self.to_python(value)
+        return value if self.valid_value(value) else ''
+
+
 class GardenListFilterForm(forms.Form):
     q = forms.CharField(required=False, max_length=100, strip=True, label='Search my gardens')
     location = forms.CharField(required=False, max_length=120, strip=True, label='Location')
-    visibility = forms.ChoiceField(required=False, choices=[
+    visibility = FallbackChoiceField(required=False, choices=[
         ('', 'All'), ('public', 'Public'), ('private', 'Private'),
     ])
-    sort = forms.ChoiceField(required=False, choices=[
+    sort = FallbackChoiceField(required=False, choices=[
         ('newest', 'Newest first'), ('oldest', 'Oldest first'), ('name', 'Name A-Z'),
     ])
 
@@ -26,19 +33,19 @@ class GardenExploreFilterForm(forms.Form):
     )
     location = forms.CharField(required=False, max_length=120, strip=True, label='Location')
     method = forms.CharField(required=False, max_length=80, strip=True, label='Growing method')
-    sort = forms.ChoiceField(required=False, choices=[
+    sort = FallbackChoiceField(required=False, choices=[
         ('newest', 'Newest first'), ('oldest', 'Oldest first'), ('name', 'Name A-Z'),
     ], initial='newest')
 
 
 class PlantingFilterForm(forms.Form):
     q = forms.CharField(required=False, max_length=100, strip=True, label='Search plants')
-    month = forms.ChoiceField(required=False, choices=[
+    month = FallbackChoiceField(required=False, choices=[
         ('', 'Any month'),
         *[(str(month), calendar.month_name[month]) for month in range(1, 13)],
     ])
     method = forms.CharField(required=False, max_length=80, strip=True, label='Growing method')
-    sort = forms.ChoiceField(required=False, choices=[
+    sort = FallbackChoiceField(required=False, choices=[
         ('newest', 'Newest planted'), ('oldest', 'Oldest planted'), ('name', 'Name A-Z'),
     ], initial='newest')
 

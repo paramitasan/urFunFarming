@@ -1,8 +1,14 @@
-// Filters: apply as soon as a select or radio changes (the search box submits on Enter)
+// Filters: a mouse or touch change applies at once. Keyboard users move through the options
+// freely (arrow keys also fire "change") and press Apply filters, which shows when it gets focus.
+
+let usingKeyboard = false;
+document.addEventListener('keydown', () => { usingKeyboard = true; });
+document.addEventListener('pointerdown', () => { usingKeyboard = false; });
 
 document.querySelectorAll('form[data-autosubmit]').forEach((form) => {
+    form.classList.add('is-live');
     form.addEventListener('change', (e) => {
-        if (e.target.type !== 'search') {
+        if (!usingKeyboard && e.target.type !== 'search') {
             form.requestSubmit();
         }
     });

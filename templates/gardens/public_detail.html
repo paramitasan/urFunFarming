@@ -8,7 +8,7 @@
         <div>
             <a class="gardens-back-link" href="{% url 'gardens:explore' %}"><img src="{% static 'img/gardens/back.svg' %}" alt="">Back to Explore gardens</a>
             <h1 id="public-garden-heading">Plants in {{ garden.name }}</h1>
-            <p class="gardens-subtitle">{{ garden.location }} · Public garden by {{ grower_name }} · {{ planting_count }} plant{{ planting_count|pluralize }}</p>
+            <p class="gardens-subtitle">{{ garden.location }} · Public garden by {{ grower_name }} · {{ garden.total_plantings }} plant{{ garden.total_plantings|pluralize }}</p>
         </div>
     </header>
 
