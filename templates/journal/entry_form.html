@@ -1,13 +1,117 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}New Entry · Plant Journal{% endblock title %}
+{% block title %}{% if planting %}New Entry for {{ planting.name }}{% else %}New Entry{% endif %} · Plant Journal{% endblock title %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'journal/journal.css' %}">
+{% endblock head %}
 
 {% block content %}
 {% include 'partials/grower_subnav.html' %}
-<h1>{% if planting %}New Entry for {{ planting.name }}{% else %}New Entry{% endif %}</h1>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Save Entry</button>
-</form>
+{% if planting %}
+    {% url 'journal:plant_detail' planting.pk as back_url %}
+{% else %}
+    {% url 'journal:index' as back_url %}
+{% endif %}
+
+<div class="journal journal-narrow">
+    <a class="back-link" href="{{ back_url }}">
+        <img src="{% static 'journal/icons/arrow-left.svg' %}" alt="" width="18" height="18">
+        {% if planting %}Back{% else %}Back to journal{% endif %}
+    </a>
+
+    <header class="journal-title-block">
+        <p class="journal-eyebrow">Plant journal · New entry</p>
+        <h1 class="journal-title">{% if planting %}New Entry for {{ planting.name }}{% else %}New Entry{% endif %}</h1>
+        <p class="journal-subtitle">Log what changed since you last checked on this plant.</p>
+    </header>
+
+    <form class="form-card" method="post" novalidate>
+        {% csrf_token %}
+
+        {% if planting %}
+        <div class="plant-summary">
+            <span class="plant-summary-icon">
+                <img src="{% static 'journal/icons/sprout.svg' %}" alt="" width="22" height="22">
+            </span>
+            <div>
+                <strong>{{ planting.name }} · {{ planting.garden.name }}</strong>
+                {% if latest %}
+                    <span>Last entry: {{ latest.date|date:"j M Y" }} · {{ latest.height_cm }} cm · {{ latest.get_stage_display }} · {{ latest.get_health_display }}</span>
+                {% else %}
+                    <span>No entries yet</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="form-fields{% if planting %} form-fields-3{% endif %}">
+            {% if form.planting %}
+            <div class="field">
+                <label class="field-label" for="{{ form.planting.id_for_label }}">{{ form.planting.label }}</label>
+                {{ form.planting }}
+                {{ form.planting.errors }}
+                {# TODO: link to the gardens app once it is merged #}
+                <p class="field-hint">Don't see your plant? <a href="#">Add it in My gardens</a></p>
+            </div>
+            {% endif %}
+
+            <div class="field">
+                <label class="field-label" for="{{ form.date.id_for_label }}">{{ form.date.label }}</label>
+                {{ form.date }}
+                {{ form.date.errors }}
+            </div>
+
+            <div class="field">
+                <label class="field-label" for="{{ form.time.id_for_label }}">{{ form.time.label }}</label>
+                {{ form.time }}
+                {{ form.time.errors }}
+            </div>
+
+            <div class="field">
+                <label class="field-label" for="{{ form.height_cm.id_for_label }}">{{ form.height_cm.label }}</label>
+                <div class="input-suffix">
+                    {{ form.height_cm }}
+                    <span>cm</span>
+                </div>
+                {{ form.height_cm.errors }}
+                {% if latest %}<p class="field-hint">Last time: {{ latest.height_cm }} cm</p>{% endif %}
+            </div>
+        </div>
+
+        <div class="field">
+            <span class="field-label">{{ form.stage.label }}</span>
+            {{ form.stage }}
+        </div>
+
+        <div class="field">
+            <span class="field-label">{{ form.health.label }}</span>
+            {{ form.health }}
+        </div>
+
+        {% if form.visibility %}
+        <div class="field">
+            <span class="field-label">Visibility</span>
+            {{ form.visibility }}
+        </div>
+        {% endif %}
+
+        <div class="field">
+            <label class="field-label" for="{{ form.observation.id_for_label }}">{{ form.observation.label }}</label>
+            {{ form.observation }}
+            {{ form.observation.errors }}
+            <p class="field-hint">Also write down anything you did today, like watering, pruning or adding fertilizer.</p>
+        </div>
+
+        {{ form.photo_1 }}
+        {{ form.photo_2 }}
+        {{ form.photo_3 }}
+
+        <div class="form-footer">
+            <a class="outline-button" href="{{ back_url }}">Cancel</a>
+            <button class="pill-button" type="submit">Save Entry</button>
+        </div>
+    </form>
+</div>
 {% endblock content %}

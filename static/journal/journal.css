@@ -531,6 +531,170 @@
 }
 
 
+/* Entry form */
+
+.journal-narrow {
+    max-width: 864px;
+}
+
+.form-card {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    padding: 32px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-hairline);
+    border-radius: 16px;
+}
+
+.plant-summary {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background-color: var(--color-band);
+    border-radius: 12px;
+    line-height: normal;
+}
+
+.plant-summary-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background-color: var(--color-surface);
+}
+
+.plant-summary strong {
+    display: block;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-forest);
+}
+
+.plant-summary span {
+    font-size: 12.5px;
+    color: var(--color-deep);
+}
+
+.form-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.form-fields-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.field-label {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.field input,
+.field select,
+.field textarea {
+    width: 100%;
+    padding: 0 14px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-field);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 15px;
+    color: var(--color-forest);
+}
+
+.field input,
+.field select {
+    height: 48px;
+}
+
+.field select {
+    appearance: none;
+    padding-right: 44px;
+    background-image: url('icons/chevron-down.svg');
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 18px 18px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.field textarea {
+    min-height: 140px;
+    padding: 12px 14px;
+    line-height: 1.6;
+    resize: vertical;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+    color: var(--color-deep);
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 0;
+    border-color: var(--color-accent);
+}
+
+/* Height input with "cm" inside it on the right */
+.input-suffix {
+    position: relative;
+}
+
+.input-suffix input {
+    padding-right: 48px;
+}
+
+.input-suffix span {
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    transform: translateY(-50%);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-deep);
+    pointer-events: none;
+}
+
+.field-hint {
+    font-size: 13px;
+    line-height: normal;
+    color: var(--color-deep);
+}
+
+.field-hint a {
+    color: var(--color-forest);
+    text-decoration: underline;
+}
+
+.form-footer {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 24px;
+    border-top: 1px solid var(--color-hairline);
+}
+
+
 @media (max-width: 900px) {
     .journal-body {
         flex-direction: column;
@@ -565,5 +729,19 @@
 
     .entry-tags {
         justify-content: flex-start;
+    }
+    
+    .form-card {
+        padding: 20px 16px;
+    }
+
+    .form-fields,
+    .form-fields-3 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .form-footer .pill-button,
+    .form-footer .outline-button {
+        flex: 1;
     }
 }
