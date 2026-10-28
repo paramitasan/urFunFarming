@@ -192,3 +192,5 @@ select.market-input { -webkit-appearance: none; appearance: none; padding-right:
     .market-radio { font-size: 12px; gap: 8px; }
 }
 @media (prefers-reduced-motion: reduce) { .market-button, #market-results { transition: none; } .market-button:hover { transform: none; } }
+/* iPhone zooms into any field under 16px, so touch screens get 16px field text */
+@media (hover: none) and (pointer: coarse) { .market-input, .market-area-select select, .market-sort select { font-size: 16px; } }

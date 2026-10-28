@@ -854,11 +854,17 @@ legend.garden-filter-label {
     }
 
     .garden-toolbar {
+        flex-direction: column;
+        gap: 10px;
         margin-bottom: 20px;
     }
 
     .garden-toolbar .garden-sort {
-        width: 170px;
+        width: 100%;
+    }
+
+    .garden-search-field {
+        flex: none;
     }
 
     .garden-body {
@@ -885,15 +891,6 @@ legend.garden-filter-label {
 }
 
 @media (max-width: 479px) {
-    .garden-toolbar {
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .garden-toolbar .garden-sort {
-        width: 100%;
-    }
-
     .garden-item,
     .planting-card {
         flex-direction: column;
@@ -912,5 +909,13 @@ legend.garden-filter-label {
 
     .garden-results-count span {
         text-align: left;
+    }
+}
+
+/* Touch screens: iPhone zooms into any field under 16px */
+
+@media (hover: none) and (pointer: coarse) {
+    .garden-field {
+        font-size: 16px;
     }
 }
