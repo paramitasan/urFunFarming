@@ -348,10 +348,154 @@
     border-radius: 10px;
 }
 
+
+/* Sidebar cards */
+.journal-sidebar {
+    width: 320px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.side-card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-hairline);
+    border-radius: 16px;
+}
+
+.side-card h2 {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: normal;
+    letter-spacing: -0.18px;
+    color: var(--color-forest);
+}
+
+.plant-facts {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    line-height: normal;
+}
+
+.plant-facts div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.plant-facts dt {
+    font-size: 12.5px;
+    color: var(--color-deep);
+}
+
+.plant-facts dd {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-forest);
+    text-align: right;
+}
+
+.side-card .outline-button {
+    width: 100%;
+}
+
+
+/* Growth stage stepper */
+.stage-steps {
+    display: flex;
+    flex-direction: column;
+}
+
+.stage-step {
+    display: flex;
+    gap: 14px;
+    min-height: 60px;
+}
+
+.step-rail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.step-mark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    border-radius: 50%;
+}
+
+.stage-step[data-status="done"] .step-mark {
+    background-color: #2E6B3F;
+}
+
+.stage-step[data-status="next"] .step-mark {
+    background-color: var(--color-surface);
+    border: 2px solid #D5D9D2;
+}
+
+.step-line {
+    flex: 1;
+    width: 2px;
+    background-color: #DDE2DA;
+}
+
+.stage-step[data-status="done"] .step-line {
+    background-color: #2E6B3F;
+}
+
+.stage-step:last-child .step-line {
+    display: none;
+}
+
+.step-text {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding-bottom: 16px;
+    line-height: normal;
+}
+
+.step-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-forest);
+}
+
+.stage-step[data-status="current"] .step-label {
+    color: #86460E;
+}
+
+.stage-step[data-status="next"] .step-label {
+    color: var(--color-deep);
+}
+
+.step-date {
+    font-size: 12.5px;
+    color: var(--color-deep);
+}
+
+
 @media (max-width: 900px) {
     .journal-body {
         flex-direction: column;
         align-items: stretch;
+    }
+    
+    .journal-sidebar {
+        width: 100%;
     }
 }
 

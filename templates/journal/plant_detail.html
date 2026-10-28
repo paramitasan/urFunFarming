@@ -96,16 +96,66 @@
                 {% endfor %}
             </ol>
         </section>
+        
+        <aside class="journal-sidebar">
+            <section class="side-card">
+                <h2>About this plant</h2>
+                <dl class="plant-facts">
+                    <div>
+                        <dt>Garden</dt>
+                        <dd>{{ planting.garden.name }}</dd>
+                    </div>
+                    <div>
+                        <dt>Started on</dt>
+                        <dd>{% if started_on %}{{ started_on|date:"j M Y" }}{% else %}Not yet{% endif %}</dd>
+                    </div>
+                    <div>
+                        <dt>Days growing</dt>
+                        <dd>{% if days_growing is not None %}{{ days_growing }} day{{ days_growing|pluralize }}{% else %}Not yet{% endif %}</dd>
+                    </div>
+                    <div>
+                        <dt>Entries</dt>
+                        <dd>{{ entries|length }}</dd>
+                    </div>
+                </dl>
+                {# TODO: link to the gardens app once it is merged #}
+                <a class="outline-button" href="#">View in My gardens</a>
+            </section>
+
+            <section class="side-card">
+                <h2>Growth stage</h2>
+                <ol class="stage-steps">
+                    {% for step in stage_steps %}
+                    <li class="stage-step" data-status="{{ step.status }}">
+                        <div class="step-rail" aria-hidden="true">
+                            <span class="step-mark">
+                                {% if step.status == 'done' %}
+                                    <img src="{% static 'journal/icons/check.svg' %}" alt="" width="16" height="16">
+                                {% elif step.status == 'current' %}
+                                    <img src="{% static 'journal/icons/stage-current.svg' %}" alt="" width="32" height="32">
+                                {% endif %}
+                            </span>
+                            <span class="step-line"></span>
+                        </div>
+                        <div class="step-text">
+                            <span class="step-label">{{ step.label }}</span>
+                            <span class="step-date">
+                                {% if step.status == 'next' %}
+                                    Not yet
+                                {% elif step.date %}
+                                    {{ step.date|date:"j M Y" }}{% if step.status == 'current' %} · Current stage{% endif %}
+                                {% endif %}
+                            </span>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ol>
+            </section>
+        </aside>
     </div>
     {% else %}
         <p>This journal is private.</p>
     {% endif %}
-
-    <ul>
-        {% for step in stage_steps %}
-            <li>{{ step.label }}: {{ step.status }}, {% if step.date %}{{ step.date|date:"j M Y" }}{% else %}Not yet{% endif %}</li>
-        {% endfor %}
-    </ul>
 </div>
 
 {% endblock content %}
