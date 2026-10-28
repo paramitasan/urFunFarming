@@ -47,6 +47,8 @@
     top: 428px;
     left: 0;
     margin-top: 0;
+    /* Decoration only: its top edge overlaps the Edit profile button */
+    pointer-events: none;
 }
 
 .home-edit {
