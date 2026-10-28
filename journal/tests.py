@@ -2,6 +2,7 @@ import io
 import shutil
 import tempfile
 from datetime import date, time
+from unittest import mock
 
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -9,9 +10,11 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from PIL import Image
 from django.utils import timezone
+from django.utils.datastructures import MultiValueDict
 
 from accounts.models import Profile
 from journal.models import EntryPhoto, Garden, JournalEntry, PlantJournal, Planting
+from journal.forms import PHOTO_ERROR, JournalEntryForm, NewEntryForm
 
 # Uploads made during tests go here, never into the real media/ folder
 TEST_MEDIA = tempfile.mkdtemp()
@@ -183,3 +186,92 @@ class PlantDetailTest(JournalTestCase):
         self.client.force_login(self.grower)
         response = self.client.get(self.detail_url(self.tomato))
         self.assertContains(response, 'src="https://example.com/tomato.jpg"')
+
+
+class EntryFormTest(JournalTestCase):
+    def make_form(self, files=None, **changes):
+        data = {**self.entry_data(**changes), 'planting': self.tomato.pk, 'visibility': 'private'}
+        return NewEntryForm(self.grower, data, MultiValueDict({'photos': files or []}))
+
+    def test_plant_choices_are_only_your_own(self):
+        mine = NewEntryForm(self.grower).fields['planting'].queryset
+        self.assertEqual(set(mine), {self.tomato, self.chili})
+        theirs = NewEntryForm(self.other_grower).fields['planting'].queryset
+        self.assertFalse(theirs.exists())
+
+    def test_someone_elses_plant_is_rejected(self):
+        data = {**self.entry_data(), 'planting': self.tomato.pk, 'visibility': 'private'}
+        form = NewEntryForm(self.other_grower, data)
+        self.assertFalse(form.is_valid())
+        self.assertIn('planting', form.errors)
+
+    def test_required_fields_use_the_design_messages(self):
+        form = NewEntryForm(self.grower, {'visibility': 'private'})
+        self.assertFalse(form.is_valid())
+        self.assertEqual(form.errors['planting'], ['Please choose a plant.'])
+        self.assertEqual(form.errors['date'], ['Please pick a date.'])
+        self.assertEqual(form.errors['time'], ['Please enter the time.'])
+        self.assertEqual(form.errors['height_cm'], ['Please enter the height in cm.'])
+        self.assertEqual(form.errors['observation'], ['Please write what you noticed.'])
+
+    def test_html_is_removed_from_the_observation(self):
+        form = self.make_form(observation='Hello <script>alert(1)</script> there')
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.cleaned_data['observation'], 'Hello alert(1) there')
+
+    def test_observation_with_only_tags_counts_as_empty(self):
+        form = self.make_form(observation='<b></b>')
+        self.assertFalse(form.is_valid())
+        self.assertEqual(form.errors['observation'], ['Please write what you noticed.'])
+
+    def test_visibility_starts_private_and_is_only_on_the_new_form(self):
+        self.assertEqual(NewEntryForm(self.grower).fields['visibility'].initial, 'private')
+        self.assertNotIn('visibility', JournalEntryForm(self.grower).fields)
+
+    def test_photo_links_are_collected_in_order(self):
+        form = self.make_form(photo_1='https://example.com/a.jpg', photo_3='example.com/b.jpg')
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.photo_urls(), ['https://example.com/a.jpg', 'https://example.com/b.jpg'])
+
+    def test_unsafe_photo_link_is_rejected(self):
+        form = self.make_form(photo_1='javascript:alert(1)')
+        self.assertFalse(form.is_valid())
+        self.assertIn('photo_1', form.errors)
+
+    def test_jpg_png_and_webp_uploads_are_accepted(self):
+        files = [make_image('a.jpg', 'JPEG'), make_image('b.png', 'PNG'), make_image('c.webp', 'WEBP')]
+        form = self.make_form(files=files)
+        self.assertTrue(form.is_valid())
+        self.assertEqual(len(form.cleaned_data['photos']), 3)
+
+    def test_gif_is_rejected_even_when_renamed(self):
+        for name in ('plant.gif', 'plant.png'):
+            form = self.make_form(files=[make_image(name, 'GIF')])
+            self.assertFalse(form.is_valid())
+            self.assertEqual(form.errors['photos'], [PHOTO_ERROR])
+
+    def test_file_that_is_not_an_image_is_rejected(self):
+        form = self.make_form(files=[SimpleUploadedFile('plant.jpg', b'not an image')])
+        self.assertFalse(form.is_valid())
+        self.assertEqual(form.errors['photos'], [PHOTO_ERROR])
+
+    def test_photo_over_the_size_limit_is_rejected(self):
+        # Lower the limit for this test instead of building a real 5 MB file
+        with mock.patch('journal.forms.MAX_PHOTO_SIZE', 10):
+            form = self.make_form(files=[make_image('big.png')])
+            self.assertFalse(form.is_valid())
+        self.assertEqual(form.errors['photos'], [PHOTO_ERROR])
+
+    def test_five_photos_is_the_limit(self):
+        links = {'photo_1': 'https://example.com/1.jpg', 'photo_2': 'https://example.com/2.jpg'}
+        five = self.make_form(files=[make_image(f'{i}.png') for i in range(3)], **links)
+        self.assertTrue(five.is_valid())
+        six = self.make_form(files=[make_image(f'{i}.png') for i in range(4)], **links)
+        self.assertFalse(six.is_valid())
+        self.assertEqual(six.errors['photos'], ['You can add up to 5 photos to one entry.'])
+
+    def test_kept_photos_count_towards_the_limit(self):
+        form = self.make_form(files=[make_image('a.png'), make_image('b.png')])
+        form.kept_photos = 4
+        self.assertFalse(form.is_valid())
+        self.assertIn('photos', form.errors)
