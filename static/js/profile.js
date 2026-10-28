@@ -54,7 +54,8 @@ document.querySelectorAll('[data-profile-form]').forEach((form) => {
         if (form.dataset.noFetch) return;
         e.preventDefault();
 
-        const button = e.submitter;
+        // Safari before 15.4 has no e.submitter; each profile form has one submit button
+        const button = e.submitter || form.querySelector('button[type=submit]');
         const body = new FormData(form);
         body.append(button.name, button.value);
         button.disabled = true;
@@ -71,7 +72,8 @@ document.querySelectorAll('[data-profile-form]').forEach((form) => {
         } catch (error) {
             button.disabled = false;
             form.dataset.noFetch = '1';
-            form.requestSubmit(button);
+            // click() resubmits with this button in every browser, unlike requestSubmit()
+            button.click();
             return;
         }
 
