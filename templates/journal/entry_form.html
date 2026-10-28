@@ -5,6 +5,7 @@
 
 {% block head %}
 <link rel="stylesheet" href="{% static 'journal/journal.css' %}">
+<script defer src="{% static 'journal/entry-form.js' %}"></script>
 {% endblock head %}
 
 {% block content %}
@@ -86,9 +87,9 @@
         <div class="field">
             <fieldset class="choice-group">
                 <legend class="field-label">{{ form.stage.label }}</legend>
-                <div class="chips">
+                <div class="form-chips">
                     {% for radio in form.stage %}
-                    <label class="chip">
+                    <label class="form-chip">
                         {{ radio.tag }}
                         <span class="chip-face" data-stage="{{ radio.data.value }}">{{ radio.choice_label }}</span>
                     </label>
@@ -100,9 +101,9 @@
         <div class="field">
             <fieldset class="choice-group">
                 <legend class="field-label">{{ form.health.label }}</legend>
-                <div class="chips">
+                <div class="form-chips">
                     {% for radio in form.health %}
-                    <label class="chip">
+                    <label class="form-chip">
                         {{ radio.tag }}
                         <span class="chip-face" data-health="{{ radio.data.value }}">{{ radio.choice_label }}</span>
                     </label>

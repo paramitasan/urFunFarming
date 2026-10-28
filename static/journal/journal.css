@@ -709,7 +709,7 @@
     padding: 0;
 }
 
-.chips {
+.form-chips {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
@@ -723,7 +723,7 @@
     opacity: 0;
 }
 
-.chip,
+.form-chip,
 .choice-card {
     position: relative;
     cursor: pointer;
@@ -762,13 +762,13 @@
 .chip-face[data-health="attention"] { --dot: var(--health-attention-dot); }
 .chip-face[data-health="pest"] { --dot: var(--health-pest-dot); }
 
-.chip:hover .chip-face,
+.form-chip:hover .chip-face,
 .choice-card:hover .card-face {
     background-color: var(--color-band);
 }
 
 /* Selected: green tint and a 2px accent border, 1px less padding so nothing moves */
-.chip input:checked + .chip-face {
+.form-chip input:checked + .chip-face {
     padding: 0 15px;
     background-color: var(--color-band);
     border: 2px solid var(--color-accent);
@@ -816,7 +816,7 @@
     border: 2px solid var(--color-accent);
 }
 
-.chip input:focus-visible + .chip-face,
+.form-chip input:focus-visible + .chip-face,
 .choice-card input:focus-visible + .card-face {
     outline: 2px solid var(--color-forest);
     outline-offset: 2px;
