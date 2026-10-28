@@ -645,6 +645,55 @@ a.page-link:focus-visible {
     background-color: #F8E3DE;
 }
 
+/* Upvote */
+
+.vote {
+    display: inline-flex;
+    margin-right: 8px;
+}
+
+.vote-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background-color: var(--color-band);
+    border: 1.5px solid transparent;
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+    cursor: pointer;
+}
+
+.vote-button:hover {
+    border-color: var(--color-mint);
+}
+
+.vote-button:focus-visible {
+    outline: 2px solid var(--color-deep);
+    outline-offset: 2px;
+}
+
+.vote-button:disabled {
+    cursor: progress;
+}
+
+/* Already upvoted by me */
+.vote-button.is-voted {
+    background-color: var(--color-accent);
+}
+
+.vote-count {
+    font-variant-numeric: tabular-nums;
+}
+
+.forum-card {
+    scroll-margin-top: 108px;
+}
+
 @media (max-width: 639px) {
     .confirm {
         padding: 20px;

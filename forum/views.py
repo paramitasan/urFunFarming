@@ -6,9 +6,10 @@ from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
-from django.db.models import Count, Q
+from django.db.models import Count, Exists, OuterRef, Q
+from django.http import JsonResponse
 
-from .models import Forum, Reply
+from .models import Forum, Reply, ForumVote, ReplyVote
 from .forms import ForumForm, ReplyForm
 
 FORUMS_PER_PAGE = 10
@@ -16,7 +17,30 @@ FORUM_SORTS = {
     "newest": ("-created_at", "-pk"),
     "oldest": ("created_at", "pk"),
     "answers": ("-reply_count", "-created_at", "-pk"),
+    "asked": ("-vote_count", "-created_at", "-pk"),
 }
+
+def _list_url(request):
+    # list page as user last saw it, with search, filters and page
+    return request.session.get("forum_list_url") or reverse("forum:forum_list")
+
+def _with_votes(qs, user, vote_model, field):
+    qs = qs.annotate(vote_count=Count("votes", distinct=True))
+    if user.is_authenticated:
+        qs = qs.annotate(
+            user_voted=Exists(vote_model.objects.filter(**{field: OuterRef("pk"), "user": user}))
+        )
+    return qs
+
+
+def _toggle_vote(user, vote_model, field, obj):
+    _, created = vote_model.objects.get_or_create(**{field: obj, "user": user})
+    if not created:
+        vote_model.objects.filter(**{field: obj, "user": user}).delete()
+    return created
+
+def _wants_json(request):
+    return request.headers.get("x-requested-with") == "XMLHttpRequest"
 
 def forum_list(request):
     # Read and validate query string
@@ -51,11 +75,11 @@ def forum_list(request):
     counts = dict(base.order_by().values_list("topic").annotate(n=Count("id")))
 
     forums = base.filter(topic=topic) if topic else base
-    forums = (
+    forums = _with_votes(
         forums.select_related("author__profile")
-        .annotate(reply_count=Count("replies"))
-        .order_by(*FORUM_SORTS[sort])
-    )
+        .annotate(reply_count=Count("replies", distinct=True)),
+        request.user, ForumVote, "forum",
+    ).order_by(*FORUM_SORTS[sort])
 
     paginator = Paginator(forums, FORUMS_PER_PAGE)
     page_obj = paginator.get_page(request.GET.get("page"))   # bad page numbers are clamped
@@ -82,6 +106,9 @@ def forum_list(request):
         "selected_show": show,
         "is_filtered": bool(q or topic or show),
     }
+
+    if request.user.is_authenticated:
+        request.session["forum_list_url"] = request.get_full_path()
     return render(request, "forum/forum_list.html", context)
 
 @login_required
@@ -144,7 +171,7 @@ def forum_delete(request, pk):
     forum.delete()                 # replies go with it (CASCADE)
     image.delete(save=False)       # remove the file from media/forum/
 
-    return redirect(_safe_next(request, reverse("forum:forum_list")))
+    return redirect(_safe_next(request, _list_url(request)))
 
 @login_required
 @require_POST
@@ -175,8 +202,12 @@ def reply_create(request, pk):
         return redirect(f"{reverse('forum:forum_detail', args=[pk])}#reply-{reply.pk}")
     return _render_detail(_detail_url(request, pk, f"#reply-{reply.pk}"))
 
-REPLY_SORTS = {"oldest": "created_at", "newest": "-created_at"}
-DEFAULT_REPLY_SORT = "oldest"
+REPLY_SORTS = {
+    "best": ("-vote_count", "created_at"),
+    "oldest": "created_at",
+    "newest": "-created_at",
+}
+DEFAULT_REPLY_SORT = "best"
 
 def _reply_sort(request):
     sort = request.GET.get("sort")
@@ -194,15 +225,24 @@ def _detail_url(request, pk, anchor=""):
 
 def _render_detail(request, forum, reply_form, editing=None, edit_form=None):
     sort = _reply_sort(request)
+    forum = _with_votes(
+        Forum.objects.select_related("author__profile"), request.user, ForumVote, "forum"
+    ).get(pk=forum.pk)
+    replies = _with_votes(
+        forum.replies.select_related("author__profile"), request.user, ReplyVote, "reply"
+    ).order_by(*REPLY_SORTS[sort])
+    
     context = {
         "forum": forum,
-        "replies": forum.replies.select_related("author__profile").order_by(REPLY_SORTS[sort]),
+        "replies": replies,
         "reply_form": reply_form,
         "editing_id": editing.pk if editing else None,
         "edit_form": edit_form,
         "reply_sort": sort,
         "sort_qs": "" if sort == DEFAULT_REPLY_SORT else f"?sort={sort}",
+        "back_url": _list_url(request),
     }
+
     return render(request, "forum/forum_detail.html", context)
 
 def _get_own_reply(request, pk):
@@ -238,3 +278,24 @@ def reply_delete(request, pk):
     forum_pk = reply.forum_id
     reply.delete()
     return redirect(_detail_url(request, forum_pk, "#answers-heading"))
+
+@login_required
+@require_POST
+def forum_vote(request, pk):
+    forum = get_object_or_404(Forum, pk=pk)
+    voted = _toggle_vote(request.user, ForumVote, "forum", forum)
+
+    if _wants_json(request):
+        return JsonResponse({"voted": voted, "count": forum.votes.count()})
+    return redirect(f"{_safe_next(request, reverse('forum:forum_detail', args=[pk]))}#forum-{pk}")
+
+
+@login_required
+@require_POST
+def reply_vote(request, pk):
+    reply = get_object_or_404(Reply, pk=pk)
+    voted = _toggle_vote(request.user, ReplyVote, "reply", reply)
+
+    if _wants_json(request):
+        return JsonResponse({"voted": voted, "count": reply.votes.count()})
+    return redirect(_detail_url(request, reply.forum_id, f"#reply-{pk}"))

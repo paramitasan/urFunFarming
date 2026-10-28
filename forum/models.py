@@ -44,3 +44,24 @@ class Reply(EditedMixin, models.Model):
 
     def __str__(self):
         return f"{self.author} on {self.forum}"
+
+class ForumVote(models.Model):
+    forum = models.ForeignKey(Forum, on_delete=models.CASCADE, related_name="votes")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="forum_votes")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["forum", "user"], name="unique_forum_vote"),
+        ]
+
+
+class ReplyVote(models.Model):
+    reply = models.ForeignKey(Reply, on_delete=models.CASCADE, related_name="votes")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reply_votes")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["reply", "user"], name="unique_reply_vote"),
+        ]

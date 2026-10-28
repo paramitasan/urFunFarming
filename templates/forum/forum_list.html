@@ -48,6 +48,7 @@
                 <option value="newest" {% if selected_sort == "newest" or not selected_sort %}selected{% endif %}>Newest first</option>
                 <option value="oldest" {% if selected_sort == "oldest" %}selected{% endif %}>Oldest first</option>
                 <option value="answers" {% if selected_sort == "answers" %}selected{% endif %}>Most answers</option>
+                <option value="asked" {% if selected_sort == "asked" %}selected{% endif %}>Most asked</option>
             </select>
         </div>
 
@@ -64,7 +65,7 @@
 
             <div class="forum-cards">
                 {% for forum in page_obj %}
-                <article class="forum-card">
+                <article class="forum-card" id="forum-{{ forum.pk }}">
 
                     <div class="forum-card-top">
                         {% if user.is_authenticated %}
@@ -78,7 +79,7 @@
                         {% if user == forum.author %}{% include "forum/_post_menu.html" %}{% endif %}
                     </div>
 
-                    <h3 class="forum-title"><a href="{% url 'forum:forum_detail' forum.pk %}">{{ forum.title }}</a></h3>
+                    <h3 class="forum-title"><a href="{% url 'forum:forum_detail' forum.pk %}" title="View discussion">{{ forum.title }}</a></h3>
 
                     {% if user.is_authenticated %}
                     <p class="forum-excerpt">
@@ -91,6 +92,8 @@
                     {% endif %}
 
                     <div class="forum-card-foot">
+                        {% url 'forum:forum_vote' forum.pk as vote_url %}
+                        {% include "forum/_vote.html" with url=vote_url next=request.get_full_path count=forum.vote_count voted=forum.user_voted %}
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                             <path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
                         </svg>
@@ -98,7 +101,7 @@
                                {% url 'forum:forum_detail' forum.pk %}
                              {% else %}
                                {% url 'accounts:login' %}?next={{ request.path }}
-                             {% endif %}">
+                             {% endif %}" title="View replies">
                              {{ forum.reply_count }} answer{{ forum.reply_count|pluralize }}
                         </a>
                         {% if forum.is_answered %}

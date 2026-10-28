@@ -293,6 +293,10 @@
     margin-top: 16px;
 }
 
+.answer-foot {
+    margin-top: 14px;
+}
+
 @media (max-width: 639px) {
     .forum-post {
         padding: 20px;

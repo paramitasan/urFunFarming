@@ -115,3 +115,28 @@ if (searchBox) {
         }, 400);
     });
 }
+
+// Upvote: update the button without reloading the page.
+document.addEventListener("submit", async (event) => {
+    const form = event.target;
+    if (!form.matches("[data-vote]")) return;
+
+    event.preventDefault();
+    const button = form.querySelector(".vote-button");
+    button.disabled = true;
+
+    try {
+        const response = await fetch(form.action, {
+            method: "POST",
+            body: new FormData(form),   // includes the CSRF token
+            headers: { "X-Requested-With": "XMLHttpRequest" },
+        });
+        const data = await response.json();   // throws if we were redirected to the login page
+        button.classList.toggle("is-voted", data.voted);
+        button.setAttribute("aria-pressed", String(data.voted));
+        form.querySelector(".vote-count").textContent = data.count;
+        button.disabled = false;
+    } catch {
+        form.submit();
+    }
+});

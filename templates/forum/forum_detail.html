@@ -12,7 +12,7 @@
 {% block content %}
 <div class="container forum-page">
 
-    <a class="forum-back" href="{% url 'forum:forum_list' %}">
+    <a class="forum-back" href="{{ back_url }}">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M14 8H2M7 3L2 8l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -41,6 +41,8 @@
 
         <div class="forum-post-foot">
             <div class="forum-card-foot">
+                {% url 'forum:forum_vote' forum.pk as vote_url %}
+                {% include "forum/_vote.html" with url=vote_url next=request.get_full_path count=forum.vote_count voted=forum.user_voted %}
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                     <path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
                 </svg>
@@ -77,6 +79,7 @@
             <h2 id="answers-heading">{{ replies|length }} answer{{ replies|length|pluralize }}</h2>
             <form class="forum-sort answers-sort" method="get" action="{% url 'forum:forum_detail' forum.pk %}#answers-heading">
                 <select name="sort" data-autosubmit aria-label="Sort answers">
+                    <option value="best"{% if reply_sort == "best" %} selected{% endif %}>Best first</option>
                     <option value="oldest"{% if reply_sort == "oldest" %} selected{% endif %}>Oldest first</option>
                     <option value="newest"{% if reply_sort == "newest" %} selected{% endif %}>Newest first</option>
                 </select>
@@ -129,6 +132,10 @@
                     {% if user == reply.author %}{% include "forum/_reply_menu.html" %}{% endif %}
                 </div>
                 <div class="answer-body">{{ reply.body|linebreaks }}</div>
+                <div class="answer-foot">
+                    {% url 'forum:reply_vote' reply.pk as vote_url %}
+                    {% include "forum/_vote.html" with url=vote_url qs=sort_qs count=reply.vote_count voted=reply.user_voted %}
+                </div>
             </article>
             {% endif %}
             {% empty %}

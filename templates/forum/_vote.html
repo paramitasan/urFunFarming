@@ -1,0 +1,12 @@
+{# Upvote button #}
+<form class="vote" method="post" action="{{ url }}{{ qs }}" data-vote>
+    {% csrf_token %}
+    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+    <button type="submit" class="vote-button{% if voted %} is-voted{% endif %}"
+            aria-pressed="{% if voted %}true{% else %}false{% endif %}" aria-label="Upvote" title="Upvote">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M8 13V3M3.5 7.5L8 3l4.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="vote-count">{{ count }}</span>
+    </button>
+</form>
