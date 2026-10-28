@@ -6,6 +6,10 @@ from journal.models import JournalEntry, Planting
 
 
 class JournalEntryForm(forms.ModelForm):
+    photo_1 = forms.URLField(required=False, max_length=500, assume_scheme='https', widget=forms.HiddenInput)
+    photo_2 = forms.URLField(required=False, max_length=500, assume_scheme='https', widget=forms.HiddenInput)
+    photo_3 = forms.URLField(required=False, max_length=500, assume_scheme='https', widget=forms.HiddenInput)
+
     class Meta:
         model = JournalEntry
         fields = ('planting', 'date', 'time', 'height_cm', 'stage', 'health', 'observation')
@@ -45,3 +49,17 @@ class JournalEntryForm(forms.ModelForm):
         if not observation:
             raise ValidationError('Please write what you noticed.')
         return observation
+    
+    def photo_urls(self):
+        # The photo links that were filled in, in order, skipping empty ones
+        urls = [self.cleaned_data.get(name) for name in ('photo_1', 'photo_2', 'photo_3')]
+        return [url for url in urls if url]
+
+
+class NewEntryForm(JournalEntryForm):
+    VISIBILITY_CHOICES = [
+        ('private', 'Private'),
+        ('public', 'Public'),
+    ]
+
+    visibility = forms.ChoiceField(choices=VISIBILITY_CHOICES, initial='private', widget=forms.RadioSelect)
