@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from accounts.models import Profile
-from journal.forms import JournalEntryForm, NewEntryForm
+from journal.forms import PHOTO_ERROR, JournalEntryForm, NewEntryForm
 from journal.models import EntryPhoto, JournalEntry, PlantJournal, Planting
 
 
@@ -82,14 +82,17 @@ def create_entry(request, planting_id=None):
         latest = planting.journal_entries.first()
         initial = {'stage': latest.stage} if latest else {}
         form = JournalEntryForm(
-            request.user, request.POST or None, initial=initial, instance=JournalEntry(planting=planting),
+            request.user, request.POST or None, request.FILES or None,
+            initial=initial, instance=JournalEntry(planting=planting),
         )
         del form.fields['planting']
     else:
-        form = NewEntryForm(request.user, request.POST or None)
+        form = NewEntryForm(request.user, request.POST or None, request.FILES or None)
 
     if request.method == 'POST' and form.is_valid():
         entry = form.save()
+        for image in form.cleaned_data['photos']:
+            EntryPhoto.objects.create(entry=entry, image=image)
         for url in form.photo_urls():
             EntryPhoto.objects.create(entry=entry, url=url)
 
@@ -101,6 +104,10 @@ def create_entry(request, planting_id=None):
 
         messages.success(request, 'Entry saved')
         return redirect('journal:plant_detail', planting_id=entry.planting.pk)
+
+    # Bad upload: show the "Couldn't upload your photo" toast as well as the field error
+    if PHOTO_ERROR in form.errors.get('photos', []):
+        messages.error(request, "Couldn't upload your photo")
 
     context = {
         'form': form,

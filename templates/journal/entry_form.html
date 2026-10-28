@@ -16,6 +16,9 @@
 {% endif %}
 
 <div class="journal journal-narrow">
+    {% for message in messages %}
+        <p role="status">{{ message }}</p>
+    {% endfor %}
     <a class="back-link" href="{{ back_url }}">
         <img src="{% static 'journal/icons/arrow-left.svg' %}" alt="" width="18" height="18">
         {% if planting %}Back{% else %}Back to journal{% endif %}
@@ -27,7 +30,7 @@
         <p class="journal-subtitle">Log what changed since you last checked on this plant.</p>
     </header>
 
-    <form class="form-card" method="post" novalidate>
+    <form class="form-card" method="post" enctype="multipart/form-data" novalidate>
         {% csrf_token %}
 
         {% if planting %}
