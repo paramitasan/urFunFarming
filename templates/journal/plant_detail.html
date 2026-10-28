@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ planting.name }} · Plant Journal{% endblock title %}
+
+{% block content %}
+{% include 'partials/grower_subnav.html' %}
+<h1>{{ planting.name }}</h1>
+
+{% if can_view %}
+    {% for entry in entries %}
+        <p>{{ entry.date }} {{ entry.time }}: {{ entry.height_cm }} cm, {{ entry.get_stage_display }}, {{ entry.get_health_display }}</p>
+        <p>{{ entry.observation }}</p>
+    {% empty %}
+        <p>No entries yet.</p>
+    {% endfor %}
+{% else %}
+    <p>This journal is private.</p>
+{% endif %}
+{% endblock content %}
