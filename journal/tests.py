@@ -391,3 +391,102 @@ class CreateEntryTest(JournalTestCase):
         response = self.client.post(self.new_url, data)
         self.assertIn("Couldn't upload your photo", self.toasts(response))
         self.assertEqual(JournalEntry.objects.count(), 3)
+
+
+class EditEntryTest(JournalTestCase):
+    def edit_url(self, entry):
+        return reverse('journal:edit_entry', args=[entry.pk])
+
+    def toasts(self, response):
+        return [str(message) for message in response.context['messages']]
+
+    def unchanged_data(self, **changes):
+        # The latest entry exactly as it is saved now
+        data = self.entry_data(
+            date='2026-10-24', time='07:30', height_cm=92,
+            observation='First fruits set on the lower truss.',
+        )
+        data.update(changes)
+        return data
+
+    def test_visitor_is_sent_to_login(self):
+        response = self.client.get(self.edit_url(self.latest))
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.url.startswith('/login'))
+
+    def test_buyer_sees_the_growers_only_page(self):
+        self.client.force_login(self.buyer)
+        response = self.client.get(self.edit_url(self.latest))
+        self.assertEqual(response.status_code, 403)
+        self.assertTemplateUsed(response, 'journal/grower_required.html')
+
+    def test_other_grower_cannot_edit(self):
+        self.client.force_login(self.other_grower)
+        response = self.client.post(self.edit_url(self.latest), self.unchanged_data(height_cm=1))
+        self.assertEqual(response.status_code, 403)
+        self.latest.refresh_from_db()
+        self.assertEqual(self.latest.height_cm, 92)
+
+    def test_missing_entry_gives_404(self):
+        self.client.force_login(self.grower)
+        response = self.client.get(reverse('journal:edit_entry', args=[999]))
+        self.assertEqual(response.status_code, 404)
+
+    def test_page_is_filled_in_with_the_entry(self):
+        self.client.force_login(self.grower)
+        response = self.client.get(self.edit_url(self.latest))
+        self.assertEqual(response.status_code, 200)
+        form = response.context['form']
+        self.assertEqual(form.instance, self.latest)
+        self.assertNotIn('planting', form.fields)
+        self.assertContains(response, 'First fruits set on the lower truss.')
+        self.assertContains(response, 'value="07:30"')
+        self.assertContains(response, 'Editing the entry from 24 Oct 2026 · 07.30')
+
+    def test_saving_without_changes_says_so(self):
+        self.client.force_login(self.grower)
+        response = self.client.post(self.edit_url(self.latest), self.unchanged_data(), follow=True)
+        self.assertRedirects(response, reverse('journal:plant_detail', args=[self.tomato.pk]))
+        self.assertIn('No changes to save', self.toasts(response))
+
+    def test_saving_changes(self):
+        self.client.force_login(self.grower)
+        data = self.unchanged_data(height_cm=97, health='attention')
+        response = self.client.post(self.edit_url(self.latest), data, follow=True)
+        self.assertIn('Changes saved', self.toasts(response))
+        self.latest.refresh_from_db()
+        self.assertEqual(self.latest.height_cm, 97)
+        self.assertEqual(self.latest.health, 'attention')
+        self.assertEqual(self.latest.planting, self.tomato)
+
+    def test_only_a_new_photo_still_counts_as_a_change(self):
+        self.client.force_login(self.grower)
+        data = self.unchanged_data(photo_1='https://example.com/tomato.jpg')
+        response = self.client.post(self.edit_url(self.latest), data, follow=True)
+        self.assertIn('Changes saved', self.toasts(response))
+        self.assertEqual(self.latest.photos.count(), 1)
+
+    def test_errors_keep_the_original_date_in_the_header(self):
+        self.client.force_login(self.grower)
+        response = self.client.post(self.edit_url(self.latest), self.unchanged_data(date=''))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['original_date'], date(2026, 10, 24))
+        self.assertContains(response, 'Editing the entry from 24 Oct 2026 · 07.30')
+        self.assertContains(response, 'Fill them in to save your changes.')
+        self.latest.refresh_from_db()
+        self.assertEqual(self.latest.date, date(2026, 10, 24))
+
+    def test_kept_photos_count_towards_the_limit(self):
+        for n in range(4):
+            EntryPhoto.objects.create(entry=self.latest, url=f'https://example.com/{n}.jpg')
+        self.client.force_login(self.grower)
+        data = self.unchanged_data(photo_1='https://example.com/a.jpg', photo_2='https://example.com/b.jpg')
+        response = self.client.post(self.edit_url(self.latest), data)
+        self.assertContains(response, 'You can add up to 5 photos to one entry.')
+        self.assertEqual(self.latest.photos.count(), 4)
+
+    def test_bad_upload_shows_the_toast(self):
+        self.client.force_login(self.grower)
+        data = self.unchanged_data(photos=[SimpleUploadedFile('plant.jpg', b'not an image')])
+        response = self.client.post(self.edit_url(self.latest), data)
+        self.assertIn("Couldn't upload your photo", self.toasts(response))
