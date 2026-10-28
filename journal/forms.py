@@ -54,7 +54,7 @@ class JournalEntryForm(forms.ModelForm):
         }
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date'}),
-            'time': forms.TimeInput(attrs={'type': 'time'}),
+            'time': forms.TimeInput(attrs={'type': 'time'}, format='%H:%M'),
             'height_cm': forms.NumberInput(attrs={'min': 0, 'placeholder': '0'}),
             'stage': forms.RadioSelect,
             'health': forms.RadioSelect,

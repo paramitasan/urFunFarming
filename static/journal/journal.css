@@ -694,6 +694,43 @@
     border-top: 1px solid var(--color-hairline);
 }
 
+.form-footer-split {
+    justify-content: space-between;
+}
+
+.form-footer-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+/* Danger button: white with a red border, from the Figma Button component */
+.danger-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px 22px;
+    background-color: var(--color-surface);
+    border: 1.5px solid #B5452F;
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: normal;
+    color: #B5452F;
+    cursor: pointer;
+}
+
+.danger-button:hover {
+    background-color: #F8E3DE;
+}
+
+.danger-button:focus-visible {
+    outline: 2px solid #B5452F;
+    outline-offset: 2px;
+}
+
 
 /* Groups of choices: stage and health chips, visibility cards */
 
@@ -1056,8 +1093,10 @@
         grid-template-columns: minmax(0, 1fr);
     }
 
+    .form-footer-actions,
     .form-footer .pill-button,
-    .form-footer .outline-button {
+    .form-footer .outline-button,
+    .form-footer .danger-button {
         flex: 1;
     }
     

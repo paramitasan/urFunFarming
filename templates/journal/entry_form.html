@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{% if planting %}New Entry for {{ planting.name }}{% else %}New Entry{% endif %} · Plant Journal{% endblock title %}
+{% block title %}{% if entry %}Edit Entry{% elif planting %}New Entry for {{ planting.name }}{% else %}New Entry{% endif %} · Plant Journal{% endblock title %}
 
 {% block head %}
 <link rel="stylesheet" href="{% static 'journal/journal.css' %}">
@@ -26,9 +26,9 @@
     </a>
 
     <header class="journal-title-block">
-        <p class="journal-eyebrow">Plant journal · New entry</p>
-        <h1 class="journal-title">{% if planting %}New Entry for {{ planting.name }}{% else %}New Entry{% endif %}</h1>
-        <p class="journal-subtitle">Log what changed since you last checked on this plant.</p>
+        <p class="journal-eyebrow">Plant journal · {% if entry %}Edit entry{% else %}New entry{% endif %}</p>
+        <h1 class="journal-title">{% if entry %}Edit Entry{% elif planting %}New Entry for {{ planting.name }}{% else %}New Entry{% endif %}</h1>
+        <p class="journal-subtitle">{% if entry %}Update what you wrote about this plant on {{ original_date|date:"j M Y" }}.{% else %}Log what changed since you last checked on this plant.{% endif %}</p>
     </header>
 
     <form class="form-card" method="post" enctype="multipart/form-data" novalidate>
@@ -37,7 +37,7 @@
         <div class="form-error-banner" role="alert">
             <img src="{% static 'journal/icons/alert.svg' %}" alt="" width="18" height="18">
             {% if missing_required %}
-                Some required fields are empty. Fill them in to save this entry.
+                Some required fields are empty. Fill them in to save {% if entry %}your changes{% else %}this entry{% endif %}.
             {% else %}
                 Some fields need fixing. Check the messages below to save this entry.
             {% endif %}
@@ -50,7 +50,9 @@
             </span>
             <div>
                 <strong>{{ planting.name }} · {{ planting.garden.name }}</strong>
-                {% if latest %}
+                {% if entry %}
+                    <span>Editing the entry from {{ original_date|date:"j M Y" }} · {{ original_time|time:"H.i" }}</span>
+                {% elif latest %}
                     <span>Last entry: {{ latest.date|date:"j M Y" }} · {{ latest.height_cm }} cm · {{ latest.get_stage_display }} · {{ latest.get_health_display }}</span>
                 {% else %}
                     <span>No entries yet</span>
@@ -200,9 +202,18 @@
             {% include 'journal/field_errors.html' with field=form.photo_5 %}
         </div>
 
-        <div class="form-footer">
-            <a class="outline-button" href="{{ back_url }}">Cancel</a>
-            <button class="pill-button" type="submit">Save Entry</button>
+        <div class="form-footer{% if entry %} form-footer-split{% endif %}">
+            {% if entry %}
+                {# TODO: opens the delete dialog in step 5 #}
+                <button class="danger-button" type="button">
+                    <img src="{% static 'journal/icons/trash.svg' %}" alt="" width="18" height="18">
+                    Delete entry
+                </button>
+            {% endif %}
+            <div class="form-footer-actions">
+                <a class="outline-button" href="{{ back_url }}">Cancel</a>
+                <button class="pill-button" type="submit">{% if entry %}Save Changes{% else %}Save Entry{% endif %}</button>
+            </div>
         </div>
     </form>
 </div>

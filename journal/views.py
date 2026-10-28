@@ -15,6 +15,23 @@ def is_grower(user):
     return profile is not None and profile.is_grower
 
 
+def save_new_photos(entry, form):
+    # Uploads first, then links, as new EntryPhoto rows for this entry
+    for image in form.cleaned_data['photos']:
+        EntryPhoto.objects.create(entry=entry, image=image)
+    for url in form.photo_urls():
+        EntryPhoto.objects.create(entry=entry, url=url)
+
+
+def has_missing_required(form):
+    # True when at least one required field was left empty
+    return any(
+        error.code == 'required'
+        for errors in form.errors.as_data().values()
+        for error in errors
+    )
+
+
 @login_required(login_url='/login')
 def index(request):
     context = {}
@@ -91,10 +108,7 @@ def create_entry(request, planting_id=None):
 
     if request.method == 'POST' and form.is_valid():
         entry = form.save()
-        for image in form.cleaned_data['photos']:
-            EntryPhoto.objects.create(entry=entry, image=image)
-        for url in form.photo_urls():
-            EntryPhoto.objects.create(entry=entry, url=url)
+        save_new_photos(entry, form)
 
         journal, _ = PlantJournal.objects.get_or_create(planting=entry.planting)
         # Only the general form has the Private/Public choice
@@ -105,13 +119,6 @@ def create_entry(request, planting_id=None):
         messages.success(request, 'Entry saved')
         return redirect('journal:plant_detail', planting_id=entry.planting.pk)
 
-    # The banner says "required fields are empty" only when that is really the problem
-    missing_required = any(
-        error.code == 'required'
-        for errors in form.errors.as_data().values()
-        for error in errors
-    )
-
     # Bad upload: show the "Couldn't upload your photo" toast as well as the field error
     if PHOTO_ERROR in form.errors.get('photos', []):
         messages.error(request, "Couldn't upload your photo")
@@ -120,6 +127,50 @@ def create_entry(request, planting_id=None):
         'form': form,
         'planting': planting,
         'latest': latest,
-        'missing_required': missing_required,
+        'missing_required': has_missing_required(form),
+    }
+    return render(request, 'journal/entry_form.html', context)
+
+
+@login_required(login_url='/login')
+def edit_entry(request, entry_id):
+    if not is_grower(request.user):
+        return render(request, 'journal/grower_required.html', status=403)
+
+    entry = get_object_or_404(JournalEntry, pk=entry_id)
+    if entry.planting.garden.owner != request.user:
+        raise PermissionDenied
+
+    # Remember these before the form copies the new values onto the entry
+    original_date = entry.date
+    original_time = entry.time
+
+    form = JournalEntryForm(request.user, request.POST or None, request.FILES or None, instance=entry)
+    del form.fields['planting']
+    form.kept_photos = entry.photos.count()
+
+    if request.method == 'POST' and form.is_valid():
+        # "photos" always counts as changed for a file field, so check new photos separately
+        fields_changed = [name for name in form.changed_data if name != 'photos']
+        new_photos = form.cleaned_data['photos'] or form.photo_urls()
+
+        if not fields_changed and not new_photos:
+            messages.info(request, 'No changes to save')
+        else:
+            form.save()
+            save_new_photos(entry, form)
+            messages.success(request, 'Changes saved')
+        return redirect('journal:plant_detail', planting_id=entry.planting.pk)
+
+    if PHOTO_ERROR in form.errors.get('photos', []):
+        messages.error(request, "Couldn't upload your photo")
+
+    context = {
+        'form': form,
+        'entry': entry,
+        'planting': entry.planting,
+        'original_date': original_date,
+        'original_time': original_time,
+        'missing_required': has_missing_required(form),
     }
     return render(request, 'journal/entry_form.html', context)
