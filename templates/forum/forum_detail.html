@@ -137,5 +137,6 @@
         </div>
     </section>
 
+    {% if user.is_authenticated %}{% include "forum/_confirm_dialog.html" %}{% endif %}
 </div>
 {% endblock content %}

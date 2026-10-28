@@ -21,7 +21,10 @@
 
         <a href="{% url 'forum:forum_edit' forum.pk %}?next={{ request.get_full_path|urlencode }}">Edit</a>
         
-        <form method="post" action="{% url 'forum:forum_delete' forum.pk %}">
+        <form method="post" action="{% url 'forum:forum_delete' forum.pk %}"
+              data-confirm-title="Delete forum?"
+              data-confirm-text="This forum, its photos, and replies will be removed. This can’t be undone."
+              data-confirm-ok="Delete forumm">
             {% csrf_token %}
             {% if request.resolver_match.url_name == "forum_list" %}
             <input type="hidden" name="next" value="{{ request.get_full_path }}">

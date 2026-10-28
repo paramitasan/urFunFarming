@@ -54,3 +54,37 @@ if (editingBox && editingBox.closest(".reply-edit-field")) {
     const end = editingBox.value.length;
     editingBox.setSelectionRange(end, end);
 }
+
+// Delete confirmation: any form with data-confirm-title asks first.
+const confirmDialog = document.getElementById("confirm-dialog");
+if (confirmDialog) {
+    const title = confirmDialog.querySelector("#confirm-title");
+    const text = confirmDialog.querySelector("#confirm-text");
+    const ok = confirmDialog.querySelector("[data-confirm-ok]");
+    const cancel = confirmDialog.querySelector("[data-confirm-cancel]");
+    let pendingForm = null;
+
+    document.addEventListener("submit", (event) => {
+        const form = event.target;
+        if (!form.matches("[data-confirm-title]")) return;
+
+        event.preventDefault();
+        pendingForm = form;
+        title.textContent = form.dataset.confirmTitle;
+        text.textContent = form.dataset.confirmText;
+        ok.textContent = form.dataset.confirmOk;
+        form.closest("details")?.removeAttribute("open");   // close the "..." menu
+        confirmDialog.showModal();
+    });
+
+    ok.addEventListener("click", () => {
+        confirmDialog.close();
+        if (pendingForm) pendingForm.submit();   // submit() doesn't fire the event again
+    });
+    cancel.addEventListener("click", () => confirmDialog.close());
+
+    // Click on the dark backdrop closes it too
+    confirmDialog.addEventListener("click", (event) => {
+        if (event.target === confirmDialog) confirmDialog.close();
+    });
+}
