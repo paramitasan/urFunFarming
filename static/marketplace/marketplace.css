@@ -18,11 +18,12 @@
 .market-actions { flex-shrink: 0; }
 .market-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 13px 22px; min-height: 48px; border: 1.5px solid transparent; border-radius: 999px; font: 600 15px/1.4 'Poppins',sans-serif; cursor: pointer; text-align: center; transition: background-color .16s, transform .16s; }
 .market-button img { flex: 0 0 auto; }
-.market-button:hover { transform: translateY(-1px); }
+/* Hover only where there is a mouse, so buttons don't stay lifted after a tap */
+@media (hover: hover) { .market-button:hover { transform: translateY(-1px); } }
 .market-button-primary { background: var(--color-accent); color: var(--color-ink); }
-.market-button-primary:hover { background: #1DB873; }
+@media (hover: hover) { .market-button-primary:hover { background: #1DB873; } }
 .market-button-outline { border-color: var(--color-forest); background: var(--color-surface); color: var(--color-forest); }
-.market-button-outline:hover { background: var(--color-band); }
+@media (hover: hover) { .market-button-outline:hover { background: var(--color-band); } }
 .market-button-danger { background: #B5452F; color: #fff; }
 .market-button-danger-outline { background: var(--color-surface); border-color: #B5452F; color: #9C3926; }
 .market-button:disabled { opacity: .65; cursor: wait; transform: none; }
@@ -56,7 +57,7 @@
 .harvest-grower-profile strong { display: block; max-width: 135px; font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .harvest-grower-profile small { display: block; max-width: 135px; font-size: 12px; color: var(--color-deep); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .harvest-view { border: 1.25px solid var(--color-forest); border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 600; flex-shrink: 0; }
-.harvest-view:hover { background: var(--color-band); }
+@media (hover: hover) { .harvest-view:hover { background: var(--color-band); } }
 .market-filters { background: #fff; border: 1px solid #DFE4DE; border-radius: 12px; padding: 24px 22px; }
 .market-filter-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
 .market-filter-heading h2 { font-size: 20px; font-weight: 500; }

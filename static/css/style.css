@@ -29,6 +29,13 @@
     box-sizing: border-box;
 }
 
+/* iPhone: no text enlarging when turned sideways, and a soft green tap flash instead of grey */
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: var(--color-hairline);
+}
+
 body {
     background-color: var(--color-bg);
     font-family: 'Poppins', sans-serif;
@@ -36,6 +43,7 @@ body {
     line-height: 1.6;
     color: var(--color-forest);
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
 }
@@ -242,10 +250,13 @@ ul {
     cursor: pointer;
 }
 
-.profile-dropdown a:hover,
-.profile-dropdown button:hover {
-    background-color: var(--color-band);
-    color: var(--color-forest);
+/* Hover only where there is a mouse, so colours don't stick after a tap */
+@media (hover: hover) {
+    .profile-dropdown a:hover,
+    .profile-dropdown button:hover {
+        background-color: var(--color-band);
+        color: var(--color-forest);
+    }
 }
 
 /* Pill buttons and role chips, shared by Home and Profile */
@@ -271,8 +282,10 @@ ul {
     border: 1.5px solid var(--color-forest);
 }
 
-.outline-button:hover {
-    background-color: var(--color-band);
+@media (hover: hover) {
+    .outline-button:hover {
+        background-color: var(--color-band);
+    }
 }
 
 .pill-button {
@@ -280,8 +293,10 @@ ul {
     border: none;
 }
 
-.pill-button:hover {
-    background-color: #1DB873;
+@media (hover: hover) {
+    .pill-button:hover {
+        background-color: #1DB873;
+    }
 }
 
 .outline-button:disabled,
@@ -313,9 +328,11 @@ ul {
     color: var(--color-deep);
 }
 
-.role-chip-add:hover {
-    border-color: var(--color-accent);
-    color: var(--color-forest);
+@media (hover: hover) {
+    .role-chip-add:hover {
+        border-color: var(--color-accent);
+        color: var(--color-forest);
+    }
 }
 
 .outline-button:focus-visible,

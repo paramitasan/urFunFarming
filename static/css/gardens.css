@@ -134,8 +134,10 @@
     color: var(--color-light);
 }
 
-.gardens-danger:hover {
-    background-color: var(--color-danger-text);
+@media (hover: hover) {
+    .gardens-danger:hover {
+        background-color: var(--color-danger-text);
+    }
 }
 
 /* Search row */
@@ -547,9 +549,14 @@ legend.garden-filter-label {
     display: block;
 }
 
-.garden-more summary:hover,
 .garden-more[open] summary {
     background-color: var(--color-band);
+}
+
+@media (hover: hover) {
+    .garden-more summary:hover {
+        background-color: var(--color-band);
+    }
 }
 
 .garden-more-menu {
@@ -575,8 +582,10 @@ legend.garden-filter-label {
     color: var(--color-forest);
 }
 
-.garden-more-menu a:hover {
-    background-color: var(--color-band);
+@media (hover: hover) {
+    .garden-more-menu a:hover {
+        background-color: var(--color-band);
+    }
 }
 
 .garden-more-menu .garden-more-delete {

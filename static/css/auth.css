@@ -5,6 +5,7 @@
     --color-error-bg: #F8E3DE;
     position: relative;
     min-height: 100vh;
+    min-height: 100dvh;
     padding: 132px 16px 120px;
     overflow: hidden;
 }
@@ -394,8 +395,10 @@
     cursor: progress;
 }
 
-.auth-submit:hover {
-    background-color: #1DB873;
+@media (hover: hover) {
+    .auth-submit:hover {
+        background-color: #1DB873;
+    }
 }
 
 .auth-divider {
