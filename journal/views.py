@@ -80,6 +80,8 @@ def plant_detail(request, planting_id):
         'started_on': started_on,
         'days_growing': days_growing,
         'stage_steps': stage_steps,
+        # Opened from the garden page: the back link returns there instead of to the journal
+        'from_garden': request.GET.get('from') == 'garden',
     }
     return render(request, 'journal/plant_detail.html', context)
 

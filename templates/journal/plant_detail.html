@@ -13,10 +13,18 @@
     {% for message in messages %}
         <p role="status">{{ message }}</p>
     {% endfor %}
-    <a class="back-link" href="{% url 'journal:index' %}">
-        <img src="{% static 'journal/icons/arrow-left.svg' %}" alt="" width="18" height="18">
-        Back to journal
-    </a>
+    {% if from_garden %}
+        {# TODO: link to this garden's page once the gardens app is merged #}
+        <a class="back-link" href="#">
+            <img src="{% static 'journal/icons/arrow-left.svg' %}" alt="" width="18" height="18">
+            Back to {{ planting.garden.name }}
+        </a>
+    {% else %}
+        <a class="back-link" href="{% url 'journal:index' %}">
+            <img src="{% static 'journal/icons/arrow-left.svg' %}" alt="" width="18" height="18">
+            Back to journal
+        </a>
+    {% endif %}
 
     <header class="journal-header">
         <div class="journal-title-block">
