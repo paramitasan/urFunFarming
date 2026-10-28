@@ -8,6 +8,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from accounts.models import Profile
+from gardens.models import Garden
 
 
 class LandingPageTest(TestCase):
@@ -33,6 +34,35 @@ class LandingPageTest(TestCase):
                     self.assertContains(response, 'class="moon"')
                 else:
                     self.assertNotContains(response, 'class="moon"')
+
+    def test_landing_uses_only_public_garden_cards(self):
+        owner = User.objects.create_user('landing_grower', password='test-password')
+        Profile.objects.create(user=owner, display_name='Landing Grower', is_grower=True)
+        Garden.objects.create(
+            owner=owner,
+            name='Public balcony',
+            location='Tebet',
+            growing_method='Container pots',
+            public_summary='Herbs grown in morning sun.',
+            private_notes='Do not expose these notes.',
+            is_public=True,
+        )
+        Garden.objects.create(
+            owner=owner,
+            name='Private rooftop',
+            location='Depok',
+            growing_method='Raised beds',
+            is_public=False,
+        )
+
+        response = self.client.get(reverse('main:show_main'))
+
+        self.assertContains(response, 'Public balcony')
+        self.assertContains(response, reverse('gardens:public_detail', args=[1]))
+        self.assertContains(response, 'Landing Grower')
+        self.assertNotContains(response, 'Private rooftop')
+        self.assertNotContains(response, 'Do not expose these notes.')
+        self.assertEqual(len(response.context['gardens']), 1)
 
 class HomePageTest(TestCase):
     def make_user(self, username, is_grower=False, is_buyer=False):
@@ -143,6 +173,14 @@ class HomePageTest(TestCase):
         for response in (self.client.get(reverse('main:show_main')), self.home_as(self.grower)):
             self.assertContains(response, 'data-label="Explore gardens"')
             self.assertNotContains(response, 'data-label="Gardens"')
+
+        self.client.logout()
+        visitor_page = self.client.get(reverse('main:show_main'))
+        self.assertContains(visitor_page, f'href="{reverse("gardens:explore")}" data-label="Explore gardens"')
+        self.assertContains(visitor_page, f'href="{reverse("accounts:register")}"')
+        grower_page = self.home_as(self.grower)
+        self.assertContains(grower_page, f'href="{reverse("gardens:mine")}" data-tone="gardens"')
+        self.assertContains(grower_page, f'href="{reverse("gardens:explore")}" data-tone="explore"')
 
     def test_role_band_and_chips(self):
         grower_page = self.home_as(self.grower)

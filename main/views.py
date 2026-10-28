@@ -1,10 +1,12 @@
 import datetime
 
 from django.contrib.auth.decorators import login_required
+from django.db.models import Count
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
 from accounts.models import Profile
+from gardens.models import Garden
 from marketplace.models import HarvestListing
 
 
@@ -26,6 +28,15 @@ def get_listings(category):
     return queryset[:8]
 
 
+def get_public_garden_cards(limit=3):
+    return Garden.objects.filter(is_public=True, owner__is_active=True).annotate(
+        planting_count=Count('plantings', distinct=True),
+    ).order_by('name', 'id').values(
+        'id', 'name', 'location', 'growing_method', 'public_summary', 'planting_count',
+        'owner__username', 'owner__profile__display_name',
+    )[:limit]
+
+
 def show_main(request):
     if request.user.is_authenticated:
         return redirect('main:home')
@@ -34,6 +45,7 @@ def show_main(request):
         'period': get_period(timezone.localtime().hour),
         'app_name': 'urFunFarming',
         'listings': get_listings('all'),
+        'gardens': get_public_garden_cards(),
         'listing_count': HarvestListing.objects.available_now().count(),
         'categories': CATEGORIES,
         'active': 'all',
