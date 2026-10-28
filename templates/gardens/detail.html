@@ -36,7 +36,6 @@
             <h2>{{ garden.name }}</h2>
             <p>{{ garden.location }} · {{ garden.growing_method }}</p>
             {% if garden.public_summary %}<p>{{ garden.public_summary }}</p>{% endif %}
-            {% if garden.private_notes %}<div class="owner-private-notes"><h3>Private notes</h3><p>{{ garden.private_notes }}</p></div>{% endif %}
         </aside>
         <div class="garden-results">
             <p class="garden-results-count">{{ planting_count }} plant{{ planting_count|pluralize }} <span>{% if garden.is_public %}Public garden: all plants are public{% else %}Private garden: only you can see these plants{% endif %}</span></p>

@@ -1,6 +1,5 @@
-from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.views import redirect_to_login
+from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.cache import never_cache
@@ -17,8 +16,7 @@ from gardens.models import Garden, Planting
 
 
 def _require_grower(request):
-    if not request.user.is_authenticated:
-        return redirect_to_login(request.get_full_path(), settings.LOGIN_URL)
+    # Only creating needs the grower role; owners keep access to what they already made
     if not getattr(getattr(request.user, 'profile', None), 'is_grower', False):
         return render(request, 'gardens/grower_required.html', status=403)
     return None
@@ -122,11 +120,14 @@ def explore(request):
 def public_detail(request, pk):
     garden = get_object_or_404(
         _public_gardens().values(
-            'id', 'name', 'location', 'growing_method', 'public_summary',
+            'id', 'name', 'location', 'growing_method', 'public_summary', 'owner_id',
             'owner__username', 'owner__profile__display_name',
         ),
         pk=pk,
     )
+    # Explore never lists your own gardens, so send the owner to their own view instead
+    if garden['owner_id'] == request.user.pk:
+        return redirect('gardens:detail', pk=pk)
     garden_instance = Garden.objects.get(pk=garden['id'])
     filter_form, plantings, planting_count = _filtered_plantings(garden_instance, request.GET)
     return render(
@@ -141,12 +142,10 @@ def public_detail(request, pk):
     )
 
 
+@login_required(login_url='/login')
 @never_cache
 @require_GET
 def my_gardens(request):
-    denied = _require_grower(request)
-    if denied is not None:
-        return denied
     form = GardenListFilterForm(request.GET)
     gardens = Garden.objects.filter(owner=request.user)
     locations = list(gardens.order_by('location').values_list('location', flat=True).distinct())
@@ -183,6 +182,7 @@ def my_gardens(request):
     )
 
 
+@login_required(login_url='/login')
 @never_cache
 @require_http_methods(['GET', 'POST'])
 def create(request):
@@ -199,12 +199,10 @@ def create(request):
     return render(request, 'gardens/form.html', {'form': form}, status=400 if request.method == 'POST' else 200)
 
 
+@login_required(login_url='/login')
 @never_cache
 @require_GET
 def detail(request, pk):
-    denied = _require_grower(request)
-    if denied is not None:
-        return denied
     garden = _owned_garden(request, pk)
     filter_form, plantings, planting_count = _filtered_plantings(garden, request.GET)
     return render(
@@ -219,12 +217,10 @@ def detail(request, pk):
     )
 
 
+@login_required(login_url='/login')
 @never_cache
 @require_http_methods(['GET', 'POST'])
 def edit(request, pk):
-    denied = _require_grower(request)
-    if denied is not None:
-        return denied
     garden = _owned_garden(request, pk)
     form = GardenForm(request.POST if request.method == 'POST' else None, instance=garden)
     if request.method == 'POST' and form.is_valid():
@@ -239,12 +235,10 @@ def edit(request, pk):
     )
 
 
+@login_required(login_url='/login')
 @never_cache
 @require_http_methods(['GET', 'POST'])
 def delete(request, pk):
-    denied = _require_grower(request)
-    if denied is not None:
-        return denied
     garden = _owned_garden(request, pk)
     if request.method == 'POST':
         garden.delete()
@@ -253,6 +247,7 @@ def delete(request, pk):
     return render(request, 'gardens/delete.html', {'garden': garden})
 
 
+@login_required(login_url='/login')
 @never_cache
 @require_http_methods(['GET', 'POST'])
 def planting_create(request, garden_pk):
@@ -278,19 +273,28 @@ def planting_create(request, garden_pk):
 @never_cache
 @require_GET
 def planting_detail(request, garden_pk, planting_pk):
-    denied = _require_grower(request)
-    if denied is not None:
-        return denied
-    planting = _owned_planting(request, garden_pk, planting_pk)
-    return render(request, 'gardens/planting_detail.html', {'garden': planting.garden, 'planting': planting})
+    # Shared plant page: the owner always sees it, everyone sees plants of a public garden,
+    # and anyone else gets the "No access" state without any of the plant's details
+    planting = get_object_or_404(
+        Planting.objects.select_related('garden__owner'),
+        pk=planting_pk,
+        garden_id=garden_pk,
+    )
+    garden = planting.garden
+    is_owner = garden.owner_id == request.user.pk
+    if not is_owner and not (garden.is_public and garden.owner.is_active):
+        return render(request, 'gardens/planting_detail.html', {'no_access': True}, status=403)
+    return render(
+        request,
+        'gardens/planting_detail.html',
+        {'garden': garden, 'planting': planting, 'is_owner': is_owner},
+    )
 
 
+@login_required(login_url='/login')
 @never_cache
 @require_http_methods(['GET', 'POST'])
 def planting_edit(request, garden_pk, planting_pk):
-    denied = _require_grower(request)
-    if denied is not None:
-        return denied
     planting = _owned_planting(request, garden_pk, planting_pk)
     form = PlantingForm(request.POST if request.method == 'POST' else None, instance=planting)
     if request.method == 'POST' and form.is_valid():
@@ -305,12 +309,10 @@ def planting_edit(request, garden_pk, planting_pk):
     )
 
 
+@login_required(login_url='/login')
 @never_cache
 @require_http_methods(['GET', 'POST'])
 def planting_delete(request, garden_pk, planting_pk):
-    denied = _require_grower(request)
-    if denied is not None:
-        return denied
     planting = _owned_planting(request, garden_pk, planting_pk)
     if request.method == 'POST':
         planting.delete()
