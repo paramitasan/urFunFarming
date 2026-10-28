@@ -1,0 +1,30 @@
+{% load static %}
+{% url 'gardens:planting_detail' garden_pk planting.pk as plant_url %}
+<article class="planting-card">
+    <div class="garden-photo" aria-hidden="true"></div>
+    <div class="planting-card-content">
+        <div class="garden-card-top">
+            <h2><a href="{{ plant_url }}">{{ planting.display_name }}</a></h2>
+            <span class="garden-day-tag">Day {{ planting.day_number }}</span>
+            {% if owner_view %}
+                <details class="garden-more">
+                    <summary aria-label="More actions for {{ planting.display_name }}"><img src="{% static 'img/gardens/more.svg' %}" alt=""></summary>
+                    <div class="garden-more-menu">
+                        <a href="{% url 'gardens:planting_edit' garden_pk planting.pk %}">Edit</a>
+                        <a class="garden-more-delete" href="{% url 'gardens:planting_delete' garden_pk planting.pk %}">Delete</a>
+                    </div>
+                </details>
+            {% endif %}
+        </div>
+        <p class="garden-card-meta">
+            {% if planting.name %}<span><img src="{% static 'img/gardens/sprout.svg' %}" alt="">{{ planting.crop }}</span>{% endif %}
+            <span><img src="{% static 'img/gardens/calendar.svg' %}" alt=""><time datetime="{{ planting.planting_date|date:'Y-m-d' }}">Planted {{ planting.planting_date|date:'j M Y' }}</time></span>
+            <span class="garden-method-tag">{{ planting.method_name }}</span>
+        </p>
+        <div class="garden-card-footer">
+            <a class="gardens-text-link" href="{{ plant_url }}">Open journal {% include 'svg/icons/arrow.svg' %}</a>
+            {# Module 3: swap in the plant's journal entry count #}
+            <span class="garden-added">No journal yet</span>
+        </div>
+    </div>
+</article>

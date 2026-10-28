@@ -15,6 +15,11 @@
     --color-amber: #EA9E26;
     --color-hairline: rgba(18, 81, 51, 0.12);
     --color-field: #C9DFCB;
+    --color-mist: #EEF5E8; /* Figma: method tag fill */
+    --color-accent-soft: rgba(33, 195, 126, 0.25); /* Figma: "Day" tag fill */
+    --color-danger: #B5452F;
+    --color-danger-text: #9C3926;
+    --color-danger-bg: #F8E3DE;
 }
 
 

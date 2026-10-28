@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}{% if garden %}Edit {{ garden.name }}{% else %}Add a garden{% endif %} · UrFunFarming{% endblock %}
 {% block content %}
 {% include 'partials/grower_subnav.html' %}
 <section class="gardens-page" aria-labelledby="garden-form-heading">
-    <a class="gardens-back-link" href="{% if garden %}{% url 'gardens:detail' garden.pk %}{% else %}{% url 'gardens:mine' %}{% endif %}">Cancel and go back</a>
     <header class="gardens-page-heading">
         <div>
-            <p class="gardens-eyebrow">YOUR GROWING SPACE</p>
-            <h1 id="garden-form-heading">{% if garden %}Edit garden{% else %}Add a garden{% endif %}</h1>
-            <p>Describe the place where you grow.</p>
+            <a class="gardens-back-link" href="{% if garden %}{% url 'gardens:detail' garden.pk %}{% else %}{% url 'gardens:mine' %}{% endif %}"><img src="{% static 'img/gardens/back.svg' %}" alt="">{% if garden %}Back to {{ garden.name }}{% else %}Back to My gardens{% endif %}</a>
+            <h1 id="garden-form-heading">{% if garden %}Edit garden{% else %}Add garden{% endif %}</h1>
+            <p class="gardens-subtitle">Describe the place where you grow.</p>
         </div>
     </header>
 
@@ -28,8 +28,8 @@
             {% if field.errors %}<div class="garden-field-errors" role="alert">{{ field.errors }}</div>{% endif %}
         {% endfor %}
         <div class="gardens-actions">
-            <button class="gardens-button gardens-button-primary" type="submit">{% if garden %}Save changes{% else %}Create garden{% endif %}</button>
-            <a class="gardens-button gardens-button-outline" href="{% if garden %}{% url 'gardens:detail' garden.pk %}{% else %}{% url 'gardens:mine' %}{% endif %}">Cancel</a>
+            <button class="pill-button" type="submit">{% if garden %}Save changes{% else %}Create garden{% endif %}</button>
+            <a class="outline-button" href="{% if garden %}{% url 'gardens:detail' garden.pk %}{% else %}{% url 'gardens:mine' %}{% endif %}">Cancel</a>
         </div>
     </form>
 </section>

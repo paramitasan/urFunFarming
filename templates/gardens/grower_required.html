@@ -3,12 +3,12 @@
 {% block content %}
 <section class="gardens-page" aria-labelledby="grower-required-heading">
     <div class="garden-delete-panel">
-        <p class="gardens-eyebrow">GARDEN MANAGEMENT</p>
+        <p class="eyebrow">GARDEN MANAGEMENT</p>
         <h1 id="grower-required-heading">Add the grower role to manage gardens</h1>
         <p>Your account can be both a grower and a buyer. Update your roles to create and manage gardens.</p>
         <div class="gardens-actions">
-            <a class="gardens-button gardens-button-primary" href="{% url 'accounts:profile' %}#roles">Update my roles</a>
-            <a class="gardens-button gardens-button-outline" href="{% url 'main:show_main' %}">Return home</a>
+            <a class="pill-button" href="{% url 'accounts:profile' %}#roles">Update my roles</a>
+            <a class="outline-button" href="{% url 'main:show_main' %}">Return home</a>
         </div>
     </div>
 </section>

@@ -76,10 +76,17 @@ class GardenForm(forms.ModelForm):
 class PlantingForm(forms.ModelForm):
     class Meta:
         model = Planting
-        fields = ('crop', 'planting_date')
+        fields = ('name', 'crop', 'planting_date', 'growing_method')
         labels = {
+            'name': 'Plant name',
             'crop': 'Crop',
             'planting_date': 'Planting date',
+            'growing_method': 'Growing method',
+        }
+        help_texts = {
+            'name': 'For example Pak choy or Cherry tomato.',
+            'crop': 'The kind of crop, for example Leafy greens, Herbs or Fruiting veg.',
+            'growing_method': 'Leave blank to use the garden’s method.',
         }
         widgets = {
             'planting_date': forms.DateInput(attrs={'type': 'date'}),
@@ -87,5 +94,7 @@ class PlantingForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Blank is allowed in the database for older plantings, but new ones need a name
+        self.fields['name'].required = True
         for field in self.fields.values():
             field.widget.attrs['class'] = 'garden-field'

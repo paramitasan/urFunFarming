@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Value
+from django.db.models.functions import Coalesce, NullIf
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods
@@ -45,26 +46,31 @@ def _public_gardens():
 
 def _filtered_plantings(garden, params):
     form = PlantingFilterForm(params)
-    plantings = garden.plantings.all()
+    # Same fallbacks as Planting.display_name and Planting.method
+    plantings = garden.plantings.annotate(
+        method_name=Coalesce(NullIf('growing_method', Value('')), Value(garden.growing_method)),
+        sort_name=Coalesce(NullIf('name', Value('')), 'crop'),
+    )
+    methods = list(plantings.order_by('method_name').values_list('method_name', flat=True).distinct())
     if form.is_valid():
         query = form.cleaned_data['q']
         month = form.cleaned_data['month']
         method = form.cleaned_data['method']
         if query:
-            plantings = plantings.filter(crop__icontains=query)
+            plantings = plantings.filter(Q(name__icontains=query) | Q(crop__icontains=query))
         if month:
             plantings = plantings.filter(planting_date__month=month)
-        if method and method != garden.growing_method:
-            plantings = plantings.none()
+        if method:
+            plantings = plantings.filter(method_name=method)
         sort = form.cleaned_data['sort']
-        order = {'oldest': ('planting_date', 'crop', 'id'), 'name': ('crop', 'id')}.get(
+        order = {'oldest': ('planting_date', 'sort_name', 'id'), 'name': ('sort_name', 'id')}.get(
             sort,
-            ('-planting_date', 'crop', 'id'),
+            ('-planting_date', 'sort_name', 'id'),
         )
         plantings = plantings.order_by(*order)
     else:
         plantings = plantings.none()
-    return form, plantings, plantings.count()
+    return form, plantings, plantings.count(), methods
 
 
 @never_cache
@@ -86,6 +92,7 @@ def explore(request):
                 | Q(location__icontains=query)
                 | Q(growing_method__icontains=query)
                 | Q(public_summary__icontains=query)
+                | Q(plantings__name__icontains=query)
                 | Q(plantings__crop__icontains=query)
             ).distinct()
         if location:
@@ -100,7 +107,7 @@ def explore(request):
     order = {'oldest': ('created_at', 'id'), 'name': ('name', 'id')}.get(sort, ('-created_at', '-id'))
     gardens = gardens.order_by(*order).values(
         'id', 'name', 'location', 'growing_method', 'public_summary', 'planting_count', 'created_at',
-        'owner__username', 'owner__profile__display_name',
+        'owner__username', 'owner__date_joined', 'owner__profile__display_name',
     )
     return render(
         request,
@@ -122,7 +129,7 @@ def public_detail(request, pk):
     garden = get_object_or_404(
         _public_gardens().values(
             'id', 'name', 'location', 'growing_method', 'public_summary', 'owner_id',
-            'owner__username', 'owner__profile__display_name',
+            'owner__username', 'owner__profile__display_name', 'owner__profile__area',
         ),
         pk=pk,
     )
@@ -130,13 +137,13 @@ def public_detail(request, pk):
     if garden['owner_id'] == request.user.pk:
         return redirect('gardens:detail', pk=pk)
     garden_instance = Garden.objects.get(pk=garden['id'])
-    filter_form, plantings, planting_count = _filtered_plantings(garden_instance, request.GET)
+    filter_form, plantings, planting_count, _ = _filtered_plantings(garden_instance, request.GET)
     return render(
         request,
         'gardens/public_detail.html',
         {
             'garden': garden,
-            'plantings': plantings.values('crop', 'planting_date'),
+            'plantings': plantings,
             'filter_form': filter_form,
             'planting_count': planting_count,
             'nav_active': 'explore',
@@ -151,6 +158,7 @@ def my_gardens(request):
     form = GardenListFilterForm(request.GET)
     gardens = Garden.objects.filter(owner=request.user)
     locations = list(gardens.order_by('location').values_list('location', flat=True).distinct())
+    visibility_counts = {'': 0, 'public': 0, 'private': 0}
     if form.is_valid():
         query = form.cleaned_data['q']
         location = form.cleaned_data['location']
@@ -161,10 +169,18 @@ def my_gardens(request):
                 | Q(location__icontains=query)
                 | Q(growing_method__icontains=query)
                 | Q(public_summary__icontains=query)
+                | Q(plantings__name__icontains=query)
                 | Q(plantings__crop__icontains=query)
             ).distinct()
         if location:
             gardens = gardens.filter(location=location)
+        # Counts next to each Visibility option, before that filter is applied
+        totals = gardens.aggregate(
+            total=Count('id', distinct=True),
+            public=Count('id', distinct=True, filter=Q(is_public=True)),
+            private=Count('id', distinct=True, filter=Q(is_public=False)),
+        )
+        visibility_counts = {'': totals['total'], 'public': totals['public'], 'private': totals['private']}
         if visibility == 'public':
             gardens = gardens.filter(is_public=True)
         elif visibility == 'private':
@@ -176,7 +192,10 @@ def my_gardens(request):
         gardens = gardens.order_by(*order)
     else:
         gardens = gardens.none()
-    gardens = gardens.annotate(planting_count=Count('plantings', distinct=True)).prefetch_related('plantings')
+    gardens = gardens.annotate(planting_count=Count('plantings', distinct=True))
+    visibility_options = [
+        (value, label, visibility_counts[value]) for value, label in form.fields['visibility'].choices
+    ]
     return render(
         request,
         'gardens/my_gardens.html',
@@ -185,6 +204,7 @@ def my_gardens(request):
             'garden_count': gardens.count(),
             'filter_form': form,
             'locations': locations,
+            'visibility_options': visibility_options,
             'nav_active': 'home',
         },
     )
@@ -217,7 +237,7 @@ def create(request):
 @require_GET
 def detail(request, pk):
     garden = _owned_garden(request, pk)
-    filter_form, plantings, planting_count = _filtered_plantings(garden, request.GET)
+    filter_form, plantings, planting_count, methods = _filtered_plantings(garden, request.GET)
     return render(
         request,
         'gardens/detail.html',
@@ -225,6 +245,7 @@ def detail(request, pk):
             'garden': garden,
             'plantings': plantings,
             'planting_count': planting_count,
+            'methods': methods,
             'filter_form': filter_form,
             'nav_active': 'home',
         },

@@ -1,18 +1,19 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Delete {{ garden.name }} · UrFunFarming{% endblock %}
 {% block content %}
 {% include 'partials/grower_subnav.html' %}
 <section class="gardens-page" aria-labelledby="garden-delete-heading">
-    <a class="gardens-back-link" href="{% url 'gardens:detail' garden.pk %}">Back to garden</a>
+    <a class="gardens-back-link" href="{% url 'gardens:mine' %}"><img src="{% static 'img/gardens/back.svg' %}" alt="">Back to My gardens</a>
     <div class="garden-delete-panel">
-        <p class="gardens-eyebrow">MANAGE YOUR GARDEN</p>
+        <p class="eyebrow">MANAGE YOUR GARDEN</p>
         <h1 id="garden-delete-heading">Delete {{ garden.name }}?</h1>
         <p>This also deletes the plantings recorded in this garden. This action cannot be undone.</p>
         <form method="post">
             {% csrf_token %}
             <div class="gardens-actions">
-                <button class="gardens-button gardens-button-danger" type="submit">Delete garden</button>
-                <a class="gardens-button gardens-button-outline" href="{% url 'gardens:detail' garden.pk %}">Keep garden</a>
+                <button class="pill-button gardens-danger" type="submit">Delete garden</button>
+                <a class="outline-button" href="{% url 'gardens:mine' %}">Keep garden</a>
             </div>
         </form>
     </div>
