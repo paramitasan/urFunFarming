@@ -81,19 +81,54 @@
         </div>
 
         <div class="field">
-            <span class="field-label">{{ form.stage.label }}</span>
-            {{ form.stage }}
+            <fieldset class="choice-group">
+                <legend class="field-label">{{ form.stage.label }}</legend>
+                <div class="chips">
+                    {% for radio in form.stage %}
+                    <label class="chip">
+                        {{ radio.tag }}
+                        <span class="chip-face" data-stage="{{ radio.data.value }}">{{ radio.choice_label }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </fieldset>
         </div>
 
         <div class="field">
-            <span class="field-label">{{ form.health.label }}</span>
-            {{ form.health }}
+            <fieldset class="choice-group">
+                <legend class="field-label">{{ form.health.label }}</legend>
+                <div class="chips">
+                    {% for radio in form.health %}
+                    <label class="chip">
+                        {{ radio.tag }}
+                        <span class="chip-face" data-health="{{ radio.data.value }}">{{ radio.choice_label }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </fieldset>
         </div>
 
         {% if form.visibility %}
         <div class="field">
-            <span class="field-label">Visibility</span>
-            {{ form.visibility }}
+            <fieldset class="choice-group">
+                <legend class="field-label">Visibility</legend>
+                <div class="cards">
+                    {% for radio in form.visibility %}
+                    <label class="choice-card">
+                        {{ radio.tag }}
+                        <span class="card-face">
+                            {% if radio.data.value == 'private' %}
+                                <img src="{% static 'journal/icons/lock.svg' %}" alt="" width="20" height="20">
+                                <span><strong>Private</strong><small>Only you can see this plant's journal.</small></span>
+                            {% else %}
+                                <img src="{% static 'journal/icons/globe.svg' %}" alt="" width="20" height="20">
+                                <span><strong>Public</strong><small>Other growers and buyers can see it.</small></span>
+                            {% endif %}
+                        </span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </fieldset>
         </div>
         {% endif %}
 

@@ -695,6 +695,134 @@
 }
 
 
+/* Groups of choices: stage and health chips, visibility cards */
+
+.choice-group {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.choice-group legend {
+    margin-bottom: 12px;
+    padding: 0;
+}
+
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* The real radio button stays in the page for keyboards and screen readers, but is invisible */
+.field .choice-group input[type="radio"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.chip,
+.choice-card {
+    position: relative;
+    cursor: pointer;
+}
+
+.chip-face {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 16px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-field);
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+    white-space: nowrap;
+}
+
+.chip-face::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--dot);
+}
+
+.chip-face[data-stage="seedling"] { --dot: var(--stage-seedling-dot); }
+.chip-face[data-stage="vegetative"] { --dot: var(--stage-vegetative-dot); }
+.chip-face[data-stage="flowering"] { --dot: var(--stage-flowering-dot); }
+.chip-face[data-stage="fruiting"] { --dot: var(--stage-fruiting-dot); }
+.chip-face[data-stage="harvested"] { --dot: var(--stage-harvested-dot); }
+.chip-face[data-health="healthy"] { --dot: var(--health-healthy-dot); }
+.chip-face[data-health="attention"] { --dot: var(--health-attention-dot); }
+.chip-face[data-health="pest"] { --dot: var(--health-pest-dot); }
+
+.chip:hover .chip-face,
+.choice-card:hover .card-face {
+    background-color: var(--color-band);
+}
+
+/* Selected: green tint and a 2px accent border, 1px less padding so nothing moves */
+.chip input:checked + .chip-face {
+    padding: 0 15px;
+    background-color: var(--color-band);
+    border: 2px solid var(--color-accent);
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.card-face {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 100%;
+    padding: 14px 16px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-field);
+    border-radius: 12px;
+    line-height: normal;
+}
+
+.card-face img {
+    flex-shrink: 0;
+}
+
+.card-face strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-forest);
+}
+
+.card-face small {
+    display: block;
+    margin-top: 2px;
+    font-size: 12.5px;
+    color: var(--color-deep);
+}
+
+.choice-card input:checked + .card-face {
+    padding: 13px 15px;
+    background-color: var(--color-band);
+    border: 2px solid var(--color-accent);
+}
+
+.chip input:focus-visible + .chip-face,
+.choice-card input:focus-visible + .card-face {
+    outline: 2px solid var(--color-forest);
+    outline-offset: 2px;
+}
+
+
 @media (max-width: 900px) {
     .journal-body {
         flex-direction: column;
@@ -743,5 +871,9 @@
     .form-footer .pill-button,
     .form-footer .outline-button {
         flex: 1;
+    }
+    
+    .cards {
+        grid-template-columns: minmax(0, 1fr);
     }
 }
