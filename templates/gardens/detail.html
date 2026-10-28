@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}{{ garden.name }} · My gardens{% endblock %}
+{% block content %}
+<section class="gardens-page" aria-labelledby="garden-heading">
+    <a class="gardens-back-link" href="{% url 'gardens:mine' %}">Back to my gardens</a>
+    <header class="gardens-page-heading">
+        <div>
+            <p class="gardens-eyebrow">{% if garden.is_public %}PUBLIC GARDEN{% else %}PRIVATE GARDEN{% endif %}</p>
+            <h1 id="garden-heading">{{ garden.name }}</h1>
+            <p>{{ garden.location }} · {{ garden.growing_method }}</p>
+        </div>
+        <div class="gardens-actions">
+            <a class="gardens-button gardens-button-outline" href="{% url 'gardens:edit' garden.pk %}">Edit garden</a>
+            <a class="gardens-button gardens-button-danger" href="{% url 'gardens:delete' garden.pk %}">Delete garden</a>
+        </div>
+    </header>
+
+    {% if garden.public_summary %}
+        <section class="garden-section" aria-labelledby="garden-summary-heading">
+            <h2 id="garden-summary-heading">Public summary</h2>
+            <p>{{ garden.public_summary|linebreaksbr }}</p>
+        </section>
+    {% endif %}
+    {% if garden.private_notes %}
+        <section class="garden-section" aria-labelledby="garden-notes-heading">
+            <h2 id="garden-notes-heading">Private notes</h2>
+            <p>{{ garden.private_notes|linebreaksbr }}</p>
+        </section>
+    {% endif %}
+
+    <section class="garden-section" aria-labelledby="plantings-heading">
+        <div class="garden-section-heading">
+            <div>
+                <p class="gardens-eyebrow">GROWING HERE</p>
+                <h2 id="plantings-heading">Plantings</h2>
+            </div>
+        </div>
+        {% if garden.plantings.all %}
+            <ul class="planting-list">
+                {% for planting in garden.plantings.all %}
+                    <li><span>{{ planting.crop }}</span><time datetime="{{ planting.planting_date|date:'Y-m-d' }}">Planted {{ planting.planting_date|date:'M j, Y' }}</time></li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No plantings recorded yet.</p>
+        {% endif %}
+    </section>
+</section>
+{% endblock %}

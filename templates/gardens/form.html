@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}{% if garden %}Edit {{ garden.name }}{% else %}Add a garden{% endif %} · UrFunFarming{% endblock %}
+{% block content %}
+<section class="gardens-page" aria-labelledby="garden-form-heading">
+    <a class="gardens-back-link" href="{% if garden %}{% url 'gardens:detail' garden.pk %}{% else %}{% url 'gardens:mine' %}{% endif %}">Cancel and go back</a>
+    <header class="gardens-page-heading">
+        <div>
+            <p class="gardens-eyebrow">YOUR GROWING SPACE</p>
+            <h1 id="garden-form-heading">{% if garden %}Edit garden{% else %}Add a garden{% endif %}</h1>
+            <p>Describe the place where you grow.</p>
+        </div>
+    </header>
+
+    <form class="garden-form" method="post">
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="garden-form-errors" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+        {% for field in form %}
+            {% if field.name == 'is_public' %}
+                <label class="garden-checkbox-row">{{ field }}<span>{{ field.label }}{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}</span></label>
+            {% else %}
+                <div class="garden-form-field{% if field.errors %} has-error{% endif %}">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+                </div>
+            {% endif %}
+            {% if field.errors %}<div class="garden-field-errors" role="alert">{{ field.errors }}</div>{% endif %}
+        {% endfor %}
+        <div class="gardens-actions">
+            <button class="gardens-button gardens-button-primary" type="submit">{% if garden %}Save changes{% else %}Create garden{% endif %}</button>
+            <a class="gardens-button gardens-button-outline" href="{% if garden %}{% url 'gardens:detail' garden.pk %}{% else %}{% url 'gardens:mine' %}{% endif %}">Cancel</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

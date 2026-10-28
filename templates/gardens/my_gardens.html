@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}My gardens · UrFunFarming{% endblock %}
+{% block content %}
+<section class="gardens-page" aria-labelledby="gardens-heading">
+    <header class="gardens-page-heading">
+        <div>
+            <p class="gardens-eyebrow">YOUR GROWING SPACE</p>
+            <h1 id="gardens-heading">My gardens</h1>
+            <p>Keep your growing places and planted crops together.</p>
+        </div>
+        <a class="gardens-button gardens-button-primary" href="{% url 'gardens:create' %}">Add a garden</a>
+    </header>
+
+    {% if gardens %}
+        <div class="gardens-list">
+            {% for garden in gardens %}
+                <article class="garden-item">
+                    <div class="garden-item-content">
+                        <p class="garden-visibility">{% if garden.is_public %}Public garden{% else %}Private garden{% endif %}</p>
+                        <h2><a href="{% url 'gardens:detail' garden.pk %}">{{ garden.name }}</a></h2>
+                        <p>{{ garden.location }} · {{ garden.growing_method }}</p>
+                        <p>{{ garden.plantings.all|length }} planting{{ garden.plantings.all|length|pluralize }}</p>
+                    </div>
+                    <a class="gardens-text-link" href="{% url 'gardens:detail' garden.pk %}">View garden</a>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <section class="gardens-empty-state" aria-labelledby="gardens-empty-heading">
+            <h2 id="gardens-empty-heading">Start with a growing space</h2>
+            <p>Add your first garden, balcony, rooftop, or hydroponic setup.</p>
+            <a class="gardens-button gardens-button-primary" href="{% url 'gardens:create' %}">Create your first garden</a>
+        </section>
+    {% endif %}
+</section>
+{% endblock %}
