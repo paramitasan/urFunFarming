@@ -4,6 +4,6 @@
     <button class="market-button market-button-outline" type="submit">Find pickup times</button>
 </form>
 {% if weather_error %}<p class="market-error" role="alert">{{ weather_error }}</p>{% elif weather_checked %}
-    {% if weather_slots %}<ul class="market-weather-slots">{% for slot in weather_slots %}<li><strong>{{ slot.time|date:'H:i' }} WIB</strong><span>{{ slot.temperature|floatformat:1 }}°C</span><span>{{ slot.rain|floatformat:1 }} mm rain</span><small>{{ slot.humidity|floatformat:0 }}% humidity</small></li>{% endfor %}</ul>{% else %}<p class="market-weather-empty">No upcoming collection times match this window and your weather limits. Try another date or adjust the filters.</p>{% endif %}
+    {% if weather_slots %}<ul class="market-weather-slots">{% for slot in weather_slots %}<li><strong>{{ slot.time|date:'H:i' }} WIB</strong><span>{{ slot.temp|floatformat:0 }}°C, {{ slot.description }}</span><span>{{ slot.rain_mm|floatformat:1 }} mm rain</span><small>{{ slot.humidity|floatformat:0 }}% humidity</small></li>{% endfor %}</ul>{% else %}<p class="market-weather-empty">No upcoming collection times match this window and your weather limits. Try another date or adjust the filters.</p>{% endif %}
 {% endif %}
-<p class="market-help market-weather-source">Weather data: <a class="market-text-link" href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>. Forecasts are estimates; confirm your pickup time with the grower.</p>
+<p class="market-help market-weather-source">{% include 'weather/_source.html' %} Forecasts are estimates; confirm your pickup time with the grower.</p>

@@ -1409,6 +1409,35 @@ select:disabled {
     line-height: 1.5;
 }
 
+/* Shared weather line (templates/weather/_line.html) */
+.weather-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 12px;
+    font-size: 14px;
+    color: var(--color-deep);
+}
+
+.weather-line strong {
+    color: var(--color-forest);
+}
+
+.weather-source {
+    font-size: 12px;
+    color: var(--color-deep);
+}
+
+.weather-source a,
+.weather-set-area {
+    font-weight: 600;
+    color: var(--color-forest);
+}
+
+.weather-set-area {
+    font-size: 13px;
+}
+
 /* Smaller screens */
 /* Navbar: links move into a menu below 1024px */
 @media (max-width: 1023px) {

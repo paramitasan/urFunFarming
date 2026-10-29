@@ -28,7 +28,7 @@ The seed command creates 50 available listings from ten fictional profiles. It i
 | Ownership | Only the owner can open management forms or update/delete through HTML and JSON; owner and demo flags are never accepted from user input |
 | Client interactivity | Fetch-based live search, combined filters, sorting, pagination, form feedback, CRUD, and pickup-weather filtering; normal form submissions remain functional |
 | Responsive CSS framework | Locally vendored Bootstrap 5.3.3 grid with scoped marketplace CSS and existing group colors, navigation, footer and Poppins typography |
-| External API filtering | Real Open-Meteo hourly observations filtered by date, time interval, maximum rain and temperature; future hours must also fall within the listing's availability |
+| External API filtering | Real BMKG 3-hourly forecasts (through the shared `weather` service) filtered by date, time interval, maximum rain and temperature; future slots must also fall within the listing's availability |
 | Initial data | `python manage.py seed_marketplace`: 50 offers, ten growers, deterministic IDs and collision protection |
 | Integration | Shared Profile roles/contact data, shared base/navbar/footer, real database listings on the landing page, safe login return paths |
 | Tests | Model/database validation, public and private queries, HTML and JSON CRUD, CSRF, ownership, input escaping, pagination, weather service failure/cache/filtering, safe seed reruns, and existing account/landing tests |
@@ -52,9 +52,9 @@ Listing filters: `q`, `category` (`vegetables`, `fruits`, `herbs`), `availabilit
 
 `mine/` always filters by the signed-in owner and includes paused and expired offers. Public browsing excludes paused/expired offers and inactive owners. `availability=now` additionally excludes future harvests; `any` includes upcoming harvests. Public detail access to a paused/expired offer returns 404; its owner retains access.
 
-Pickup-weather parameters: `date` (today through six days ahead), `start_time`, `end_time`, `max_rain` (mm/h), `max_temperature` (°C). All collection times use **Asia/Jakarta / WIB**, independently of the project's global timezone. City-centre coordinates are selected from an allowlist of collection cities; the server never fetches a user-provided URL. A seven-day hourly forecast is cached for 15 minutes. Missing observations are skipped; network or invalid-provider responses return 503 and an explicit retry message, never fabricated weather. Listing CRUD and ordinary browsing do not depend on the external API being online.
+Pickup-weather parameters: `date` (today through two days ahead, the range BMKG covers), `start_time`, `end_time`, `max_rain` (mm), `max_temperature` (°C). All collection times use **Asia/Jakarta / WIB**, independently of the project's global timezone. Each collection city maps to a fixed BMKG village code near its centre (`CITY_ADM4` in `marketplace/weather.py`); the server never fetches a user-provided URL. The shared service caches each 3-day forecast for an hour. Missing observations are skipped; network or invalid-provider responses return 503 and an explicit retry message, never fabricated weather. Listing CRUD and ordinary browsing do not depend on the external API being online.
 
-API documentation: https://open-meteo.com/en/docs (hourly `temperature_2m`, `relative_humidity_2m`, `precipitation`). The small collection planner is independent of Module 5's private care tasks.
+API documentation: https://data.bmkg.go.id/prakiraan-cuaca/ (fields `t`, `tp`, `hu`, `ws`, normalized by `weather/services.py`). Pages show "Source: BMKG" as BMKG requires. The small collection planner is independent of Module 5's private care tasks.
 
 ## Verify
 

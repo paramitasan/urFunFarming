@@ -109,7 +109,7 @@
                     message.setAttribute('role', 'alert');
                     target.appendChild(message);
                 }
-                message.textContent = 'The forecast could not be loaded. Please try again.';
+                message.textContent = 'Weather is unavailable right now. Please try again.';
             } finally {
                 button.disabled = false;
             }

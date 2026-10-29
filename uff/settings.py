@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'marketplace',
     'forum',
     'gardens',
+    'weather',
 ]
 
 MIDDLEWARE = [
@@ -131,6 +132,9 @@ TIME_ZONE = 'Asia/Jakarta'
 USE_I18N = True
 
 USE_TZ = True
+
+# Weather: BMKG village code (adm4) used when a profile has no area set
+BMKG_DEFAULT_ADM4 = os.getenv('BMKG_DEFAULT_ADM4', '31.71.03.1001')
 
 
 # Static files (CSS, JavaScript, Images)
