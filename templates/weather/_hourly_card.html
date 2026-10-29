@@ -53,6 +53,6 @@ summary: optional note under the hours (summary_rain=True shows the rain icon). 
     {% endif %}
 
     {% if not weather.has_location %}
-    <a class="weather-set-area" href="{% url 'accounts:profile' %}">Set your area in your profile to see local weather</a>
+    <a class="weather-set-area" href="{% url 'accounts:profile' %}#location">Set your area in your profile to see local weather</a>
     {% endif %}
 </section>

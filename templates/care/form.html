@@ -73,7 +73,7 @@
                 <p class="weather-card-unavailable" role="status">{{ weather.error }}. You can still pick any date and time.</p>
                 {% endif %}
                 {% include 'weather/_source.html' %}
-                {% if not weather.has_location %}<a class="weather-set-area" href="{% url 'accounts:profile' %}">Set your area in your profile to see local weather</a>{% endif %}
+                {% if not weather.has_location %}<a class="weather-set-area" href="{% url 'accounts:profile' %}#location">Set your area in your profile to see local weather</a>{% endif %}
             </section>
 
             <section class="care-side-card care-thresholds-card" aria-labelledby="thresholds-heading">

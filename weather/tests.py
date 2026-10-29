@@ -35,7 +35,7 @@ class NormalizeTests(TestCase):
         ])
         data = normalize(payload)
         self.assertEqual(data['source'], 'BMKG')
-        self.assertEqual(data['location']['village'], 'Tebet Barat')
+        self.assertEqual(data['location']['village'], 'Tebet Timur')
         first, second = data['slots']
         # Sorted by time, with the agreed keys
         self.assertEqual(first['time'], morning)
@@ -218,7 +218,7 @@ class TemplateTagTests(TestCase):
         self.assertIn('Source: <a href="https://www.bmkg.go.id/"', html)
         self.assertIn('[BMKG]', html)
         self.assertIn('Set your area in your profile to see local weather', html)
-        self.assertIn('href="/profile/"', html)
+        self.assertIn('href="/profile/#location"', html)
         # Both tags share one lookup per request
         self.assertEqual(remote.call_count, 1)
 

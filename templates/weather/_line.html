@@ -10,5 +10,5 @@
     {% include 'weather/_source.html' %}
 </p>
 {% if not weather.has_location %}
-<a class="weather-set-area" href="{% url 'accounts:profile' %}">Set your area in your profile to see local weather</a>
+<a class="weather-set-area" href="{% url 'accounts:profile' %}#location">Set your area in your profile to see local weather</a>
 {% endif %}

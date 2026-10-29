@@ -24,7 +24,7 @@ def bmkg_entry(moment, t=28, tp=0, ws=5, hu=75, desc='Sunny', code=1):
     }
 
 
-def bmkg_payload(slots, village='Tebet Barat', adm4='31.74.01.1001'):
+def bmkg_payload(slots, village='Tebet Timur', adm4='31.74.01.1001'):
     """A response shaped like the live API: lokasi plus data[0].cuaca grouped by day."""
     days = {}
     for slot in slots:

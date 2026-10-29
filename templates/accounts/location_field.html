@@ -1,0 +1,25 @@
+{% comment %}
+Location picker. Without JavaScript it is one village list grouped by "District, City".
+profile.js adds City and District dropdowns in front of it and narrows the village list.
+{% endcomment %}
+<fieldset class="location-field{% if field.errors %} has-error{% endif %}" id="location" data-location-field>
+    <legend>{{ field.label }}</legend>
+    <div class="location-pickers">
+        <div class="field" data-location-step="city" hidden>
+            <label for="location-city">City</label>
+            <div class="input-wrap"><select id="location-city" data-location-city></select></div>
+        </div>
+        <div class="field" data-location-step="district" hidden>
+            <label for="location-district">District</label>
+            <div class="input-wrap"><select id="location-district" data-location-district></select></div>
+        </div>
+        <div class="field">
+            <label for="{{ field.id_for_label }}">Village</label>
+            <div class="input-wrap">{{ field }}</div>
+        </div>
+    </div>
+    <p class="field-help" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</p>
+    {% for error in field.errors %}
+    <p class="field-error">{{ error }}</p>
+    {% endfor %}
+</fieldset>

@@ -78,10 +78,7 @@
                         {% endfor %}
                     </div>
 
-                    <div class="field-row">
-                        {% include 'accounts/field.html' with field=profile_form.area help="Shown as an area, never your exact address." %}
-                        {% include 'accounts/field.html' with field=profile_form.city %}
-                    </div>
+                    {% include 'accounts/location_field.html' with field=profile_form.location %}
 
                     <fieldset class="role-picker" id="roles">
                         <legend>How you use UrFunFarming</legend>

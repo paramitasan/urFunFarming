@@ -9,6 +9,55 @@ if (bio) {
     });
 }
 
+// Location: turn the grouped village list into City, District and Village dropdowns.
+// Each village group is labelled "District, City" by the server (accounts/locations.py).
+const villageSelect = document.querySelector('[data-location-field] select[name="location"]');
+
+if (villageSelect) {
+    const citySelect = document.querySelector('[data-location-city]');
+    const districtSelect = document.querySelector('[data-location-district]');
+    const groups = Array.from(villageSelect.querySelectorAll('optgroup')).map((group) => {
+        const cut = group.label.lastIndexOf(', ');
+        return {
+            district: group.label.slice(0, cut),
+            city: group.label.slice(cut + 2),
+            options: Array.from(group.children).map((option) => [option.value, option.textContent]),
+        };
+    });
+    const cities = [...new Set(groups.map((g) => g.city))];
+    const chosen = villageSelect.value;
+    const start = groups.find((g) => g.options.some(([code]) => code === chosen));
+
+    function fill(select, placeholder, items, selected) {
+        select.replaceChildren(new Option(placeholder, ''));
+        items.forEach(([value, text]) => select.add(new Option(text, value, false, value === selected)));
+        select.disabled = items.length === 0;
+    }
+
+    function showDistricts(city, selected) {
+        const districts = groups.filter((g) => g.city === city).map((g) => [g.district, g.district]);
+        fill(districtSelect, 'Choose a district', districts, selected);
+    }
+
+    function showVillages(city, district, selected) {
+        const group = groups.find((g) => g.city === city && g.district === district);
+        fill(villageSelect, 'Choose a village', group ? group.options : [], selected);
+    }
+
+    fill(citySelect, 'Choose a city', cities.map((c) => [c, c]), start ? start.city : '');
+    showDistricts(start ? start.city : '', start ? start.district : '');
+    showVillages(start ? start.city : '', start ? start.district : '', chosen);
+    document.querySelectorAll('[data-location-step]').forEach((step) => { step.hidden = false; });
+
+    citySelect.addEventListener('change', () => {
+        showDistricts(citySelect.value, '');
+        showVillages('', '', '');
+    });
+    districtSelect.addEventListener('change', () => {
+        showVillages(citySelect.value, districtSelect.value, '');
+    });
+}
+
 function scrollToAlerts() {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     document.querySelector('.profile-heading').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
