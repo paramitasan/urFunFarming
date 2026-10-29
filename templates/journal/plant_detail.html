@@ -6,6 +6,7 @@
 {% block head %}
 <link rel="stylesheet" href="{% static 'journal/journal.css' %}">
 <script defer src="{% static 'journal/journal.js' %}"></script>
+<script defer src="{% static 'journal/delete-entry.js' %}"></script>
 {% endblock head %}
 
 {% block content %}
@@ -29,7 +30,7 @@
         </a>
     {% endif %}
 
-    <header class="journal-header">
+    <header class="journal-header" data-journal-header>
         <div class="journal-title-block">
             <p class="journal-eyebrow">Plant journal · Timeline</p>
             <div class="journal-title-row">
@@ -43,7 +44,7 @@
             {% endif %}
         </div>
 
-        {% if is_owner %}
+        {% if is_owner and entries %}
             <a class="pill-button" href="{% url 'journal:create_plant_entry' planting.pk %}">
                 <img src="{% static 'journal/icons/plus.svg' %}" alt="" width="18" height="18">
                 New Entry
@@ -52,7 +53,7 @@
     </header>
 
     {% if can_view %}
-    <div class="journal-body">
+    <div class="journal-body" data-journal-body>
         <section class="timeline">
             <div class="section-heading">
                 <h2>Timeline</h2>
@@ -78,11 +79,10 @@
                                 <span class="stage-tag" data-stage="{{ entry.stage }}">{{ entry.get_stage_display }}</span>
                                 <span class="health-tag" data-health="{{ entry.health }}">{{ entry.get_health_display }}</span>
                                 {% if is_owner %}
-                                    {# TODO: delete opens the dialog in step 5 #}
                                     <a class="icon-button" href="{% url 'journal:edit_entry' entry.pk %}" aria-label="Edit entry from {{ entry.date|date:'j M Y' }}">
                                         <img src="{% static 'journal/icons/edit.svg' %}" alt="" width="18" height="18">
                                     </a>
-                                    <button class="icon-button icon-button-delete" type="button" aria-label="Delete entry">
+                                    <button class="icon-button icon-button-delete" type="button" aria-label="Delete entry from {{ entry.date|date:'j M Y' }}" data-delete-url="{% url 'journal:delete_entry' entry.pk %}">
                                         <img src="{% static 'journal/icons/trash.svg' %}" alt="" width="18" height="18">
                                     </button>
                                 {% endif %}
@@ -183,6 +183,10 @@
     </div>
     {% else %}
         <p>This journal is private.</p>
+    {% endif %}
+
+    {% if is_owner %}
+        {% include 'journal/delete_dialog.html' with title='Delete this entry?' message="This entry and its photos will be removed. This can't be undone." confirm_label='Delete entry' %}
     {% endif %}
 </div>
 

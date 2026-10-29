@@ -1048,6 +1048,97 @@
     outline-offset: 2px;
 }
 
+
+/* Delete dialog: a popover over the whole page, like the tutorial's delete modal */
+
+.delete-dialog {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 16px;
+    background: transparent;
+    border: 0;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-dialog:popover-open {
+    display: flex;
+}
+
+.delete-dialog-backdrop {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    background-color: rgba(11, 46, 29, 0.45);
+    border: 0;
+    cursor: default;
+}
+
+.delete-dialog-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: min(100%, 460px);
+    padding: 28px;
+    background-color: var(--color-surface);
+    border: 1px solid rgba(18, 81, 51, 0.12);
+    border-radius: 16px;
+    box-shadow: 0 16px 20px rgba(11, 46, 29, 0.18);
+}
+
+.delete-dialog-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.delete-dialog-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    background-color: var(--health-pest-fill);
+    border-radius: 50%;
+}
+
+.delete-dialog-title {
+    margin-bottom: 6px;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.18px;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.delete-dialog-message {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--color-deep);
+}
+
+.delete-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.danger-button:disabled {
+    opacity: 0.7;
+    cursor: progress;
+}
+
+
+
 /* Toasts: bottom center, 24px from the bottom, one color set per type */
 
 .toast-area {

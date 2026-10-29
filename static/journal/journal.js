@@ -2,6 +2,13 @@
 
 const toastArea = document.querySelector('[data-toast-area]');
 
+// Load the toast icons now, so a toast shown later still has them, even if the server can't be reached by then
+document.querySelectorAll('[data-toast-template]').forEach((template) => {
+    template.content.querySelectorAll('img').forEach((icon) => {
+        new Image().src = icon.getAttribute('src');
+    });
+});
+
 function setUpToast(toast) {
     toast.querySelector('[data-toast-close]').addEventListener('click', () => toast.remove());
     // Success and info toasts go away by themselves, error toasts stay until closed
