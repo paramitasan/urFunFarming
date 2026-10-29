@@ -812,3 +812,52 @@ class JournalListTest(JournalTestCase):
         self.assertContains(response, 'Add a plant to start your journal')
         self.assertContains(response, reverse('gardens:mine'))
         self.assertNotContains(response, reverse('journal:create_entry'))
+
+
+class ToggleVisibilityTest(JournalTestCase):
+    def toggle_url(self, planting):
+        return reverse('journal:toggle_visibility', args=[planting.pk])
+
+    def test_owner_switches_private_to_public_and_back(self):
+        self.client.force_login(self.grower)
+        response = self.client.post(self.toggle_url(self.tomato))
+        self.assertEqual(response.json(), {
+            'is_public': True,
+            'message': 'Cherry Tomato is now public',
+            'detail': 'Other growers and buyers can see its journal.',
+        })
+        self.journal.refresh_from_db()
+        self.assertTrue(self.journal.is_public)
+
+        # Pressing it again (or Undo) switches it back
+        response = self.client.post(self.toggle_url(self.tomato))
+        self.assertEqual(response.json()['message'], 'Cherry Tomato is now private')
+        self.assertEqual(response.json()['detail'], 'Only you can see its journal.')
+        self.journal.refresh_from_db()
+        self.assertFalse(self.journal.is_public)
+
+    def test_plant_without_a_journal_gets_one(self):
+        self.client.force_login(self.grower)
+        response = self.client.post(self.toggle_url(self.chili))
+        self.assertTrue(response.json()['is_public'])
+        self.assertTrue(PlantJournal.objects.get(planting=self.chili).is_public)
+
+    def test_other_grower_and_visitor_get_a_json_403(self):
+        self.client.force_login(self.other_grower)
+        self.assertEqual(self.client.post(self.toggle_url(self.tomato)).status_code, 403)
+        self.client.logout()
+        response = self.client.post(self.toggle_url(self.tomato))
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response['Content-Type'], 'application/json')
+        self.journal.refresh_from_db()
+        self.assertFalse(self.journal.is_public)
+
+    def test_get_is_not_allowed(self):
+        self.client.force_login(self.grower)
+        self.assertEqual(self.client.get(self.toggle_url(self.tomato)).status_code, 405)
+
+    def test_list_lock_has_the_toggle_url(self):
+        self.client.force_login(self.grower)
+        response = self.client.get(reverse('journal:index'))
+        self.assertContains(response, f'data-visibility-url="{self.toggle_url(self.tomato)}"')
+        self.assertContains(response, 'data-public="false"')
