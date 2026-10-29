@@ -92,10 +92,7 @@ def index(request):
 
     paginator = Paginator(rows, 10)
     page_obj = paginator.get_page(request.GET.get('page'))
-    if paginator.num_pages > 1:
-        count_label = f'Showing {page_obj.start_index()}–{page_obj.end_index()} of {paginator.count} plants'
-    else:
-        count_label = f'Showing {paginator.count} plant{"" if paginator.count == 1 else "s"}'
+    count_label = f'Showing {paginator.count} plant{"" if paginator.count == 1 else "s"}'
 
     # The page links keep the current filters, only the page number changes
     params = request.GET.copy()

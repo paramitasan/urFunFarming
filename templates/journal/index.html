@@ -111,7 +111,7 @@
                                 <span class="cell-muted">{{ row.planting.garden.name }} · {{ row.entry_count }} entr{{ row.entry_count|pluralize:"y,ies" }}</span>
                             </td>
                             <td><span class="stage-tag" data-stage="{{ row.latest.stage }}">{{ row.latest.get_stage_display }}</span></td>
-                            <td class="cell-strong">{{ row.latest.height_cm }} cm</td>
+                            <td><span class="cell-strong">{{ row.latest.height_cm }} cm</span></td>
                             <td class="cell-note">{{ row.latest.observation|truncatechars:160 }}</td>
                             <td><span class="health-tag" data-health="{{ row.latest.health }}">{{ row.latest.get_health_display }}</span></td>
                             <td>

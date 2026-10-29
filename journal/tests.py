@@ -770,12 +770,12 @@ class JournalListTest(JournalTestCase):
         self.client.force_login(self.grower)
         first = self.client.get(self.list_url, {'health': 'healthy'})
         self.assertEqual(len(first.context['page_obj']), 10)
-        self.assertContains(first, 'Showing 1–10 of 14 plants')
+        self.assertContains(first, 'Showing 14 plants')
         self.assertContains(first, 'health=healthy&amp;page=2')
 
         second = self.client.get(self.list_url, {'health': 'healthy', 'page': 2})
         self.assertEqual(len(second.context['page_obj']), 4)
-        self.assertContains(second, 'Showing 11–14 of 14 plants')
+        self.assertContains(second, 'Showing 14 plants')
         # Rows keep counting from 11 on the second page
         self.assertContains(second, '<td class="cell-no">11</td>', html=True)
 
