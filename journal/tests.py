@@ -189,6 +189,36 @@ class PlantDetailTest(JournalTestCase):
         response = self.client.get(self.detail_url(self.tomato))
         self.assertContains(response, 'src="https://example.com/tomato.jpg"')
 
+    def test_timeline_is_newest_first_by_default(self):
+        self.client.force_login(self.grower)
+        response = self.client.get(self.detail_url(self.tomato))
+        self.assertEqual(response.context['timeline'], [self.latest, self.second, self.first])
+        self.assertContains(response, 'Newest first')
+        self.assertContains(response, 'href="?order=oldest"')
+
+    def test_timeline_can_be_oldest_first(self):
+        self.client.force_login(self.grower)
+        response = self.client.get(self.detail_url(self.tomato) + '?order=oldest')
+        self.assertEqual(response.context['timeline'], [self.first, self.second, self.latest])
+        self.assertContains(response, 'Oldest first')
+        self.assertContains(response, 'href="?order=newest"')
+        # Flipping the timeline doesn't change the height changes or the current stage
+        changes = [entry.height_change for entry in response.context['timeline']]
+        self.assertEqual(changes, [None, 26, 58])
+        self.assertEqual(response.context['stage_steps'][3]['status'], 'current')
+
+    def test_order_link_keeps_from_garden(self):
+        self.client.force_login(self.grower)
+        response = self.client.get(self.detail_url(self.tomato) + '?from=garden')
+        self.assertContains(response, 'href="?order=oldest&amp;from=garden"')
+
+    def test_visitors_can_flip_a_public_timeline(self):
+        self.journal.is_public = True
+        self.journal.save()
+        self.client.force_login(self.buyer)
+        response = self.client.get(self.detail_url(self.tomato) + '?order=oldest')
+        self.assertEqual(response.context['timeline'], [self.first, self.second, self.latest])
+
 
 class EntryFormTest(JournalTestCase):
     def make_form(self, files=None, **changes):
