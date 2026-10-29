@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'accounts',
     'marketplace',
     'forum',
+    'gardens',
 ]
 
 MIDDLEWARE = [

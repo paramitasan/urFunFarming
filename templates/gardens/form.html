@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{% if garden %}Edit {{ garden.name }}{% else %}Add a garden{% endif %} · UrFunFarming{% endblock %}
+{% block content %}
+{% include 'partials/grower_subnav.html' %}
+<section class="gardens-page" aria-labelledby="garden-form-heading">
+    <header class="gardens-page-heading">
+        <div>
+            <a class="gardens-back-link" href="{% if garden %}{% url 'gardens:detail' garden.pk %}{% else %}{% url 'gardens:mine' %}{% endif %}"><img src="{% static 'img/gardens/back.svg' %}" alt="">{% if garden %}Back to {{ garden.name }}{% else %}Back to My gardens{% endif %}</a>
+            <h1 id="garden-form-heading">{% if garden %}Edit garden{% else %}Add garden{% endif %}</h1>
+            <p class="gardens-subtitle">Describe the place where you grow.</p>
+        </div>
+    </header>
+
+    <form class="garden-form" method="post">
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="garden-form-errors" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+        {% for field in form %}
+            {% if field.name == 'is_public' %}
+                <label class="garden-checkbox-row">{{ field }}<span>{{ field.label }}{% if field.help_text %}<small id="{{ field.auto_id }}_helptext">{{ field.help_text }}</small>{% endif %}</span></label>
+            {% else %}
+                <div class="garden-form-field{% if field.errors %} has-error{% endif %}">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<small id="{{ field.auto_id }}_helptext">{{ field.help_text }}</small>{% endif %}
+                </div>
+            {% endif %}
+            {% if field.errors %}<div class="garden-field-errors" role="alert">{{ field.errors }}</div>{% endif %}
+        {% endfor %}
+        <div class="gardens-actions">
+            <button class="pill-button" type="submit">{% if garden %}Save changes{% else %}Create garden{% endif %}</button>
+            <a class="outline-button" href="{% if garden %}{% url 'gardens:detail' garden.pk %}{% else %}{% url 'gardens:mine' %}{% endif %}">Cancel</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

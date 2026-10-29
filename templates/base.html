@@ -9,6 +9,10 @@
     {% block fonts %}<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">{% endblock fonts %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="{% static 'css/motion.css' %}">
+    {% if request.resolver_match.app_name == 'gardens' %}
+    <link rel="stylesheet" href="{% static 'css/gardens.css' %}">
+    <script defer src="{% static 'js/gardens.js' %}"></script>
+    {% endif %}
     {% block head %}{% endblock head %}
 </head>
 <body>

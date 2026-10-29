@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ garden.name }} · My gardens{% endblock %}
+{% block content %}
+{% include 'partials/grower_subnav.html' %}
+<section class="gardens-page" aria-labelledby="garden-heading">
+    {% include 'gardens/_messages.html' %}
+    <header class="gardens-page-heading">
+        <div>
+            <a class="gardens-back-link" href="{% url 'gardens:mine' %}"><img src="{% static 'img/gardens/back.svg' %}" alt="">Back to My gardens</a>
+            <h1 id="garden-heading">Plants in {{ garden.name }}</h1>
+            <p class="gardens-subtitle">{{ garden.location }} · {{ garden.is_public|yesno:'Public garden,Private garden' }} · {{ garden.plantings.count }} plant{{ garden.plantings.count|pluralize }}</p>
+        </div>
+        {% if user.profile.is_grower %}<a class="pill-button" href="{% url 'gardens:planting_create' garden.pk %}"><img src="{% static 'marketplace/img/imgIconPlus.svg' %}" alt="">Add plant</a>{% endif %}
+    </header>
+
+    <form class="garden-layout" method="get" action="{% url 'gardens:detail' garden.pk %}" data-autosubmit>
+        {% include 'gardens/_search_row.html' with search_label='Search plants in this garden' placeholder='Search plants in this garden…' sort_label='Sort plants' %}
+
+        <div class="garden-body">
+            <aside class="garden-filters" aria-label="Filter plants">
+                <div class="garden-filter-heading"><h2>Filters</h2><a href="{% url 'gardens:detail' garden.pk %}">Reset</a></div>
+                <div class="garden-filter-group">
+                    <label class="garden-filter-label" for="plant-month">Planted in</label>
+                    <select class="garden-field garden-select" id="plant-month" name="month">
+                        {% for value, label in filter_form.month.field.choices %}
+                            <option value="{{ value }}"{% if filter_form.month.value == value %} selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <hr>
+                <fieldset class="garden-filter-group">
+                    <legend class="garden-filter-label">Growing method</legend>
+                    <label class="garden-radio"><input type="radio" name="method" value=""{% if not filter_form.method.value %} checked{% endif %}><span>All</span></label>
+                    {% for method in methods %}
+                        <label class="garden-radio"><input type="radio" name="method" value="{{ method }}"{% if filter_form.method.value == method %} checked{% endif %}><span>{{ method }}</span></label>
+                    {% endfor %}
+                </fieldset>
+                <button class="outline-button garden-apply" type="submit">Apply filters</button>
+            </aside>
+
+            <div class="garden-results">
+                <p class="garden-results-count" role="status">{{ planting_count }} plant{{ planting_count|pluralize }} <span>{% if garden.is_public %}Public garden: all plants are public{% else %}Private garden: only you can see these plants{% endif %}</span></p>
+                {% if plantings %}
+                    <div class="planting-cards">
+                        {% for planting in plantings %}
+                            {% include 'gardens/_plant_card.html' with garden_pk=garden.pk owner_view=True %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {% if has_plants %}
+                        {% url 'gardens:detail' garden.pk as reset_url %}
+                        {% include 'gardens/_empty_state.html' with heading_id='plants-empty-heading' title='No plants match these filters' text='Try a different search or clear the filters.' button_url=reset_url button_label='Reset filters' reset=True %}
+                    {% elif user.profile.is_grower %}
+                        {% url 'gardens:planting_create' garden.pk as create_url %}
+                        {% include 'gardens/_empty_state.html' with heading_id='plants-empty-heading' title='No plants yet' text='Add the first plant growing in this garden.' button_url=create_url button_label='Add plant' %}
+                    {% else %}
+                        {% include 'gardens/_empty_state.html' with heading_id='plants-empty-heading' title='No plants yet' text='Add the grower role to your profile to add plants.' %}
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </form>
+</section>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}My gardens · UrFunFarming{% endblock %}
+{% block content %}
+{% include 'partials/grower_subnav.html' %}
+<section class="gardens-page" aria-labelledby="gardens-heading">
+    {% include 'gardens/_messages.html' %}
+    <header class="gardens-page-heading">
+        <div>
+            <p class="eyebrow">YOUR GROWING SPACES</p>
+            <h1 id="gardens-heading">My gardens</h1>
+            <p class="gardens-subtitle">Your growing locations and what is planted in each one.</p>
+        </div>
+        {% if user.profile.is_grower %}<a class="pill-button" href="{% url 'gardens:create' %}"><img src="{% static 'marketplace/img/imgIconPlus.svg' %}" alt="">Add garden</a>{% endif %}
+    </header>
+
+    <form class="garden-layout" method="get" action="{% url 'gardens:mine' %}" data-autosubmit>
+        {% include 'gardens/_search_row.html' with search_label='Search my gardens' placeholder='Search my gardens…' sort_label='Sort gardens' %}
+
+        <div class="garden-body">
+            <aside class="garden-filters" aria-label="Filter gardens">
+                <div class="garden-filter-heading"><h2>Filters</h2><a href="{% url 'gardens:mine' %}">Reset</a></div>
+                <div class="garden-filter-group">
+                    <label class="garden-filter-label" for="garden-location">Location</label>
+                    <select class="garden-field garden-select" id="garden-location" name="location">
+                        <option value="">All locations</option>
+                        {% for location in locations %}
+                            <option value="{{ location }}"{% if filter_form.location.value == location %} selected{% endif %}>{{ location }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <hr>
+                <fieldset class="garden-filter-group">
+                    <legend class="garden-filter-label">Visibility</legend>
+                    {% for value, label, count in visibility_options %}
+                        <label class="garden-radio"><input type="radio" name="visibility" value="{{ value }}"{% if filter_form.visibility.value == value or not filter_form.visibility.value and not value %} checked{% endif %}><span>{{ label }}</span><small>{{ count }}</small></label>
+                    {% endfor %}
+                </fieldset>
+                <button class="outline-button garden-apply" type="submit">Apply filters</button>
+            </aside>
+
+            <div class="garden-results">
+                <p class="garden-results-count" role="status">{{ garden_count }} garden{{ garden_count|pluralize }}</p>
+                {% if gardens %}
+                    <div class="gardens-list">
+                        {% for garden in gardens %}
+                            {% include 'gardens/_garden_card.html' with owner_view=True %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {% if has_gardens %}
+                        {% url 'gardens:mine' as reset_url %}
+                        {% include 'gardens/_empty_state.html' with heading_id='gardens-empty-heading' title='No gardens match these filters' text='Try a different search or clear the filters.' button_url=reset_url button_label='Reset filters' reset=True %}
+                    {% elif user.profile.is_grower %}
+                        {% url 'gardens:create' as create_url %}
+                        {% include 'gardens/_empty_state.html' with heading_id='gardens-empty-heading' title='No gardens yet' text='Add your first one: a balcony, a rooftop bed or a hydroponic rack.' button_url=create_url button_label='Add your first garden' %}
+                    {% else %}
+                        {% url 'accounts:profile' as roles_url %}
+                        {% include 'gardens/_empty_state.html' with heading_id='gardens-empty-heading' title='No gardens yet' text='Add the grower role to your profile to start adding gardens.' button_url=roles_url|add:'#roles' button_label='Update my roles' reset=True %}
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </form>
+</section>
+{% endblock %}

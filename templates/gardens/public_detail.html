@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ garden.name }} · Explore gardens{% endblock %}
+{% block content %}
+{% firstof garden.owner__profile__display_name garden.owner__username as grower_name %}
+<section class="gardens-page" aria-labelledby="public-garden-heading">
+    <header class="gardens-page-heading">
+        <div>
+            <a class="gardens-back-link" href="{% url 'gardens:explore' %}"><img src="{% static 'img/gardens/back.svg' %}" alt="">Back to Explore gardens</a>
+            <h1 id="public-garden-heading">Plants in {{ garden.name }}</h1>
+            <p class="gardens-subtitle">{{ garden.location }} · Public garden by {{ grower_name }} · {{ garden.total_plantings }} plant{{ garden.total_plantings|pluralize }}</p>
+        </div>
+    </header>
+
+    <form class="garden-layout" method="get" action="{% url 'gardens:public_detail' garden.id %}" data-autosubmit>
+        {% include 'gardens/_search_row.html' with search_label='Search plants in this garden' placeholder='Search plants in this garden…' sort_label='Sort plants' %}
+
+        <div class="garden-body">
+            <aside class="public-grower-card" aria-label="About the grower">
+                <div class="public-grower">
+                    <span class="avatar" aria-hidden="true">{{ grower_name|slice:':1'|upper }}</span>
+                    <p><strong>{{ grower_name }}</strong><small>Grower{% if garden.owner__profile__area %} · {{ garden.owner__profile__area }}{% endif %}</small></p>
+                </div>
+                {% if garden.public_summary %}<p>{{ garden.public_summary }}</p>{% endif %}
+                <a class="gardens-text-link" href="{% url 'marketplace:index' %}?grower={{ garden.owner__username|urlencode }}">See {{ grower_name }}’s listings {% include 'svg/icons/arrow.svg' %}</a>
+            </aside>
+
+            <div class="garden-results">
+                <p class="garden-results-count" role="status">{{ planting_count }} plant{{ planting_count|pluralize }} <span>Public journals only</span></p>
+                {% if plantings %}
+                    <div class="planting-cards">
+                        {% for planting in plantings %}
+                            {% include 'gardens/_plant_card.html' with garden_pk=garden.id owner_view=False %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {% if has_plants %}
+                        {% url 'gardens:public_detail' garden.id as reset_url %}
+                        {% include 'gardens/_empty_state.html' with heading_id='plants-empty-heading' title='No plants match this search' text='Try a different search.' button_url=reset_url button_label='Reset search' reset=True %}
+                    {% else %}
+                        {% include 'gardens/_empty_state.html' with heading_id='plants-empty-heading' title='No plants yet' text='This grower hasn’t added any plants to this garden yet.' %}
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </form>
+</section>
+{% endblock %}

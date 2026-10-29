@@ -14,12 +14,24 @@
     --color-amber: #EA9E26;
     --color-hairline: rgba(18, 81, 51, 0.12);
     --color-field: #C9DFCB;
+    --color-mist: #EEF5E8; /* Figma: method tag fill */
+    --color-accent-soft: rgba(33, 195, 126, 0.25); /* Figma: "Day" tag fill */
+    --color-danger: #B5452F;
+    --color-danger-text: #9C3926;
+    --color-danger-bg: #F8E3DE;
 }
 
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+}
+
+/* iPhone: no text enlarging when turned sideways, and a soft green tap flash instead of grey */
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: var(--color-hairline);
 }
 
 body {
@@ -29,6 +41,7 @@ body {
     line-height: 1.6;
     color: var(--color-forest);
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
 }
@@ -235,10 +248,52 @@ ul {
     cursor: pointer;
 }
 
-.profile-dropdown a:hover,
-.profile-dropdown button:hover {
-    background-color: var(--color-band);
+/* Hover only where there is a mouse, so colours don't stick after a tap */
+@media (hover: hover) {
+    .profile-dropdown a:hover,
+    .profile-dropdown button:hover {
+        background-color: var(--color-band);
+        color: var(--color-forest);
+    }
+}
+
+/* Dropdowns: one look in every browser and on every platform.
+   Module classes (.garden-select, .market-input, ...) still set their own sizes and colours. */
+
+select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    padding-right: 40px;
+    background: #FFFFFF url('../img/chevron-down.svg') no-repeat right 14px center;
+    font: inherit;
     color: var(--color-forest);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+/* The open list keeps light colours even when the computer is in dark mode */
+select option {
+    background-color: #FFFFFF;
+    color: var(--color-ink);
+}
+
+select:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Windows High Contrast: use the native control so the arrow follows the system colours.
+   !important because the module classes also switch the native look off. */
+@media (forced-colors: active) {
+    select {
+        -webkit-appearance: auto !important;
+        -moz-appearance: auto !important;
+        appearance: auto !important;
+        background-image: none !important;
+    }
 }
 
 /* Pill buttons and role chips, shared by Home and Profile */
@@ -264,8 +319,10 @@ ul {
     border: 1.5px solid var(--color-forest);
 }
 
-.outline-button:hover {
-    background-color: var(--color-band);
+@media (hover: hover) {
+    .outline-button:hover {
+        background-color: var(--color-band);
+    }
 }
 
 .pill-button {
@@ -273,8 +330,10 @@ ul {
     border: none;
 }
 
-.pill-button:hover {
-    background-color: #1DB873;
+@media (hover: hover) {
+    .pill-button:hover {
+        background-color: #1DB873;
+    }
 }
 
 .outline-button:disabled,
@@ -306,9 +365,11 @@ ul {
     color: var(--color-deep);
 }
 
-.role-chip-add:hover {
-    border-color: var(--color-accent);
-    color: var(--color-forest);
+@media (hover: hover) {
+    .role-chip-add:hover {
+        border-color: var(--color-accent);
+        color: var(--color-forest);
+    }
 }
 
 .outline-button:focus-visible,
@@ -1453,6 +1514,30 @@ ul {
         margin-top: 8px;
         padding: 12px 6px 4px;
         border-top: 1px solid var(--color-hairline);
+    }
+
+    /* Sub-nav fills the width so all three links fit under the phone navbar */
+    .subnav {
+        width: 100%;
+        max-width: 420px;
+    }
+
+    .subnav li {
+        flex: 1;
+    }
+
+    .subnav a {
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 6px;
+        font-size: 13px;
+    }
+}
+
+/* Very small phones: the sub-nav drops its icons so all three labels fit */
+@media (max-width: 379px) {
+    .subnav a svg {
+        display: none;
     }
 }
 

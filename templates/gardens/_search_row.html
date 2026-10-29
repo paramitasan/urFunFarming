@@ -1,0 +1,14 @@
+{% load static %}
+<div class="garden-toolbar">
+    <label class="garden-search-field">
+        <img src="{% static 'marketplace/img/imgIconSearch.svg' %}" alt="">
+        <span class="garden-visually-hidden">{{ search_label }}</span>
+        <input type="search" name="q" value="{{ filter_form.q.value|default_if_none:'' }}" maxlength="100" placeholder="{{ placeholder }}">
+    </label>
+    <label class="garden-visually-hidden" for="garden-sort">{{ sort_label }}</label>
+    <select class="garden-field garden-select garden-sort" id="garden-sort" name="sort">
+        {% for value, label in filter_form.sort.field.choices %}
+            <option value="{{ value }}"{% if filter_form.sort.value == value %} selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+</div>

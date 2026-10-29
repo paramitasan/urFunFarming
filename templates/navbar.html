@@ -9,15 +9,15 @@
         <div class="nav-menu" id="nav-menu">
             <ul class="nav-links">
                 {% if user.is_authenticated %}
-                <li><a href="{% url 'main:home' %}" data-label="Home"{% if page == 'home' %} aria-current="page"{% endif %}>Home</a></li>
-                {# TODO: point to forum:index and gardens:explore once those modules exist #}
+                {# Pages outside main pass nav_active ('home' or 'explore') to light up their section #}
+                <li><a href="{% url 'main:home' %}" data-label="Home"{% if page == 'home' or nav_active == 'home' %} aria-current="page"{% endif %}>Home</a></li>
                 <li><a href="{% url 'marketplace:index' %}" data-label="Market"{% if request.resolver_match.app_name == 'marketplace' %} aria-current="page"{% endif %}>Market</a></li>
                 <li><a href="{% url 'forum:forum_list' %}" data-label="Forum"{% if request.resolver_match.app_name == 'forum' %} aria-current="page"{% endif %}>Forum</a></li>
-                <li><a href="#" data-label="Explore gardens">Explore gardens</a></li>
+                <li><a href="{% url 'gardens:explore' %}" data-label="Explore gardens"{% if nav_active == 'explore' %} aria-current="page"{% endif %}>Explore gardens</a></li>
                 {% else %}
                 <li><a href="{% url 'marketplace:index' %}" data-label="Market"{% if request.resolver_match.app_name == 'marketplace' %} aria-current="page"{% endif %}>Market</a></li>
                 <li><a href="{% url 'forum:forum_list' %}" data-label="Forum"{% if request.resolver_match.app_name == 'forum' %} aria-current="page"{% endif %}>Forum</a></li>
-                <li><a href="{% url 'main:show_main' %}#gardens" data-label="Explore gardens">Explore gardens</a></li>
+                <li><a href="{% url 'gardens:explore' %}" data-label="Explore gardens"{% if nav_active == 'explore' %} aria-current="page"{% endif %}>Explore gardens</a></li>
                 {% endif %}
             </ul>
 

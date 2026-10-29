@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{% if no_access %}No access{% else %}{{ planting.display_name }} · {{ garden.name }}{% endif %}{% endblock %}
+{% block content %}
+{% if is_owner %}{% include 'partials/grower_subnav.html' %}{% endif %}
+<section class="gardens-page" aria-labelledby="planting-heading">
+    {% include 'gardens/_messages.html' %}
+    {% if no_access %}
+        {# Private garden and not the owner: show nothing about the plant itself #}
+        <a class="gardens-back-link" href="{% url 'gardens:explore' %}"><img src="{% static 'img/gardens/back.svg' %}" alt="">Back to Explore gardens</a>
+        <div class="journal-state journal-state-locked">
+            <span class="journal-well"><img src="{% static 'img/gardens/no-access.svg' %}" alt=""></span>
+            <h1 id="planting-heading">No access</h1>
+            <p>This garden is private, so its journal is only visible to the owner.</p>
+        </div>
+    {% else %}
+        <header class="gardens-page-heading">
+            <div>
+                <a class="gardens-back-link" href="{% if is_owner %}{% url 'gardens:detail' garden.pk %}{% else %}{% url 'gardens:public_detail' garden.pk %}{% endif %}"><img src="{% static 'img/gardens/back.svg' %}" alt="">Back to {{ garden.name }}</a>
+                <div class="plant-title">
+                    <h1 id="planting-heading">{{ planting.display_name }}</h1>
+                    <span class="garden-day-tag">Day {{ planting.day_number }}</span>
+                </div>
+                <p class="garden-card-meta">
+                    {% if planting.name %}<span><img src="{% static 'img/gardens/sprout.svg' %}" alt="">{{ planting.crop }}</span>{% endif %}
+                    <span><img src="{% static 'img/gardens/calendar.svg' %}" alt=""><time datetime="{{ planting.planting_date|date:'Y-m-d' }}">Planted {{ planting.planting_date|date:'j M Y' }}</time></span>
+                    <span class="garden-method-tag">{{ planting.method }}</span>
+                    <span><img src="{% static 'img/gardens/pin.svg' %}" alt="">{{ garden.name }}</span>
+                </p>
+            </div>
+        </header>
+
+        {# Module 3 (Plant Progress Journal) renders the journal for this planting here #}
+        {% include 'gardens/_journal.html' %}
+    {% endif %}
+</section>
+{% endblock %}

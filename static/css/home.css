@@ -47,6 +47,8 @@
     top: 428px;
     left: 0;
     margin-top: 0;
+    /* Decoration only: its top edge overlaps the Edit profile button */
+    pointer-events: none;
 }
 
 .home-edit {
@@ -325,22 +327,6 @@
         padding-top: 96px;
     }
 
-    .subnav {
-        width: 100%;
-        max-width: 420px;
-    }
-
-    .subnav li {
-        flex: 1;
-    }
-
-    .subnav a {
-        justify-content: center;
-        gap: 6px;
-        padding: 8px 6px;
-        font-size: 13px;
-    }
-
     .home-profile,
     .role-band {
         flex-direction: column;
@@ -349,12 +335,5 @@
 
     .role-band {
         padding: 24px;
-    }
-}
-
-/* Very small phones: the sub-nav drops its icons so all three labels fit */
-@media (max-width: 379px) {
-    .subnav a svg {
-        display: none;
     }
 }
