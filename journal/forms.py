@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from django.utils.html import strip_tags
 
 from gardens.models import Planting
-from journal.models import JournalEntry
+from journal.models import EntryPhoto, JournalEntry
 
 MAX_PHOTOS = 5
 MAX_PHOTO_SIZE = 5 * 1024 * 1024  # 5 MB
@@ -41,7 +41,12 @@ class JournalEntryForm(forms.ModelForm):
     photo_4 = forms.URLField(required=False, max_length=500, assume_scheme='https', widget=forms.HiddenInput)
     photo_5 = forms.URLField(required=False, max_length=500, assume_scheme='https', widget=forms.HiddenInput)
 
-    # Photos the entry already has and keeps (set by the edit view), so the total stays at 5 or less
+    # On the edit page, the saved photos the grower ticked to remove
+    remove_photos = forms.ModelMultipleChoiceField(
+        queryset=EntryPhoto.objects.none(), required=False, widget=forms.CheckboxSelectMultiple,
+    )
+
+    # Photos the entry already has, so the total stays at 5 or less
     kept_photos = 0
 
     class Meta:
@@ -78,6 +83,11 @@ class JournalEntryForm(forms.ModelForm):
         self.fields['planting'].queryset = Planting.objects.filter(garden__owner=user)
         self.fields['planting'].empty_label = 'Choose a plant'
 
+        if self.instance.pk:
+            # Editing: only this entry's own photos can be removed, and they count towards the limit
+            self.fields['remove_photos'].queryset = self.instance.photos.all()
+            self.kept_photos = self.instance.photos.count()
+
     def clean_observation(self):
         observation = strip_tags(self.cleaned_data['observation']).strip()
         if not observation:
@@ -94,7 +104,8 @@ class JournalEntryForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        total = self.kept_photos + len(cleaned_data.get('photos') or []) + len(self.photo_urls())
+        kept = self.kept_photos - len(cleaned_data.get('remove_photos') or [])
+        total = kept + len(cleaned_data.get('photos') or []) + len(self.photo_urls())
         if total > MAX_PHOTOS:
             self.add_error('photos', f'You can add up to {MAX_PHOTOS} photos to one entry.')
         return cleaned_data

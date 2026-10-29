@@ -24,6 +24,13 @@ def save_new_photos(entry, form):
         EntryPhoto.objects.create(entry=entry, url=url)
 
 
+def delete_photos(photos):
+    # Removes the photos and their uploaded files, so nothing is left behind in media/
+    for photo in photos:
+        photo.image.delete(save=False)
+        photo.delete()
+
+
 def has_missing_required(form):
     # True when at least one required field was left empty
     return any(
@@ -150,7 +157,6 @@ def edit_entry(request, entry_id):
 
     form = JournalEntryForm(request.user, request.POST or None, request.FILES or None, instance=entry)
     del form.fields['planting']
-    form.kept_photos = entry.photos.count()
 
     if request.method == 'POST' and form.is_valid():
         # "photos" always counts as changed for a file field, so check new photos separately
@@ -161,6 +167,7 @@ def edit_entry(request, entry_id):
             messages.info(request, 'No changes to save')
         else:
             form.save()
+            delete_photos(form.cleaned_data['remove_photos'])
             save_new_photos(entry, form)
             messages.success(request, 'Changes saved')
         return redirect('journal:plant_detail', planting_id=entry.planting.pk)
