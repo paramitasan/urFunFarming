@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'forum',
     'gardens',
     'weather',
+    'care',
 ]
 
 MIDDLEWARE = [
