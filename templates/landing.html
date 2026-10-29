@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load static forum_tags %}
 
 {% block title %}{{ app_name }} - Some of us grow. Some of us eat.{% endblock title %}
 
@@ -244,41 +245,18 @@
         </div>
 
         <div class="questions">
+            {% recent_forums 5 as recent %}
+            {% for forum in recent %}
             <div class="question">
                 <div>
-                    <h3>Why are my pak choy leaves turning yellow at the edges?</h3>
-                    <p>4 answers in Plant care</p>
+                    <h3><a href="{% url 'forum:forum_detail' forum.pk %}">{{ forum.title }}</a></h3>
+                    <p>{{ forum.reply_count }} answer{{ forum.reply_count|pluralize }} in {{ forum.get_topic_display }}</p>
                 </div>
-                <span>2 days ago</span>
+                <span>{{ forum.created_at|timesince }} ago</span>
             </div>
-            <div class="question">
-                <div>
-                    <h3>What EC level do you run for lettuce in NFT?</h3>
-                    <p>7 answers in Hydroponics</p>
-                </div>
-                <span>5 days ago</span>
-            </div>
-            <div class="question">
-                <div>
-                    <h3>Is it worth covering a rooftop setup in the rainy season?</h3>
-                    <p>2 answers in Weather</p>
-                </div>
-                <span>1 week ago</span>
-            </div>
-            <div class="question">
-                <div>
-                    <h3>Seedlings keep falling over after a week. Too little light?</h3>
-                    <p>5 answers in Seedlings</p>
-                </div>
-                <span>9 days ago</span>
-            </div>
-            <div class="question">
-                <div>
-                    <h3>Which herbs handle a west-facing balcony?</h3>
-                    <p>11 answers in Balcony growing</p>
-                </div>
-                <span>2 weeks ago</span>
-            </div>
+            {% empty %}
+            <p class="market-hint">No questions yet. Be the first to ask.</p>
+            {% endfor %}
         </div>
     </div>
 </section>
