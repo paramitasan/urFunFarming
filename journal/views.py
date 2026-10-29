@@ -1,8 +1,11 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from accounts.models import Profile
 from gardens.models import Planting
@@ -184,3 +187,35 @@ def edit_entry(request, entry_id):
         'missing_required': has_missing_required(form),
     }
     return render(request, 'journal/entry_form.html', context)
+
+
+# No login_required on the delete views: fetch would follow its redirect and get the login page,
+# so anyone who isn't the owner (logged out or not) gets a JSON 403 the page can read instead
+@require_POST
+def delete_entry(request, entry_id):
+    entry = get_object_or_404(JournalEntry, pk=entry_id)
+    planting = entry.planting
+    if planting.garden.owner != request.user:
+        return JsonResponse({'message': 'You can only delete your own entries.'}, status=403)
+
+    delete_photos(entry.photos.all())
+    entry.delete()
+    return JsonResponse({
+        'message': 'Entry deleted',
+        'plant_url': reverse('journal:plant_detail', args=[planting.pk]),
+    })
+
+
+@require_POST
+def delete_plant_entries(request, planting_id):
+    planting = get_object_or_404(Planting, pk=planting_id)
+    if planting.garden.owner != request.user:
+        return JsonResponse({'message': 'You can only delete your own entries.'}, status=403)
+
+    # The plant itself stays, only its journal entries and their photos go
+    delete_photos(EntryPhoto.objects.filter(entry__planting=planting))
+    planting.journal_entries.all().delete()
+    return JsonResponse({
+        'message': 'Entries deleted',
+        'detail': f"{planting.crop}'s entries were removed. The plant stays in My gardens.",
+    })
