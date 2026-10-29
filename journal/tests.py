@@ -903,3 +903,58 @@ class BuyerViewTest(JournalTestCase):
         self.assertContains(response, 'Ranu keeps the journal for Cherry Tomato private')
         self.assertContains(response, 'Grown by Ranu')
         self.assertNotContains(response, 'Started 5 Sep 2026')
+
+
+class PlantNameTest(JournalTestCase):
+    def setUp(self):
+        super().setUp()
+        self.tomato.name = 'Balcony tomato'
+        self.tomato.save()
+        self.client.force_login(self.grower)
+
+    def test_the_plant_name_is_shown_instead_of_the_crop(self):
+        timeline = self.client.get(reverse('journal:plant_detail', args=[self.tomato.pk]))
+        self.assertContains(timeline, '<h1 class="journal-title">Balcony tomato</h1>', html=True)
+        listing = self.client.get(reverse('journal:index'))
+        self.assertContains(listing, 'Balcony tomato')
+        self.assertEqual(str(self.latest), 'Balcony tomato on 2026-10-24')
+
+    def test_search_finds_the_plant_name(self):
+        response = self.client.get(reverse('journal:index'), {'q': 'balcony'})
+        self.assertEqual([row['planting'].display_name for row in response.context['page_obj']], ['Balcony tomato'])
+
+    def test_toast_text_uses_the_plant_name(self):
+        response = self.client.post(reverse('journal:toggle_visibility', args=[self.tomato.pk]))
+        self.assertEqual(response.json()['message'], 'Balcony tomato is now public')
+
+
+class GardenHookTest(JournalTestCase):
+    def plant_page(self):
+        return reverse('gardens:planting_detail', args=[self.garden.pk, self.tomato.pk])
+
+    def test_owner_sees_the_journal_on_the_garden_plant_page(self):
+        self.client.force_login(self.grower)
+        response = self.client.get(self.plant_page())
+        self.assertContains(response, 'Open full timeline')
+        self.assertContains(response, reverse('journal:plant_detail', args=[self.tomato.pk]) + '?from=garden')
+
+    def test_owner_of_a_plant_without_entries_gets_the_new_entry_link(self):
+        self.client.force_login(self.grower)
+        response = self.client.get(reverse('gardens:planting_detail', args=[self.garden.pk, self.chili.pk]))
+        self.assertContains(response, 'Write the first entry')
+        self.assertContains(response, reverse('journal:create_plant_entry', args=[self.chili.pk]))
+
+    def test_visitor_of_a_private_journal_sees_no_entries(self):
+        self.garden.is_public = True
+        self.garden.save()
+        self.client.force_login(self.buyer)
+        response = self.client.get(self.plant_page())
+        self.assertContains(response, 'No journal yet')
+        self.assertNotContains(response, 'Open full timeline')
+        self.assertNotContains(response, 'Write the first entry')
+
+    def test_plant_card_shows_the_entry_count_and_journal_link(self):
+        self.client.force_login(self.grower)
+        response = self.client.get(reverse('gardens:detail', args=[self.garden.pk]))
+        self.assertContains(response, '3 entries')
+        self.assertContains(response, reverse('journal:plant_detail', args=[self.tomato.pk]) + '?from=garden')
