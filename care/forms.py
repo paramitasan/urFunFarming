@@ -61,6 +61,11 @@ class CareTaskForm(forms.ModelForm):
             Planting.objects.filter(garden__owner=user).select_related('garden').order_by('garden__name', 'crop', 'id')
         )
         self.fields['title'].required = False
+        self.fields['title'].widget.attrs['placeholder'] = 'e.g. Water the tomatoes'
+        # Reuse the Gardens field look; selects also get the chevron
+        for field in self.fields.values():
+            classes = 'garden-field garden-select' if isinstance(field.widget, forms.Select) else 'garden-field'
+            field.widget.attrs['class'] = classes
         # Set before validation so the model's own-planting check runs too
         self.instance.owner = user
 
@@ -96,3 +101,11 @@ class CareSettingsForm(forms.ModelForm):
             'max_temp_c': forms.NumberInput(attrs={'step': '0.5', 'min': '0'}),
             'max_wind_kmh': forms.NumberInput(attrs={'step': '1', 'min': '0'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Show 2 and 32 rather than 2.0 and 32.0
+        for name in self.fields:
+            value = self.initial.get(name)
+            if value is not None:
+                self.initial[name] = format(value.normalize(), 'f')

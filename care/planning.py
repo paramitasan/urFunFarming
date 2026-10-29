@@ -1,11 +1,13 @@
 """Turns the shared BMKG forecast into what the Plant care pages show."""
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from django.utils import timezone
 
 from weather.services import mark_good
 
 SLOT_HOURS = 3
+DAYLIGHT_FROM = 5
+DAYLIGHT_UNTIL = 17
 
 
 def _windows(slots):
@@ -17,7 +19,8 @@ def _windows(slots):
         start = timezone.localtime(slot['time'])
         end = start + timedelta(hours=SLOT_HOURS)
         last = windows[-1] if windows else None
-        if last and last['end'] == start:
+        # Back-to-back on the same day only, so each day gets its own window
+        if last and last['end'] == start and last['start'].date() == start.date():
             last['end'] = end
             last['slots'].append(slot)
         else:
@@ -49,7 +52,13 @@ def today_card(weather, care_settings):
     rainy = [s for s in slots if s['kind'] == 'rain' or s['rain_mm'] > float(care_settings.max_rain_mm)]
     parts = []
     if rainy:
-        parts.append(f'Rain expected around {timezone.localtime(rainy[0]["time"]):%H:%M}.')
+        first = rainy[0]
+        at = timezone.localtime(first['time'])
+        if first['good']:
+            # BMKG says rain, but little enough to stay inside the grower's limit
+            parts.append(f'Light rain around {at:%H:%M}, within your rain limit.')
+        else:
+            parts.append(f'Rain expected around {at:%H:%M}.')
     else:
         parts.append('No rain expected today.')
     windows = _windows(slots)
@@ -62,13 +71,91 @@ def today_card(weather, care_settings):
     return {'slots': slots, 'summary': ' '.join(parts), 'rain': bool(rainy)}
 
 
+NO_FORECAST = 'BMKG has no forecast for this time yet. Forecasts cover the next 3 days.'
+
+
+def _part_of_day(moment):
+    if moment.hour < 12:
+        return 'morning'
+    if moment.hour < 17:
+        return 'afternoon'
+    if moment.hour < 21:
+        return 'evening'
+    return 'night'
+
+
+def _over_limits(slot, care_settings):
+    over = []
+    if slot['rain_mm'] > float(care_settings.max_rain_mm):
+        over.append('rain')
+    if slot['temp'] > float(care_settings.max_temp_c):
+        over.append('temperature')
+    if slot['wind_kmh'] > float(care_settings.max_wind_kmh):
+        over.append('wind')
+    return over
+
+
+def slot_message(slot, care_settings):
+    """'Tuesday morning looks good: cloudy, 30°, 0 mm rain, wind 5 km/h. Meets all your thresholds.'"""
+    moment = timezone.localtime(slot['time'])
+    when = f'{moment:%A} {_part_of_day(moment)}'
+    reading = (
+        f'{slot["description"].lower()}, {slot["temp"]:.0f}°, {slot["rain_mm"]:g} mm rain, '
+        f'wind {slot["wind_kmh"]:.0f} km/h'
+    )
+    over = _over_limits(slot, care_settings)
+    if not over:
+        return {'good': True, 'kind': slot['kind'], 'text': f'{when} looks good: {reading}. Meets all your thresholds.'}
+    limits = ' and '.join(over)
+    return {'good': False, 'kind': slot['kind'], 'text': f'{when} may not suit the task: {reading}. Over your {limits} limit.'}
+
+
+def check_data(weather, care_settings):
+    """Every forecast slot with its message, for the form's live weather check."""
+    if not weather['available']:
+        return []
+    return [
+        {'start': slot['time'].isoformat(), **slot_message(slot, care_settings)}
+        for slot in weather['slots']
+    ]
+
+
+def weather_check(weather, care_settings, target_date, target_time):
+    """The message under the date and time fields, or None before a date is picked."""
+    if not target_date:
+        return None
+    if not weather['available']:
+        return {'good': None, 'kind': '', 'text': f'{weather["error"]}.'}
+    if target_time is None:
+        # No time yet: describe the day as a whole
+        day = [s for s in mark_good(weather['slots'], care_settings.max_rain_mm, care_settings.max_temp_c,
+                                    care_settings.max_wind_kmh)
+               if timezone.localtime(s['time']).date() == target_date]
+        if not day:
+            return {'good': None, 'kind': '', 'text': NO_FORECAST}
+        good = [s for s in day if s['good']]
+        if not good:
+            return {'good': False, 'kind': day[0]['kind'], 'text': f'No slot on {target_date:%A} meets your thresholds.'}
+        first = timezone.localtime(good[0]['time'])
+        return {'good': True, 'kind': good[0]['kind'], 'text': f'{target_date:%A} has good times from {first:%H:%M}. Pick a time to check it.'}
+    moment = datetime.combine(target_date, target_time, tzinfo=timezone.get_current_timezone())
+    for slot in weather['slots']:
+        if slot['time'] <= moment < slot['time'] + timedelta(hours=SLOT_HOURS):
+            return slot_message(slot, care_settings)
+    return {'good': None, 'kind': '', 'text': NO_FORECAST}
+
+
 def best_times(weather, care_settings, limit=4):
-    """Upcoming windows across the next 3 days that meet every threshold, soonest first."""
+    """Upcoming daytime windows in the next 3 days that meet every threshold, soonest first."""
     if not weather['available']:
         return []
     limits = (care_settings.max_rain_mm, care_settings.max_temp_c, care_settings.max_wind_kmh)
     now = timezone.now()
-    upcoming = [s for s in mark_good(weather['slots'], *limits) if s['time'] >= now - timedelta(hours=1)]
+    # Outdoor care happens in daylight: slots starting from 05:00 up to 17:00
+    upcoming = [
+        s for s in mark_good(weather['slots'], *limits)
+        if s['time'] >= now and DAYLIGHT_FROM <= timezone.localtime(s['time']).hour <= DAYLIGHT_UNTIL
+    ]
     windows = _windows(upcoming)
     for window in windows:
         window['label'] = f'{window["start"]:%a} {_time_range(window)}'

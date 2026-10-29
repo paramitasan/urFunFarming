@@ -1,31 +1,87 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}{% if task %}Edit care task{% else %}Add a care task{% endif %} · UrFunFarming{% endblock %}
+{% block head %}{% include 'care/_assets.html' %}{% endblock head %}
 {% block content %}
 {% include 'partials/grower_subnav.html' %}
-<section class="care-page" aria-labelledby="care-form-heading">
-    <a href="{% url 'care:index' %}">Back to Plant care</a>
-    <h1 id="care-form-heading">{% if task %}Edit care task{% else %}Add a care task{% endif %}</h1>
+<section class="gardens-page care-page" aria-labelledby="care-form-heading">
     {% include 'care/_messages.html' %}
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_div }}
-        <a href="{% url 'care:index' %}">Cancel</a>
-        <button type="submit">Save task</button>
-    </form>
-    <aside>
-        <h2>Best times in the next 3 days</h2>
-        {% if weather.available %}
-        <ul>{% for window in best_times %}<li>{{ window.label }} {{ window.description }}, {{ window.temp|floatformat:0 }}&deg; &middot; {{ window.rain_mm|floatformat:0 }} mm</li>{% empty %}<li>No times meet your thresholds.</li>{% endfor %}</ul>
+    <header class="gardens-page-heading">
+        <div>
+            <a class="gardens-back-link" href="{% url 'care:index' %}"><img src="{% static 'img/gardens/back.svg' %}" alt="">Back to Plant care</a>
+            <h1 id="care-form-heading">{% if task %}Edit care task{% else %}Add a care task{% endif %}</h1>
+            <p class="gardens-subtitle">Link the task to a planting, pick a time that fits the weather, and keep private notes.</p>
+        </div>
+    </header>
+
+    <div class="care-form-layout">
+        {% if not has_plantings %}
+        {% url 'gardens:mine' as gardens_url %}
+        {% include 'gardens/_empty_state.html' with heading_id='care-no-plantings' title='Add a planting first' text='Care tasks belong to a planting. Add one to a garden, then come back.' button_url=gardens_url button_label='Go to My gardens' reset=True %}
         {% else %}
-        <p>{{ weather.error }}</p>
-        {% endif %}
-        {% include 'weather/_source.html' %}
-        <form method="post" action="{% url 'care:settings' %}">
+        <form class="care-form" method="post" novalidate>
             {% csrf_token %}
-            <input type="hidden" name="next" value="{{ request.get_full_path }}">
-            {{ settings_form.as_div }}
-            <button type="submit">Save thresholds</button>
+            {% if form.non_field_errors %}<div class="garden-form-errors" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+
+            <div class="care-form-row">
+                {% include 'care/_field.html' with field=form.activity %}
+                {% include 'care/_field.html' with field=form.planting %}
+            </div>
+            {% include 'care/_field.html' with field=form.title %}
+            <div class="care-form-row">
+                {% include 'care/_field.html' with field=form.target_date %}
+                {% include 'care/_field.html' with field=form.target_time %}
+            </div>
+
+            <p class="care-weather-check"{% if not weather_check %} hidden{% endif %} data-weather-check data-good="{{ weather_check.good|yesno:'true,false,none' }}" aria-live="polite">
+                <span data-weather-check-icon>{% include 'weather/_icon.html' with kind=weather_check.kind|default:'cloud' %}</span>
+                <span data-weather-check-text>{{ weather_check.text }}</span>
+            </p>
+
+            {% include 'care/_field.html' with field=form.notes %}
+            {% include 'care/_field.html' with field=form.status %}
+
+            <div class="care-form-actions">
+                <a class="care-cancel" href="{% url 'care:index' %}">Cancel</a>
+                <button class="pill-button" type="submit">{% if task %}Save changes{% else %}Save task{% endif %}</button>
+            </div>
         </form>
-    </aside>
+        {% endif %}
+
+        <aside class="care-side" aria-label="Weather and thresholds">
+            <section class="care-side-card" aria-labelledby="best-times-heading">
+                <h2 id="best-times-heading">Best times in the next 3 days</h2>
+                <p class="care-side-intro">Periods that meet your thresholds (rain &le; {{ care_settings.max_rain_mm|floatformat:"-1" }} mm, temp &le; {{ care_settings.max_temp_c|floatformat:"-1" }}&deg;, wind &le; {{ care_settings.max_wind_kmh|floatformat:"-1" }} km/h). Tap one to use it.</p>
+                {% if weather.available %}
+                <ul class="care-best-times">
+                    {% for window in best_times %}
+                    <li>
+                        <a class="care-best-time{% if window.selected %} is-selected{% endif %}" href="{% if task %}{% url 'care:edit' task.pk %}{% else %}{% url 'care:create' %}{% endif %}?date={{ window.date|date:'Y-m-d' }}&amp;time={{ window.time|time:'H:i' }}" data-date="{{ window.date|date:'Y-m-d' }}" data-time="{{ window.time|time:'H:i' }}"{% if window.selected %} aria-current="true"{% endif %}>
+                            {% include 'weather/_icon.html' with kind=window.kind %}
+                            <span class="care-best-time-text">
+                                <strong>{{ window.label }}</strong>
+                                <span>{{ window.description }}, {{ window.temp|floatformat:0 }}&deg; &middot; {{ window.rain_mm|floatformat:"-1" }} mm</span>
+                            </span>
+                            <span class="care-selected-tag">Selected</span>
+                        </a>
+                    </li>
+                    {% empty %}
+                    <li class="care-best-empty">No times in the next 3 days meet your thresholds. Try loosening them below.</li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="weather-card-unavailable" role="status">{{ weather.error }}. You can still pick any date and time.</p>
+                {% endif %}
+                {% include 'weather/_source.html' %}
+                {% if not weather.has_location %}<a class="weather-set-area" href="{% url 'accounts:profile' %}">Set your area in your profile to see local weather</a>{% endif %}
+            </section>
+
+            <section class="care-side-card care-thresholds-card" aria-labelledby="thresholds-heading">
+                <h2 id="thresholds-heading">Your thresholds</h2>
+                {% include 'care/_thresholds_form.html' %}
+            </section>
+        </aside>
+    </div>
 </section>
+{{ check_data|json_script:'care-weather-slots' }}
 {% endblock %}

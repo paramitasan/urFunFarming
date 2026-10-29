@@ -4,7 +4,7 @@
 {% block head %}{% include 'care/_assets.html' %}{% endblock head %}
 {% block content %}
 {% include 'partials/grower_subnav.html' %}
-<section class="gardens-page care-page" aria-labelledby="care-heading">
+<section class="gardens-page care-page" aria-labelledby="care-heading"{% if delete_task %} inert{% endif %}>
     {% include 'care/_messages.html' %}
     <header class="gardens-page-heading">
         <div>
@@ -78,4 +78,5 @@
         {% endif %}
     </section>
 </section>
+{% if delete_task %}{% include 'care/_delete_dialog.html' with task=delete_task %}{% endif %}
 {% endblock %}
