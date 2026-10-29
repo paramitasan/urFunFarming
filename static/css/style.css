@@ -1174,6 +1174,10 @@ ul {
     color: var(--color-deep);
 }
 
+.forum a:hover {
+    text-decoration: underline;
+}
+
 .forum-intro .link {
     margin-top: 8px;
 }
