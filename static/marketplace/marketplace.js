@@ -5,6 +5,11 @@
     const filterForm = document.getElementById('marketplace-filters');
     let catalogController;
     let searchTimer;
+    // Safari before 16 has no requestSubmit(), so send the same submit event by hand
+    const submitForm = (form) => {
+        if (form.requestSubmit) form.requestSubmit();
+        else if (form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))) form.submit();
+    };
 
     function restorePhotos(root = document) {
         root.querySelectorAll('.harvest-user-photo').forEach((photo) => {
@@ -65,12 +70,12 @@
             loadCatalog(`${filterForm.action}?${params.toString()}`);
         });
         filterForm.addEventListener('change', (event) => {
-            if (event.target.matches('select, input[type=radio], input[type=number]')) filterForm.requestSubmit();
+            if (event.target.matches('select, input[type=radio], input[type=number]')) submitForm(filterForm);
         });
         filterForm.addEventListener('input', (event) => {
             if (event.target.name !== 'q') return;
             clearTimeout(searchTimer);
-            searchTimer = setTimeout(() => filterForm.requestSubmit(), 300);
+            searchTimer = setTimeout(() => submitForm(filterForm), 300);
         });
         filterForm.addEventListener('click', (event) => {
             const link = event.target.closest('[data-market-page]');
