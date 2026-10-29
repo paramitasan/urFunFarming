@@ -1049,6 +1049,317 @@
 }
 
 
+/* Journal list: filter card, table and page buttons */
+
+.journal-list {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+.empty-card h2 {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: normal;
+    letter-spacing: -0.18px;
+    color: var(--color-forest);
+}
+
+.filter-card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-hairline);
+    border-radius: 16px;
+}
+
+.search-input {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 48px;
+    padding: 0 16px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-field);
+    border-radius: 10px;
+}
+
+.search-input:focus-within {
+    outline: 2px solid var(--color-accent);
+    border-color: var(--color-accent);
+}
+
+.search-input input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    background: none;
+    border: 0;
+    outline: none;
+    font-family: inherit;
+    font-size: 15px;
+    color: var(--color-forest);
+}
+
+.search-input input::placeholder {
+    color: var(--color-deep);
+}
+
+.filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.filter-dropdowns,
+.filter-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.filter-select select {
+    appearance: none;
+    width: 160px;
+    height: 40px;
+    padding: 0 40px 0 14px;
+    background-color: var(--color-surface);
+    background-image: url('icons/chevron-down.svg');
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 18px 18px;
+    border: 1px solid var(--color-field);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-forest);
+    cursor: pointer;
+}
+
+.filter-select-wide select {
+    width: 220px;
+}
+
+/* A filter other than "All" gets the green tint and accent border */
+.filter-select.is-active select {
+    background-color: var(--color-band);
+    border: 1.5px solid var(--color-accent);
+}
+
+.filter-select select:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 0;
+}
+
+.filter-actions .small-button {
+    text-decoration: none;
+}
+
+.count-badge {
+    display: flex;
+    align-items: center;
+    height: 40px;
+    padding: 0 14px;
+    background-color: var(--color-band);
+    border: 1px solid var(--color-field);
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-forest);
+    white-space: nowrap;
+}
+
+/* On phones the table keeps its columns and the card scrolls sideways */
+.table-card {
+    overflow-x: auto;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-hairline);
+    border-radius: 16px;
+}
+
+.journal-table {
+    width: 100%;
+    min-width: 1100px;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.journal-table th {
+    height: 52px;
+    padding: 0 7px;
+    background-color: var(--color-forest);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.72px;
+    text-transform: uppercase;
+    color: #C9E2C4;
+    white-space: nowrap;
+}
+
+.journal-table td {
+    padding: 18px 7px;
+    vertical-align: middle;
+    font-size: 14px;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.journal-table th:first-child,
+.journal-table td:first-child {
+    padding-left: 20px;
+}
+
+.journal-table th:last-child,
+.journal-table td:last-child {
+    padding-right: 20px;
+}
+
+.journal-table tbody tr + tr td {
+    border-top: 1px solid var(--color-hairline);
+}
+
+.cell-no {
+    width: 44px;
+    font-weight: 600;
+    color: var(--color-deep);
+}
+
+.cell-strong {
+    display: block;
+    font-weight: 600;
+    color: var(--color-forest);
+}
+
+.cell-time,
+.cell-muted {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 3px;
+    font-size: 12.5px;
+    color: var(--color-deep);
+}
+
+.plant-link {
+    text-decoration: none;
+}
+
+.plant-link:hover {
+    text-decoration: underline;
+}
+
+.cell-note {
+    min-width: 200px;
+    line-height: 1.55;
+}
+
+.visibility-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 4px;
+    background: none;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.visibility-button:hover {
+    background-color: var(--color-band);
+}
+
+.visibility-button:focus-visible {
+    outline: 2px solid var(--color-forest);
+}
+
+.row-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.icon-button-view {
+    background-color: var(--color-band);
+}
+
+.no-results {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 56px 24px;
+    font-size: 13px;
+    color: var(--color-deep);
+    text-align: center;
+}
+
+.no-results .no-results-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-forest);
+}
+
+.no-results .small-button {
+    text-decoration: none;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.page-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-field);
+    border-radius: 50%;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-forest);
+    text-decoration: none;
+}
+
+a.page-button:hover {
+    background-color: var(--color-band);
+}
+
+a.page-button:focus-visible {
+    outline: 2px solid var(--color-forest);
+    outline-offset: 2px;
+}
+
+.page-button.is-current {
+    background-color: var(--color-forest);
+    border-color: var(--color-forest);
+    color: #C9E2C4;
+}
+
+.page-button.is-disabled {
+    opacity: 0.4;
+}
+
+/* The chevron points down, so it is turned to point left or right */
+.page-arrow-previous {
+    transform: rotate(90deg);
+}
+
+.page-arrow-next {
+    transform: rotate(-90deg);
+}
+
+
 /* Delete dialog: a popover over the whole page, like the tutorial's delete modal */
 
 .delete-dialog {

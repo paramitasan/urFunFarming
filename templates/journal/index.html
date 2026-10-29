@@ -1,7 +1,184 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}Plant Journal · UrFunFarming{% endblock title %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'journal/journal.css' %}">
+<script defer src="{% static 'journal/journal.js' %}"></script>
+<script defer src="{% static 'journal/delete-entry.js' %}"></script>
+<script defer src="{% static 'journal/journal-list.js' %}"></script>
+{% endblock head %}
 
 {% block content %}
 {% include 'partials/grower_subnav.html' %}
-<h1>Plant Journal</h1>
+<div class="journal">
+    {% include 'journal/toast.html' %}
+
+    <header class="journal-header" data-journal-header>
+        <div class="journal-title-block">
+            <p class="journal-eyebrow">Write it down. Watch it grow.</p>
+            <h1 class="journal-title">Plant Journal</h1>
+            <p class="journal-subtitle">
+                {% if not has_plants %}Track how each of your plants grows, one entry at a time.{% elif not has_entries %}Your plants and their latest entries will show up here.{% else %}Each plant with its latest entry. Open a plant to see its full timeline.{% endif %}
+            </p>
+        </div>
+        {% if has_plants %}
+            <a class="pill-button" href="{% url 'journal:create_entry' %}">
+                <img src="{% static 'journal/icons/plus.svg' %}" alt="" width="18" height="18">
+                New Entry
+            </a>
+        {% endif %}
+    </header>
+
+    <div class="journal-list" data-journal-body>
+        {% if not has_plants %}
+            <div class="empty-card">
+                <span class="empty-icon">
+                    <img src="{% static 'journal/icons/sprout.svg' %}" alt="" width="26" height="26">
+                </span>
+                <h2>Add a plant to start your journal</h2>
+                <p>Your journal follows the plants in My gardens. Add your first plant there, then come back to log how it grows.</p>
+                <a class="pill-button" href="{% url 'gardens:mine' %}">Go to My gardens</a>
+            </div>
+        {% elif not has_entries %}
+            <div class="empty-card">
+                <span class="empty-icon">
+                    <img src="{% static 'journal/icons/sprout.svg' %}" alt="" width="26" height="26">
+                </span>
+                <h2>Start your first entry</h2>
+                <p>Pick one of your plants and write down how it's doing. Your entries will show up here, one row per plant.</p>
+                <a class="pill-button" href="{% url 'journal:create_entry' %}">
+                    <img src="{% static 'journal/icons/plus.svg' %}" alt="" width="18" height="18">
+                    New Entry
+                </a>
+            </div>
+        {% else %}
+            <form class="filter-card" method="get" data-filter-form>
+                <label class="search-input">
+                    <img src="{% static 'journal/icons/search.svg' %}" alt="" width="18" height="18">
+                    {{ form.q }}
+                </label>
+                <div class="filter-row">
+                    <div class="filter-dropdowns">
+                        <span class="filter-select{% if form.plant.value %} is-active{% endif %}">{{ form.plant }}</span>
+                        <span class="filter-select{% if form.stage.value %} is-active{% endif %}">{{ form.stage }}</span>
+                        <span class="filter-select{% if form.health.value %} is-active{% endif %}">{{ form.health }}</span>
+                        <span class="filter-select filter-select-wide">{{ form.sort }}</span>
+                    </div>
+                    <div class="filter-actions">
+                        <a class="small-button" href="{% url 'journal:index' %}">Reset Filter</a>
+                        <p class="count-badge">{{ count_label }}</p>
+                    </div>
+                </div>
+                <noscript><button class="small-button" type="submit">Apply filters</button></noscript>
+            </form>
+
+            <div class="table-card">
+                <table class="journal-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">No</th>
+                            <th scope="col">Last entry</th>
+                            <th scope="col">Plant</th>
+                            <th scope="col">Stage</th>
+                            <th scope="col">Height</th>
+                            <th scope="col">Observation</th>
+                            <th scope="col">Health</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in page_obj %}
+                        <tr>
+                            <td class="cell-no">{{ page_obj.start_index|add:forloop.counter0 }}</td>
+                            <td>
+                                <span class="cell-strong">{{ row.latest.date|date:"j M Y" }}</span>
+                                <span class="cell-time">
+                                    {{ row.latest.time|time:"H.i" }}
+                                    {% if row.planting.pk in public_ids %}
+                                        <button class="visibility-button" type="button" aria-label="Make {{ row.planting.crop }} private">
+                                            <img src="{% static 'journal/icons/unlock-small.svg' %}" alt="" width="14" height="14">
+                                        </button>
+                                    {% else %}
+                                        <button class="visibility-button" type="button" aria-label="Make {{ row.planting.crop }} public">
+                                            <img src="{% static 'journal/icons/lock-small.svg' %}" alt="" width="14" height="14">
+                                        </button>
+                                    {% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                <a class="cell-strong plant-link" href="{% url 'journal:plant_detail' row.planting.pk %}">{{ row.planting.crop }}</a>
+                                <span class="cell-muted">{{ row.planting.garden.name }} · {{ row.entry_count }} entr{{ row.entry_count|pluralize:"y,ies" }}</span>
+                            </td>
+                            <td><span class="stage-tag" data-stage="{{ row.latest.stage }}">{{ row.latest.get_stage_display }}</span></td>
+                            <td class="cell-strong">{{ row.latest.height_cm }} cm</td>
+                            <td class="cell-note">{{ row.latest.observation|truncatechars:160 }}</td>
+                            <td><span class="health-tag" data-health="{{ row.latest.health }}">{{ row.latest.get_health_display }}</span></td>
+                            <td>
+                                <div class="row-actions">
+                                    <a class="icon-button icon-button-view" href="{% url 'journal:plant_detail' row.planting.pk %}" aria-label="View the timeline of {{ row.planting.crop }}">
+                                        <img src="{% static 'journal/icons/eye.svg' %}" alt="" width="18" height="18">
+                                    </a>
+                                    <a class="icon-button" href="{% url 'journal:create_plant_entry' row.planting.pk %}" aria-label="Add an entry for {{ row.planting.crop }}">
+                                        <img src="{% static 'journal/icons/plus.svg' %}" alt="" width="18" height="18">
+                                    </a>
+                                    <button class="icon-button icon-button-delete" type="button" aria-label="Delete all entries for {{ row.planting.crop }}" data-delete-url="{% url 'journal:delete_plant_entries' row.planting.pk %}">
+                                        <img src="{% static 'journal/icons/trash.svg' %}" alt="" width="18" height="18">
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8">
+                                <div class="no-results">
+                                    <img src="{% static 'journal/icons/leaf.svg' %}" alt="" width="40" height="40">
+                                    <p class="no-results-title">No plants match these filters</p>
+                                    <p>Try another stage or health status, or clear the search.</p>
+                                    <a class="small-button" href="{% url 'journal:index' %}">Reset Filter</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if page_obj.paginator.num_pages > 1 %}
+            <nav class="pagination" aria-label="Pages">
+                {% if page_obj.has_previous %}
+                    <a class="page-button" href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ page_obj.previous_page_number }}" aria-label="Previous page">
+                        <img class="page-arrow-previous" src="{% static 'journal/icons/chevron-page.svg' %}" alt="" width="18" height="18">
+                    </a>
+                {% else %}
+                    <span class="page-button is-disabled">
+                        <img class="page-arrow-previous" src="{% static 'journal/icons/chevron-page.svg' %}" alt="" width="18" height="18">
+                    </span>
+                {% endif %}
+
+                {% for number in page_obj.paginator.page_range %}
+                    {% if number == page_obj.number %}
+                        <span class="page-button is-current" aria-current="page">{{ number }}</span>
+                    {% else %}
+                        <a class="page-button" href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ number }}">{{ number }}</a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <a class="page-button" href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ page_obj.next_page_number }}" aria-label="Next page">
+                        <img class="page-arrow-next" src="{% static 'journal/icons/chevron-page.svg' %}" alt="" width="18" height="18">
+                    </a>
+                {% else %}
+                    <span class="page-button is-disabled">
+                        <img class="page-arrow-next" src="{% static 'journal/icons/chevron-page.svg' %}" alt="" width="18" height="18">
+                    </span>
+                {% endif %}
+            </nav>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    {% include 'journal/delete_dialog.html' with title='Delete all entries for this plant?' message="All of this plant's entries and photos will be removed from your journal. The plant itself stays in My gardens. This can't be undone." confirm_label='Delete entries' error_title="Couldn't delete these entries" %}
+</div>
 {% endblock content %}
