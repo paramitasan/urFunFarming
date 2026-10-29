@@ -7,16 +7,21 @@
             </a>
 
             <ul class="footer-links">
+                {% if user.profile.is_grower %}
+                {% with page=request.resolver_match.view_name %}
+                <li><a href="{% url 'gardens:mine' %}"{% if request.resolver_match.app_name == 'gardens' %} aria-current="page"{% endif %}>My gardens</a></li>
+                <li><a href="#"{% if page == 'journal:index' %} aria-current="page"{% endif %}>Plant journal</a></li>
+                <li><a href="#"{% if page == 'care:index' %} aria-current="page"{% endif %}>Plant care</a></li>
+                {% endwith %}
+                {% endif %}
                 <li><a href="{% url 'marketplace:index' %}">Market</a></li>
                 <li><a href="{% url 'forum:forum_list' %}">Forum</a></li>
-                <li><a href="{% url 'gardens:explore' %}">Gardens</a></li>
-                <li><a href="#">Privacy</a></li>
-                <li><a href="#">Terms</a></li>
+                <li><a href="{% url 'gardens:explore' %}">Explore gardens</a></li>
             </ul>
         </div>
 
         <p class="footer-note">
-            &copy; 2026 UrFunFarming. Weather data by Open-Meteo. Listings shown in the demo are sample data.
+            &copy; 2026 UrFunFarming. Weather data by BMKG.
         </p>
     </div>
 </footer>
