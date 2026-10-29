@@ -15,6 +15,11 @@
     --color-amber: #EA9E26;
     --color-hairline: rgba(18, 81, 51, 0.12);
     --color-field: #C9DFCB;
+    --color-mist: #EEF5E8; /* Figma: method tag fill */
+    --color-accent-soft: rgba(33, 195, 126, 0.25); /* Figma: "Day" tag fill */
+    --color-danger: #B5452F;
+    --color-danger-text: #9C3926;
+    --color-danger-bg: #F8E3DE;
 }
 
 
@@ -1451,6 +1456,30 @@ ul {
         margin-top: 8px;
         padding: 12px 6px 4px;
         border-top: 1px solid var(--color-hairline);
+    }
+
+    /* Sub-nav fills the width so all three links fit under the phone navbar */
+    .subnav {
+        width: 100%;
+        max-width: 420px;
+    }
+
+    .subnav li {
+        flex: 1;
+    }
+
+    .subnav a {
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 6px;
+        font-size: 13px;
+    }
+}
+
+/* Very small phones: the sub-nav drops its icons so all three labels fit */
+@media (max-width: 379px) {
+    .subnav a svg {
+        display: none;
     }
 }
 
