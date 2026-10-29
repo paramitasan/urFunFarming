@@ -6,6 +6,7 @@ from unittest import mock
 
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.management import call_command
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from PIL import Image
@@ -977,3 +978,22 @@ class DecimalHeightTest(JournalTestCase):
         form = JournalEntryForm(self.grower, {**self.entry_data(height_cm='92.555'), 'planting': self.tomato.pk})
         self.assertFalse(form.is_valid())
         self.assertIn('height_cm', form.errors)
+
+
+class SeedJournalTest(TestCase):
+    def test_running_it_twice_adds_nothing_the_second_time(self):
+        call_command('seed_journal', stdout=io.StringIO())
+        counts = (User.objects.count(), Planting.objects.count(), JournalEntry.objects.count(), EntryPhoto.objects.count())
+        self.assertEqual(counts[2], 17)
+
+        call_command('seed_journal', stdout=io.StringIO())
+        self.assertEqual(
+            (User.objects.count(), Planting.objects.count(), JournalEntry.objects.count(), EntryPhoto.objects.count()),
+            counts,
+        )
+
+    def test_demo_grower_can_open_the_list(self):
+        call_command('seed_journal', stdout=io.StringIO())
+        self.client.force_login(User.objects.get(username='demo_grower'))
+        response = self.client.get(reverse('journal:index'))
+        self.assertContains(response, 'Showing 12 plants')
