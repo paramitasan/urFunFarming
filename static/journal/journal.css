@@ -38,11 +38,18 @@
 
     max-width: 1164px;
     margin: 0 auto;
-    padding: 40px 16px 72px;
+    padding: 132px 16px 72px;
     display: flex;
     flex-direction: column;
     gap: 24px;
 }
+
+
+/* Growers have the subnav above the page, which already clears the fixed navbar */
+.subnav-row + .journal {
+    padding-top: 40px;
+}
+
 
 /* Back link */
 .back-link {

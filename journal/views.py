@@ -1,10 +1,9 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -55,7 +54,8 @@ def has_missing_required(form):
 @login_required(login_url='/login')
 def index(request):
     if not is_grower(request.user):
-        return render(request, 'journal/grower_required.html', status=403)
+        # The journal pages don't exist for buyers, they only see public plant pages
+        raise Http404
 
     form = JournalFilterForm(request.user, request.GET)
     # A filter value that isn't one of the choices (typed into the address bar) is ignored
@@ -172,7 +172,8 @@ def plant_detail(request, planting_id):
 @login_required(login_url='/login')
 def create_entry(request, planting_id=None):
     if not is_grower(request.user):
-        return render(request, 'journal/grower_required.html', status=403)
+        # The journal pages don't exist for buyers, they only see public plant pages
+        raise Http404
 
     planting = None
     latest = None
@@ -220,7 +221,8 @@ def create_entry(request, planting_id=None):
 @login_required(login_url='/login')
 def edit_entry(request, entry_id):
     if not is_grower(request.user):
-        return render(request, 'journal/grower_required.html', status=403)
+        # The journal pages don't exist for buyers, they only see public plant pages
+        raise Http404
 
     entry = get_object_or_404(JournalEntry, pk=entry_id)
     if entry.planting.garden.owner != request.user:
@@ -311,24 +313,3 @@ def toggle_visibility(request, planting_id):
         message = f'{planting.crop} is now private'
         detail = 'Only you can see its journal.'
     return JsonResponse({'is_public': journal.is_public, 'message': message, 'detail': detail})
-
-
-def grower_journal(request, username):
-    # Another grower's journal as buyers and other growers see it: only their public plants
-    grower = get_object_or_404(User, username=username)
-    plants = Planting.objects.filter(
-        garden__owner=grower, journal__is_public=True, journal_entries__isnull=False,
-    ).distinct()
-
-    rows = []
-    for planting in plants.select_related('garden').prefetch_related('journal_entries'):
-        entries = list(planting.journal_entries.all())
-        rows.append({'planting': planting, 'latest': entries[0], 'entry_count': len(entries)})
-    rows.sort(key=lambda row: (row['latest'].date, row['latest'].time), reverse=True)
-
-    context = {
-        'grower_name': display_name(grower),
-        'page_obj': Paginator(rows, 10).get_page(request.GET.get('page')),
-        'querystring': '',
-    }
-    return render(request, 'journal/grower_journal.html', context)

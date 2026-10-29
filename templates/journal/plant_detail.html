@@ -13,20 +13,20 @@
 {% include 'partials/grower_subnav.html' %}
 <div class="journal">
     {% include 'journal/toast.html' %}
-    {% if from_garden and garden_url %}
-        <a class="back-link" href="{{ garden_url }}">
-            <img src="{% static 'journal/icons/arrow-left.svg' %}" alt="" width="18" height="18">
-            Back to {{ planting.garden.name }}
-        </a>
-    {% elif is_owner %}
+    {% if is_owner and not from_garden %}
         <a class="back-link" href="{% url 'journal:index' %}">
             <img src="{% static 'journal/icons/arrow-left.svg' %}" alt="" width="18" height="18">
             Back to journal
         </a>
-    {% else %}
-        <a class="back-link" href="{% url 'journal:grower_journal' planting.garden.owner.username %}">
+    {% elif garden_url %}
+        <a class="back-link" href="{{ garden_url }}">
             <img src="{% static 'journal/icons/arrow-left.svg' %}" alt="" width="18" height="18">
-            Back to {{ grower_name }}'s journal
+            Back to {{ planting.garden.name }}
+        </a>
+    {% else %}
+        <a class="back-link" href="{% url 'gardens:explore' %}">
+            <img src="{% static 'journal/icons/arrow-left.svg' %}" alt="" width="18" height="18">
+            Back to gardens
         </a>
     {% endif %}
 
@@ -188,7 +188,7 @@
     {% else %}
         <div class="empty-card">
             <span class="empty-icon">
-                <img src="{% static 'journal/icons/lock.svg' %}" alt="" width="20" height="20">
+                <img src="{% static 'journal/icons/lock.svg' %}" alt="" width="26" height="26">
             </span>
             <h2>This journal is private</h2>
             <p>{{ grower_name }} keeps the journal for {{ planting.crop }} private, so its entries can't be shown. You can still see the other plants in {{ grower_name }}'s garden.</p>

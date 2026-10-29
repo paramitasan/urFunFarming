@@ -291,11 +291,9 @@ class CreateEntryTest(JournalTestCase):
         response = self.client.get(self.new_url)
         self.assertRedirects(response, '/login?next=/journal/new/', fetch_redirect_response=False)
 
-    def test_buyer_sees_the_growers_only_page(self):
+    def test_page_does_not_exist_for_buyers(self):
         self.client.force_login(self.buyer)
-        response = self.client.get(self.new_url)
-        self.assertEqual(response.status_code, 403)
-        self.assertTemplateUsed(response, 'journal/grower_required.html')
+        self.assertEqual(self.client.get(self.new_url).status_code, 404)
 
     def test_new_entry_page_has_plant_and_visibility(self):
         self.client.force_login(self.grower)
@@ -415,11 +413,9 @@ class EditEntryTest(JournalTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue(response.url.startswith('/login'))
 
-    def test_buyer_sees_the_growers_only_page(self):
+    def test_page_does_not_exist_for_buyers(self):
         self.client.force_login(self.buyer)
-        response = self.client.get(self.edit_url(self.latest))
-        self.assertEqual(response.status_code, 403)
-        self.assertTemplateUsed(response, 'journal/grower_required.html')
+        self.assertEqual(self.client.get(self.edit_url(self.latest)).status_code, 404)
 
     def test_other_grower_cannot_edit(self):
         self.client.force_login(self.other_grower)
@@ -698,10 +694,9 @@ class JournalListTest(JournalTestCase):
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, 302)
 
-    def test_buyer_sees_the_growers_only_page(self):
+    def test_page_does_not_exist_for_buyers(self):
         self.client.force_login(self.buyer)
-        response = self.client.get(self.list_url)
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(self.client.get(self.list_url).status_code, 404)
 
     def test_one_row_per_plant_with_its_latest_entry(self):
         self.client.force_login(self.grower)
@@ -879,21 +874,17 @@ class BuyerViewTest(JournalTestCase):
         self.assertContains(response, 'Grown by Ranu · Started 5 Sep 2026')
         self.assertNotContains(response, 'View in My gardens')
 
-    def test_back_link_goes_to_the_growers_journal(self):
-        response = self.client.get(self.detail_url(self.tomato))
-        self.assertContains(response, "Back to Ranu's journal")
-        self.assertContains(response, reverse('journal:grower_journal', args=['ranu']))
-
     def test_private_garden_gets_no_garden_links(self):
         # The garden isn't public, so its page would be a 404 for the buyer
         response = self.client.get(self.detail_url(self.tomato, from_garden=True))
-        self.assertContains(response, "Back to Ranu's journal")
+        self.assertContains(response, 'Back to gardens')
+        self.assertContains(response, reverse('gardens:explore'))
         self.assertNotContains(response, reverse('gardens:public_detail', args=[self.garden.pk]))
 
     def test_public_garden_links_to_its_public_page(self):
         self.garden.is_public = True
         self.garden.save()
-        response = self.client.get(self.detail_url(self.tomato, from_garden=True))
+        response = self.client.get(self.detail_url(self.tomato))
         self.assertContains(response, 'Back to Tebet Rooftop Garden')
         self.assertContains(response, "View Ranu's garden")
         self.assertContains(response, reverse('gardens:public_detail', args=[self.garden.pk]))
@@ -912,33 +903,3 @@ class BuyerViewTest(JournalTestCase):
         self.assertContains(response, 'Ranu keeps the journal for Cherry Tomato private')
         self.assertContains(response, 'Grown by Ranu')
         self.assertNotContains(response, 'Started 5 Sep 2026')
-
-
-class GrowerJournalTest(JournalTestCase):
-    def journal_url(self, username='ranu'):
-        return reverse('journal:grower_journal', args=[username])
-
-    def test_only_public_plants_with_entries_are_listed(self):
-        self.journal.is_public = True
-        self.journal.save()
-        PlantJournal.objects.create(planting=self.chili, is_public=True)
-        basil = Planting.objects.create(crop='Basil', garden=self.garden, planting_date=date(2026, 9, 1))
-        JournalEntry.objects.create(planting=basil, date=date(2026, 10, 1), time=time(8, 0), height_cm=9, observation='Private one.')
-        response = self.client.get(self.journal_url())
-        self.assertEqual([row['planting'].crop for row in response.context['page_obj']], ['Cherry Tomato'])
-        self.assertContains(response, "Ranu's Plant Journal")
-        # The read-only table has no actions or lock
-        self.assertNotContains(response, 'data-delete-url')
-        self.assertNotContains(response, 'data-visibility-url')
-
-    def test_empty_state(self):
-        response = self.client.get(self.journal_url())
-        self.assertContains(response, "Ranu hasn't shared a journal yet")
-
-    def test_username_is_used_when_there_is_no_profile(self):
-        User.objects.create_user('sam', password='Seedling-Tray-42')
-        response = self.client.get(self.journal_url('sam'))
-        self.assertContains(response, "sam's Plant Journal")
-
-    def test_missing_grower_gives_404(self):
-        self.assertEqual(self.client.get(self.journal_url('nobody')).status_code, 404)
