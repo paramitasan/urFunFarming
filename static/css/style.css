@@ -380,6 +380,139 @@ select:disabled {
     outline-offset: 2px;
 }
 
+/* Shared filter panel: Gardens, Marketplace and Forum all use this one look */
+
+.filter-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+    padding: 24px;
+    border: 1px solid var(--color-band);
+    border-radius: 20px;
+    background-color: #FFFFFF;
+    box-shadow: 0 10px 30px rgba(18, 81, 51, 0.06);
+}
+
+/* Follows the scroll next to long result lists */
+@media (min-width: 1024px) {
+    .filter-panel {
+        position: sticky;
+        top: 108px;
+    }
+}
+
+.filter-panel-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.filter-panel-heading h2 {
+    font-size: 20px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.filter-panel-heading a {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-deep);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.filter-panel-heading a:hover {
+    color: var(--color-forest);
+}
+
+.filter-panel-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+/* A fieldset draws its legend on top of its own border, so the divider is a separate element */
+.filter-panel-group + .filter-panel-group::before {
+    content: '';
+    display: block;
+    height: 1px;
+    margin-bottom: 14px;
+    background-color: var(--color-band);
+}
+
+.filter-panel-label,
+.filter-panel-group legend {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.filter-panel-group legend {
+    float: left;
+    width: 100%;
+    margin-bottom: 8px;
+    padding: 0;
+}
+
+.filter-panel-label + .garden-field,
+.filter-panel-label + .market-input {
+    margin-top: 4px;
+}
+
+/* The browser's own radio in the brand green, as in the marketplace design */
+.filter-radio {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 32px;
+    font-size: 14px;
+    line-height: normal;
+    color: var(--color-deep);
+    cursor: pointer;
+}
+
+.filter-radio input {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: var(--color-forest);
+    cursor: pointer;
+}
+
+.filter-radio span {
+    flex: 1;
+    min-width: 0;
+}
+
+.filter-radio input:checked + span {
+    font-weight: 600;
+    color: var(--color-forest);
+}
+
+.filter-radio small {
+    flex-shrink: 0;
+    min-width: 24px;
+    font-size: 12px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-sage);
+    text-align: right;
+}
+
+.filter-panel .outline-button,
+.filter-panel .pill-button {
+    align-self: flex-start;
+}
+
 /* Grower sub-nav under the navbar */
 
 .subnav-row {

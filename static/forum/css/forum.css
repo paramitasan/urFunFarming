@@ -319,97 +319,6 @@
 
 .forum-filters {
     grid-area: filters;
-    position: sticky;
-    top: 108px;
-    padding: 24px;
-    background-color: var(--color-surface);
-    border: 1px solid var(--color-band);
-    border-radius: 24px;
-    box-shadow: 0 10px 30px rgba(18, 81, 51, 0.06);
-}
-
-.filters-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-.filters-head h2 {
-    font-size: 22px;
-    font-weight: 600;
-    line-height: normal;
-}
-
-.filters-head a {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--color-deep);
-}
-
-.filters-head a:hover {
-    text-decoration: underline;
-}
-
-.filter-group {
-    min-width: 0;
-    margin-top: 20px;
-    border: none;
-}
-
-.filter-group + .filter-group {
-    padding-top: 20px;
-    border-top: 1px solid var(--color-hairline);
-}
-
-.filter-group legend {
-    margin-bottom: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--color-forest);
-}
-
-.filter-option {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 6px 0;
-    font-size: 15px;
-    color: var(--color-deep);
-    cursor: pointer;
-}
-
-.filter-option input {
-    appearance: none;
-    -webkit-appearance: none;
-    flex-shrink: 0;
-    width: 20px;
-    height: 20px;
-    margin: 0;
-    background-color: #FFFFFF;
-    border: 1.5px solid var(--color-field);
-    border-radius: 50%;
-    cursor: pointer;
-}
-
-.filter-option input:checked {
-    background-color: var(--color-accent);
-    border-color: var(--color-accent);
-}
-
-.filter-option:has(input:checked) .filter-label {
-    font-weight: 600;
-    color: var(--color-forest);
-}
-
-.filter-count {
-    flex-shrink: 0;
-    width: 36px;                        /* same box for every row */
-    margin-left: auto;
-    font-size: 12px;
-    text-align: center;                  
-    font-variant-numeric: tabular-nums;  /* equal-width digits */
-    color: var(--color-sage);
 }
 
 /* Pagination */
@@ -471,8 +380,8 @@ a.page-link:focus-visible {
 .forum-title a:focus-visible,
 .forum-more:focus-visible,
 .forum-notice a:focus-visible,
-.filters-head a:focus-visible,
-.filter-option input:focus-visible {
+.filter-panel-heading a:focus-visible,
+.filter-radio input:focus-visible {
     outline: 2px solid var(--color-deep);
     outline-offset: 2px;
 }
@@ -577,10 +486,6 @@ a.page-link:focus-visible {
             "filters"
             "results";
         row-gap: 16px;
-    }
-
-    .forum-filters {
-        position: static;
     }
 
     .filter-options {

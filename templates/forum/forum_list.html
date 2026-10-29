@@ -150,49 +150,49 @@
             {% include "forum/_pagination.html" %}
         </section>
 
-        <aside class="forum-filters" aria-label="Filters">
-            <div class="filters-head">
+        <aside class="forum-filters filter-panel" aria-label="Filters">
+            <div class="filter-panel-heading">
                 <h2>Filters</h2>
                 <a href="{% url 'forum:forum_list' %}">Reset</a>
             </div>
 
-            <fieldset class="filter-group">
+            <fieldset class="filter-panel-group">
                 <legend>Topic</legend>
                 <div class="filter-options">
-                    <label class="filter-option">
+                    <label class="filter-radio">
                         <input type="radio" name="topic" value="" form="forum-filters" data-autosubmit {% if not selected_topic %}checked{% endif %}>
-                        <span class="filter-label">All topics</span>
-                        <span class="filter-count">{{ all_count }}</span>
+                        <span>All topics</span>
+                        <small>{{ all_count }}</small>
                     </label>
                     {% for topic in topics %}
-                    <label class="filter-option">
+                    <label class="filter-radio">
                         <input type="radio" name="topic" value="{{ topic.value }}" form="forum-filters" data-autosubmit {% if selected_topic == topic.value %}checked{% endif %}>
-                        <span class="filter-label">{{ topic.label }}</span>
-                        <span class="filter-count">{{ topic.count }}</span>
+                        <span>{{ topic.label }}</span>
+                        <small>{{ topic.count }}</small>
                     </label>
                     {% endfor %}
                 </div>
             </fieldset>
 
-            <fieldset class="filter-group">
+            <fieldset class="filter-panel-group">
                 <legend>Show</legend>
                 <div class="filter-options">
-                    <label class="filter-option">
+                    <label class="filter-radio">
                         <input type="radio" name="show" value="" form="forum-filters" data-autosubmit {% if not selected_show %}checked{% endif %}>
-                        <span class="filter-label">All questions</span>
+                        <span>All questions</span>
                     </label>
-                    <label class="filter-option">
+                    <label class="filter-radio">
                         <input type="radio" name="show" value="unanswered" form="forum-filters" data-autosubmit {% if selected_show == "unanswered" %}checked{% endif %}>
-                        <span class="filter-label">Unanswered</span>
+                        <span>Unanswered</span>
                     </label>
-                    <label class="filter-option">
+                    <label class="filter-radio">
                         <input type="radio" name="show" value="answered" form="forum-filters" data-autosubmit {% if selected_show == "answered" %}checked{% endif %}>
-                        <span class="filter-label">Answered</span>
+                        <span>Answered</span>
                     </label>
                     {% if user.is_authenticated %}
-                    <label class="filter-option">
+                    <label class="filter-radio">
                         <input type="radio" name="show" value="mine" form="forum-filters" data-autosubmit {% if selected_show == "mine" %}checked{% endif %}>
-                        <span class="filter-label">My questions</span>
+                        <span>My questions</span>
                     </label>
                     {% endif %}
                 </div>
