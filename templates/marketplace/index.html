@@ -31,7 +31,7 @@
     <div class="list-layout">
         <section id="market-results" class="list-results" aria-label="Harvest listings" aria-live="polite" aria-busy="false">{% include 'marketplace/_results.html' %}</section>
         <aside class="market-filters filter-panel" aria-label="Filter harvests">
-            <div class="filter-panel-heading"><h2>Filters</h2><button class="market-filter-toggle" id="market-filter-toggle" type="button" aria-expanded="false" aria-controls="market-filter-fields">Show filters</button><a href="{% if mine %}{% url 'marketplace:mine' %}{% else %}{% url 'marketplace:index' %}{% endif %}">Reset</a></div>
+            <div class="filter-panel-heading"><h2>Filters</h2><a href="{% if mine %}{% url 'marketplace:mine' %}{% else %}{% url 'marketplace:index' %}{% endif %}">Reset</a></div>
             <div class="market-filter-fields" id="market-filter-fields">
             <fieldset class="filter-panel-group"><legend>Category</legend>{% for value, label in filter_form.category.field.choices %}<label class="filter-radio"><input type="radio" name="category" value="{{ value }}"{% if filter_form.category.value == value or not filter_form.category.value and value == '' %} checked{% endif %}><span>{{ label }}</span></label>{% endfor %}</fieldset>
             <fieldset class="filter-panel-group"><legend>Availability</legend>{% for value, label in filter_form.availability.field.choices %}<label class="filter-radio"><input type="radio" name="availability" value="{{ value }}"{% if filter_form.availability.value == value %} checked{% endif %}><span>{{ label }}</span></label>{% endfor %}</fieldset>

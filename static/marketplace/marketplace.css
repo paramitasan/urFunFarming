@@ -48,7 +48,6 @@
 .harvest-view { border: 1.25px solid var(--color-forest); border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 600; flex-shrink: 0; }
 @media (hover: hover) { .harvest-view:hover { background: var(--color-band); } }
 .market-filter-fields { display: flex; flex-direction: column; gap: 20px; }
-.market-filter-toggle { display: none; padding: 6px 10px; font: 500 12px 'Poppins',sans-serif; border: 1px solid var(--color-band); border-radius: 999px; background: var(--color-surface); color: var(--color-forest); cursor: pointer; }
 .market-extra-filter { margin-top: 12px; font-size: 12px; }
 .market-extra-filter summary { cursor: pointer; color: var(--color-deep); }
 .market-extra-filter label { display: block; margin: 12px 0 6px; }
@@ -134,12 +133,6 @@ select.market-input { -webkit-appearance: none; appearance: none; padding-right:
     .market-shell h1 { font-size: 32px; }
     .market-subtitle { font-size: 14px; }
     .market-page-heading { margin-bottom: 26px; }
-    .market-filters { padding: 18px; }
-    .market-filter-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; }
-    .market-filter-fields .filter-panel-group + .filter-panel-group { padding-top: 0; border-top: 0; }
-    .market-js .market-filters:not(.is-open) .market-filter-fields { display: none; }
-    .market-js .market-filter-toggle { display: inline-flex; }
-    .market-filters { gap: 14px; }
     .market-community-note { align-self: end; margin-bottom: 4px; }
     .market-extra-filter { margin-top: 8px; }
     .market-detail-layout, .market-form-layout { grid-template-columns: 1fr; }
@@ -156,7 +149,6 @@ select.market-input { -webkit-appearance: none; appearance: none; padding-right:
     .market-form-grid, .market-weather-fields, .market-listing-facts { grid-template-columns: 1fr; }
     .market-actions { width: 100%; gap: 8px; }
     .market-actions .market-button { padding: 12px 14px; font-size: 12px; }
-    .market-filters { padding: 16px; gap: 0 12px; }
     .filter-radio { font-size: 13px; gap: 10px; }
 }
 @media (prefers-reduced-motion: reduce) { .market-button, #market-results { transition: none; } .market-button:hover { transform: none; } }

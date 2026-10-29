@@ -55,12 +55,6 @@
     }
 
     if (filterForm) {
-        const toggle = document.getElementById('market-filter-toggle');
-        toggle.addEventListener('click', () => {
-            const open = filterForm.querySelector('.market-filters').classList.toggle('is-open');
-            toggle.setAttribute('aria-expanded', String(open));
-            toggle.textContent = open ? 'Hide filters' : 'Show filters';
-        });
         filterForm.addEventListener('submit', (event) => {
             event.preventDefault();
             const params = new URLSearchParams(new FormData(filterForm));

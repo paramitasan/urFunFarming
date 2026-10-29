@@ -688,6 +688,40 @@ select:disabled {
     align-self: flex-start;
 }
 
+/* "Show filters" fold on phones and tablets (static/js/filter-panel.js adds the button) */
+.filter-panel-toggle {
+    display: none;
+    margin-left: auto;
+    padding: 6px 12px;
+    border: 1px solid var(--color-band);
+    border-radius: 999px;
+    background-color: var(--color-surface);
+    font: 500 12px/normal 'Poppins', sans-serif;
+    color: var(--color-forest);
+    cursor: pointer;
+}
+
+@media (max-width: 1023px) {
+    .filter-panel {
+        gap: 16px;
+    }
+
+    .js .filter-panel-toggle {
+        display: inline-flex;
+    }
+
+    /* Folded: only the heading shows until the button opens the panel */
+    .js .filter-panel:not(.is-open) > :not(.filter-panel-heading) {
+        display: none;
+    }
+}
+
+@media (max-width: 639px) {
+    .filter-panel {
+        padding: 18px;
+    }
+}
+
 /* Grower sub-nav under the navbar */
 
 .subnav-row {

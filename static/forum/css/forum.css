@@ -389,14 +389,6 @@ a.page-link:focus-visible {
 
 /* Tablets and phones: one column, filters before the results */
 
-@media (max-width: 1023px) {
-    .filter-options {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        column-gap: 24px;
-    }
-}
-
 /* Delete confirmation */
 
 .confirm {
@@ -544,7 +536,4 @@ a.page-link:focus-visible {
         flex-wrap: wrap;
     }
 
-    .filter-options {
-        grid-template-columns: minmax(0, 1fr);
-    }
 }
