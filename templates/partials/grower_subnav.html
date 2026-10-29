@@ -3,7 +3,7 @@
 <nav class="subnav-row" aria-label="Grower tools">
     <ul class="subnav">
         <li><a href="{% url 'gardens:mine' %}"{% if page == 'gardens:mine' %} aria-current="page"{% endif %}>{% include 'svg/icons/gardens.svg' %}My gardens</a></li>
-        <li><a href="{% url 'journal:index' %}"{% if page == 'journal:index' %} aria-current="page"{% endif %}>{% include 'svg/icons/journal.svg' %}Plant journal</a></li>
+        <li><a href="{% url 'journal:index' %}"{% if request.resolver_match.namespace == 'journal' %} aria-current="page"{% endif %}>{% include 'svg/icons/journal.svg' %}Plant journal</a></li>
         {# TODO: link to care:index once that module exists #}
         <li><a href="#"{% if page == 'care:index' %} aria-current="page"{% endif %}>{% include 'svg/icons/care.svg' %}Plant care</a></li>
     </ul>
