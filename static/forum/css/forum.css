@@ -186,7 +186,6 @@
 }
 
 .forum-chip {
-    margin-left: auto;
     padding: 6px 14px;
     background-color: var(--color-band);
     border: 1px solid var(--color-mint);
@@ -250,7 +249,6 @@
 }
 
 .forum-answered {
-    margin-left: auto;
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -261,6 +259,13 @@
     font-weight: 600;
     line-height: normal;
     color: var(--color-ink);
+}
+
+.forum-topic-answered {
+    display: flex;
+    margin-left: auto;
+    align-items: center;
+    gap: 10px;
 }
 
 /* Empty state */

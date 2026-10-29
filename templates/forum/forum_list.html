@@ -75,7 +75,19 @@
                             <time datetime="{{ forum.created_at|date:'c' }}">{{ forum.created_at|timesince }} ago{% if forum.is_edited %} (edited){% endif %}</time>
                         </div>
                         {% endif %}
-                        <span class="forum-chip">{{ forum.get_topic_display }}</span>
+
+                        <div class="forum-topic-answered">
+                            {% if forum.is_answered %}
+                            <span class="forum-answered">
+                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                                <path d="M2.5 7.5l3 3 6-6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Answered
+                            </span>
+                            {% endif %}
+                            <span class="forum-chip">{{ forum.get_topic_display }}</span>
+                        </div>
+                        
                         {% if user == forum.author %}{% include "forum/_post_menu.html" %}{% endif %}
                     </div>
 
@@ -104,14 +116,6 @@
                              {% endif %}" title="View replies">
                              {{ forum.reply_count }} answer{{ forum.reply_count|pluralize }}
                         </a>
-                        {% if forum.is_answered %}
-                        <span class="forum-answered">
-                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                            <path d="M2.5 7.5l3 3 6-6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                            Answered
-                        </span>
-                        {% endif %}
                     </div>
 
                 </article>
