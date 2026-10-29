@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q, Value
 from django.db.models.functions import Coalesce, Lower, NullIf
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods, require_POST
@@ -92,6 +93,8 @@ def index(request):
         'care_settings': care_settings,
         'weather': weather,
         'card': today_card(weather, care_settings),
+        'settings_form': CareSettingsForm(instance=care_settings),
+        'today': timezone.localdate(),
         'nav_active': 'home',
     })
 

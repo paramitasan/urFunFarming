@@ -34,6 +34,9 @@ def _windows(slots):
 
 
 def _time_range(window):
+    # A window that runs past midnight has no useful end time on the same day
+    if window['end'].date() != window['start'].date():
+        return f'from {window["start"]:%H:%M}'
     return f'{window["start"]:%H:%M}-{window["end"]:%H:%M}'
 
 
@@ -42,7 +45,7 @@ def today_card(weather, care_settings):
     limits = (care_settings.max_rain_mm, care_settings.max_temp_c, care_settings.max_wind_kmh)
     slots = mark_good(weather['today'], *limits) if weather['available'] else []
     if not slots:
-        return {'slots': [], 'summary': ''}
+        return {'slots': [], 'summary': '', 'rain': False}
     rainy = [s for s in slots if s['kind'] == 'rain' or s['rain_mm'] > float(care_settings.max_rain_mm)]
     parts = []
     if rainy:
@@ -50,11 +53,13 @@ def today_card(weather, care_settings):
     else:
         parts.append('No rain expected today.')
     windows = _windows(slots)
-    if windows:
+    if all(s['good'] for s in slots):
+        parts.append('Every slot today is within your limits.')
+    elif windows:
         parts.append('Outdoor tasks fit best ' + ' or '.join(_time_range(w) for w in windows[:3]) + '.')
     else:
         parts.append('No hours meet your limits today.')
-    return {'slots': slots, 'summary': ' '.join(parts)}
+    return {'slots': slots, 'summary': ' '.join(parts), 'rain': bool(rainy)}
 
 
 def best_times(weather, care_settings, limit=4):

@@ -1,0 +1,58 @@
+{% comment %}
+Hourly weather card for any page.
+    {% include 'weather/_hourly_card.html' with weather=weather slots=card.slots summary=card.summary %}
+weather: from forecast_for_user (or {% user_forecast as weather %}).
+slots: optional, defaults to weather.today. A slot with good=True is drawn green.
+summary: optional note under the hours (summary_rain=True shows the rain icon). legend, legend_url, legend_link: optional text and link on the right.
+{% endcomment %}
+<section class="weather-card" aria-labelledby="weather-card-heading">
+    <div class="weather-card-top">
+        <div>
+            <h2 id="weather-card-heading">Weather today{% if weather.location_name %} in {{ weather.location_name }}{% endif %}</h2>
+            <p>
+                {% now 'l, j F' %}.{% if weather.fetched_at %} Updated {{ weather.fetched_at|date:'H:i' }}.{% endif %}
+                {% include 'weather/_source.html' %}
+            </p>
+        </div>
+        {% if legend %}
+        <p class="weather-card-legend">{{ legend }}{% if legend_url %} <a href="{{ legend_url }}" data-open-target>{{ legend_link|default:'Change' }}</a>{% endif %}</p>
+        {% endif %}
+    </div>
+
+    {% if weather.available %}
+    <ol class="weather-hours">
+        {% for slot in slots|default:weather.today %}
+        <li class="weather-hour{% if slot.good %} is-good{% endif %}">
+            <time datetime="{{ slot.time|date:'c' }}">{{ slot.time|date:'H:i' }}</time>
+            {% include 'weather/_icon.html' with kind=slot.kind %}
+            <strong>{{ slot.temp|floatformat:0 }}&deg;</strong>
+            <span>{{ slot.description }}</span>
+            {% if slot.good %}<span class="weather-good-label">Meets your limits</span>{% endif %}
+        </li>
+        {% endfor %}
+    </ol>
+    <div class="weather-card-note">
+        {% if summary %}<p{% if summary_rain %} class="is-rain"{% endif %}>{% if summary_rain %}{% include 'svg/icons/weather-rain.svg' %}{% else %}{% include 'svg/icons/weather-sun.svg' %}{% endif %}{{ summary }}</p>{% endif %}
+        <details class="weather-days">
+            <summary>Next 3 days</summary>
+            <ol>
+                {% for slot in weather.slots %}
+                {% ifchanged slot.time.date %}<li class="weather-day-label">{{ slot.time|date:'l, j M' }}</li>{% endifchanged %}
+                <li>
+                    <time datetime="{{ slot.time|date:'c' }}">{{ slot.time|date:'H:i' }}</time>
+                    {% include 'weather/_icon.html' with kind=slot.kind %}
+                    <span>{{ slot.temp|floatformat:0 }}&deg; {{ slot.description }}</span>
+                    <span>{{ slot.rain_mm|floatformat:1 }} mm &middot; {{ slot.wind_kmh|floatformat:0 }} km/h</span>
+                </li>
+                {% endfor %}
+            </ol>
+        </details>
+    </div>
+    {% else %}
+    <p class="weather-card-unavailable" role="status">{{ weather.error|default:"Weather is unavailable right now" }}. Your tasks still work as usual.</p>
+    {% endif %}
+
+    {% if not weather.has_location %}
+    <a class="weather-set-area" href="{% url 'accounts:profile' %}">Set your area in your profile to see local weather</a>
+    {% endif %}
+</section>

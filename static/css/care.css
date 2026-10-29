@@ -1,0 +1,371 @@
+/* Plant care. Page, heading, fields, empty state and the ••• menu come from gardens.css;
+   the weather card comes from style.css. Only what is new for care lives here. */
+
+.care-page > .weather-card {
+    margin-bottom: 12px;
+}
+
+/* Thresholds panel under the weather card */
+
+.care-thresholds {
+    margin-bottom: 40px;
+    padding: 0 24px;
+    border-radius: 20px;
+}
+
+.care-thresholds summary {
+    width: max-content;
+    margin-left: auto;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-forest);
+    list-style: none;
+    cursor: pointer;
+}
+
+.care-thresholds summary::-webkit-details-marker {
+    display: none;
+}
+
+.care-thresholds[open] {
+    padding: 16px 24px 20px;
+    border: 1px solid var(--color-band);
+    background-color: var(--color-surface);
+}
+
+.care-thresholds-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 24px;
+    margin-top: 12px;
+}
+
+.care-threshold {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--color-deep);
+}
+
+.care-threshold-input {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1.5px solid var(--color-field);
+    border-radius: 12px;
+    background-color: #FFFFFF;
+}
+
+.care-threshold-input input {
+    width: 3.5em;
+    border: 0;
+    background: transparent;
+    font: 600 15px/1.2 'Poppins', sans-serif;
+    color: var(--color-forest);
+    text-align: right;
+    -moz-appearance: textfield;
+}
+
+.care-threshold-input small {
+    font-size: 12px;
+    color: var(--color-deep);
+}
+
+.care-help {
+    font-size: 12px;
+    color: var(--color-sage);
+}
+
+/* Tasks heading, sort and status chips */
+
+.care-tasks-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.care-tasks-heading h2 {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.care-tasks-heading p {
+    margin-top: 2px;
+    font-size: 13px;
+    color: var(--color-deep);
+}
+
+.care-sort {
+    width: 200px;
+}
+
+.care-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+/* .chip from style.css, recoloured to the care design */
+.care-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1.5px solid var(--color-field);
+    background-color: var(--color-surface);
+    color: var(--color-deep);
+}
+
+.care-chip span {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-sage);
+}
+
+.care-chip[aria-current] {
+    border-color: var(--color-band);
+    background-color: var(--color-band);
+    font-weight: 600;
+    color: var(--color-forest);
+}
+
+.care-chip[aria-current] span {
+    color: var(--color-forest);
+}
+
+@media (hover: hover) {
+    .care-chip:hover {
+        border-color: var(--color-mint);
+    }
+}
+
+/* Task table */
+
+.care-table-wrap {
+    border: 1px solid var(--color-band);
+    border-radius: 20px;
+    background-color: var(--color-surface);
+    box-shadow: 0 10px 30px rgba(18, 81, 51, 0.06);
+}
+
+.care-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.care-table th {
+    padding: 14px 10px;
+    background-color: var(--color-mist);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-deep);
+}
+
+.care-table th:first-child {
+    border-top-left-radius: 20px;
+}
+
+.care-table th:last-child {
+    width: 56px;
+    border-top-right-radius: 20px;
+}
+
+.care-table td {
+    padding: 16px 10px;
+    border-top: 1px solid var(--color-band);
+    font-size: 14px;
+    color: var(--color-forest);
+    vertical-align: middle;
+}
+
+.care-table th:first-child,
+.care-table td:first-child {
+    padding-left: 24px;
+}
+
+.care-table th:last-child,
+.care-table td:last-child {
+    padding-right: 24px;
+}
+
+.care-table thead tr th:nth-child(2) {
+    width: 180px;
+}
+
+.care-table thead tr th:nth-child(3) {
+    width: 230px;
+}
+
+.care-table thead tr th:nth-child(4) {
+    width: 140px;
+}
+
+.care-task-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.care-task-title {
+    font-size: 15px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.care-task-note {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--color-deep);
+}
+
+.care-task-note img {
+    flex-shrink: 0;
+    width: 12px;
+    height: 12px;
+}
+
+.care-plant {
+    color: var(--color-deep);
+}
+
+.is-done .care-task-title {
+    color: var(--color-deep);
+}
+
+/* Status badges */
+
+.care-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background-color: var(--color-band);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+    white-space: nowrap;
+}
+
+.care-status[data-status='in_progress'] {
+    padding: 2.75px 8.75px;
+    border: 1.25px solid var(--color-amber);
+    background: none;
+    color: #8A5A12;
+}
+
+.care-status .icon {
+    width: 13px;
+    height: 13px;
+}
+
+/* ••• menu: status changes are small forms styled like the menu links */
+
+.care-actions {
+    text-align: right;
+}
+
+.care-actions .garden-more {
+    display: inline-block;
+}
+
+.care-actions .garden-more-menu {
+    min-width: 180px;
+    text-align: left;
+}
+
+.care-actions .garden-more-menu button {
+    width: 100%;
+    padding: 9px 12px;
+    border: 0;
+    border-radius: 10px;
+    background: none;
+    font: 500 14px/normal 'Poppins', sans-serif;
+    color: var(--color-forest);
+    text-align: left;
+    cursor: pointer;
+}
+
+@media (hover: hover) {
+    .care-actions .garden-more-menu button:hover {
+        background-color: var(--color-band);
+    }
+}
+
+/* Phone: each task becomes a small card */
+
+@media (max-width: 767px) {
+    .care-sort {
+        width: 100%;
+    }
+
+    .care-tasks-heading form {
+        width: 100%;
+    }
+
+    .care-table thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+    }
+
+    .care-table,
+    .care-table tbody,
+    .care-table tr,
+    .care-table td {
+        display: block;
+    }
+
+    .care-table tr {
+        position: relative;
+        padding: 16px 56px 16px 16px;
+        border-top: 1px solid var(--color-band);
+    }
+
+    .care-table tbody tr:first-child {
+        border-top: 0;
+    }
+
+    .care-table td,
+    .care-table td:first-child,
+    .care-table td:last-child {
+        padding: 2px 0;
+        border: 0;
+    }
+
+    .care-table td[data-label]::before {
+        content: attr(data-label) ': ';
+        font-size: 12px;
+        color: var(--color-sage);
+    }
+
+    .care-task-cell {
+        margin-bottom: 6px;
+    }
+
+    .care-actions {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+    }
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .care-threshold-input input {
+        font-size: 16px;
+    }
+}
