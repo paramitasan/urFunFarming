@@ -31,7 +31,9 @@
         </header>
 
         {# Module 3 (Plant Progress Journal) renders the journal for this planting here #}
-        {% include 'gardens/_journal.html' %}
+        {% load journal_tags %}
+        {% journal_for planting as journal %}
+        {% include 'gardens/_journal.html' with journal_entries=journal.entries journal_url=journal.url journal_create_url=journal.create_url %}
     {% endif %}
 </section>
 {% endblock %}
