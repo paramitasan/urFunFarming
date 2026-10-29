@@ -97,14 +97,13 @@
                                 <span class="cell-time">
                                     {{ row.latest.time|time:"H.i" }}
                                     {% if row.planting.pk in public_ids %}
-                                        <button class="visibility-button" type="button" aria-label="Make {{ row.planting.crop }} private">
-                                            <img src="{% static 'journal/icons/unlock-small.svg' %}" alt="" width="14" height="14">
-                                        </button>
+                                        <button class="visibility-button" type="button" aria-label="Make {{ row.planting.crop }} private" data-public="true" data-crop="{{ row.planting.crop }}" data-visibility-url="{% url 'journal:toggle_visibility' row.planting.pk %}">
                                     {% else %}
-                                        <button class="visibility-button" type="button" aria-label="Make {{ row.planting.crop }} public">
-                                            <img src="{% static 'journal/icons/lock-small.svg' %}" alt="" width="14" height="14">
-                                        </button>
+                                        <button class="visibility-button" type="button" aria-label="Make {{ row.planting.crop }} public" data-public="false" data-crop="{{ row.planting.crop }}" data-visibility-url="{% url 'journal:toggle_visibility' row.planting.pk %}">
                                     {% endif %}
+                                        <img class="icon-private" src="{% static 'journal/icons/lock-small.svg' %}" alt="" width="14" height="14">
+                                        <img class="icon-public" src="{% static 'journal/icons/unlock-small.svg' %}" alt="" width="14" height="14">
+                                    </button>
                                 </span>
                             </td>
                             <td>

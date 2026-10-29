@@ -1280,6 +1280,12 @@
     outline: 2px solid var(--color-forest);
 }
 
+/* Both locks are in the button, data-public decides which one shows */
+.visibility-button[data-public="true"] .icon-private,
+.visibility-button[data-public="false"] .icon-public {
+    display: none;
+}
+
 .row-actions {
     display: flex;
     gap: 8px;
