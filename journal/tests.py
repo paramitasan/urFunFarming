@@ -491,3 +491,73 @@ class EditEntryTest(JournalTestCase):
         data = self.unchanged_data(photos=[SimpleUploadedFile('plant.jpg', b'not an image')])
         response = self.client.post(self.edit_url(self.latest), data)
         self.assertIn("Couldn't upload your photo", self.toasts(response))
+
+
+class EditPhotosTest(JournalTestCase):
+    def setUp(self):
+        super().setUp()
+        self.upload = EntryPhoto.objects.create(entry=self.latest, image=make_image('leaf.png'))
+        self.link = EntryPhoto.objects.create(entry=self.latest, url='https://example.com/tomato.jpg')
+        self.client.force_login(self.grower)
+
+    def edit_url(self):
+        return reverse('journal:edit_entry', args=[self.latest.pk])
+
+    def saved_data(self, **changes):
+        data = self.entry_data(
+            date='2026-10-24', time='07:30', height_cm=92,
+            observation='First fruits set on the lower truss.',
+        )
+        data.update(changes)
+        return data
+
+    def test_edit_page_shows_saved_photos_with_remove_boxes(self):
+        response = self.client.get(self.edit_url())
+        self.assertContains(response, f'src="{self.upload.src}"')
+        self.assertContains(response, 'src="https://example.com/tomato.jpg"')
+        self.assertContains(response, 'name="remove_photos"', count=2)
+        self.assertContains(response, 'Add photo')
+        self.assertNotContains(response, 'Drag photos here')
+
+    def test_new_entry_page_keeps_the_dropzone(self):
+        response = self.client.get(reverse('journal:create_entry'))
+        self.assertContains(response, 'Drag photos here')
+        self.assertNotContains(response, 'name="remove_photos"')
+
+    def test_only_this_entrys_photos_can_be_removed(self):
+        form = JournalEntryForm(self.grower, instance=self.latest)
+        self.assertEqual(set(form.fields['remove_photos'].queryset), {self.upload, self.link})
+        self.assertEqual(form.kept_photos, 2)
+
+    def test_removing_photos_deletes_them_and_the_file(self):
+        storage = self.upload.image.storage
+        file_name = self.upload.image.name
+        self.assertTrue(storage.exists(file_name))
+
+        data = self.saved_data(remove_photos=[self.upload.pk, self.link.pk])
+        response = self.client.post(self.edit_url(), data, follow=True)
+        self.assertIn('Changes saved', [str(m) for m in response.context['messages']])
+        self.assertFalse(self.latest.photos.exists())
+        self.assertFalse(storage.exists(file_name))
+
+    def test_photo_from_another_entry_cannot_be_removed(self):
+        other_photo = EntryPhoto.objects.create(entry=self.first, url='https://example.com/old.jpg')
+        response = self.client.post(self.edit_url(), self.saved_data(remove_photos=[other_photo.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(EntryPhoto.objects.filter(pk=other_photo.pk).exists())
+
+    def test_removing_photos_makes_room_for_new_ones(self):
+        for n in range(3):
+            EntryPhoto.objects.create(entry=self.latest, url=f'https://example.com/{n}.jpg')
+        links = {'photo_1': 'https://example.com/a.jpg', 'photo_2': 'https://example.com/b.jpg'}
+        # 5 saved, 2 removed and 2 added makes 5 again
+        data = self.saved_data(remove_photos=[self.upload.pk, self.link.pk], **links)
+        response = self.client.post(self.edit_url(), data)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.latest.photos.count(), 5)
+
+    def test_ticked_boxes_stay_ticked_after_an_error(self):
+        data = self.saved_data(date='', remove_photos=[self.link.pk])
+        response = self.client.post(self.edit_url(), data)
+        self.assertEqual(response.context['form']['remove_photos'].value(), [str(self.link.pk)])
+        self.assertTrue(EntryPhoto.objects.filter(pk=self.link.pk).exists())
