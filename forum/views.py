@@ -1,5 +1,4 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.db.models import Count
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse
@@ -200,12 +199,12 @@ def reply_create(request, pk):
         reply.author = request.user
         reply.save()
         return redirect(f"{reverse('forum:forum_detail', args=[pk])}#reply-{reply.pk}")
-    return _render_detail(_detail_url(request, pk, f"#reply-{reply.pk}"))
+    return _render_detail(request, forum, form)
 
 REPLY_SORTS = {
-    "best": ("-vote_count", "created_at"),
-    "oldest": "created_at",
-    "newest": "-created_at",
+    "best": ("-vote_count", "created_at", "pk"),
+    "oldest": ("created_at", "pk"),
+    "newest": ("-created_at", "-pk"),
 }
 DEFAULT_REPLY_SORT = "best"
 

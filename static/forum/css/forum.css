@@ -186,6 +186,7 @@
 }
 
 .forum-chip {
+    margin-left: auto;
     padding: 6px 14px;
     background-color: var(--color-band);
     border: 1px solid var(--color-mint);
