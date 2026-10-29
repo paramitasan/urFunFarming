@@ -1165,6 +1165,17 @@
     border: 1.5px solid var(--color-accent);
 }
 
+/* The open list: white options, and the chosen one in the green tint */
+.filter-select option {
+    background-color: var(--color-surface);
+    color: var(--color-forest);
+}
+
+.filter-select option:checked {
+    background-color: var(--color-band);
+    font-weight: 600;
+}
+
 .filter-select select:focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: 0;
