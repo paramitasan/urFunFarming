@@ -155,9 +155,15 @@ def plant_detail(request, planting_id):
             status = 'next'
         stage_steps.append({'label': label, 'status': status, 'date': first_reached.get(value)})
 
+    # ?order=oldest flips only the timeline, the rest of the page still reads entries newest first
+    oldest_first = request.GET.get('order') == 'oldest'
+    timeline = list(reversed(entries)) if oldest_first else entries
+
     context = {
         'planting': planting,
         'entries': entries,
+        'timeline': timeline,
+        'oldest_first': oldest_first,
         'is_owner': is_owner,
         'can_view': is_owner or is_public,
         'grower_name': display_name(garden.owner),

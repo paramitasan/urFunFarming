@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="{% static 'journal/journal.css' %}">
 <script defer src="{% static 'journal/journal.js' %}"></script>
 <script defer src="{% static 'journal/delete-entry.js' %}"></script>
+<script defer src="{% static 'journal/timeline-order.js' %}"></script>
 {% endblock head %}
 
 {% block content %}
@@ -56,15 +57,20 @@
 
     {% if can_view %}
     <div class="journal-body" data-journal-body>
-        <section class="timeline">
+        <section class="timeline" id="timeline">
             <div class="section-heading">
                 <h2>Timeline</h2>
-                {% if entries %}<span>Newest first</span>{% endif %}
+                {% if entries %}
+                <a class="order-toggle" href="?order={% if oldest_first %}newest{% else %}oldest{% endif %}{% if from_garden %}&amp;from=garden{% endif %}" data-order-toggle>
+                    {% if oldest_first %}Oldest first{% else %}Newest first{% endif %}
+                    <img class="order-arrow{% if oldest_first %} is-down{% endif %}" src="{% static 'journal/icons/arrow-left.svg' %}" alt="" width="14" height="14">
+                </a>
+                {% endif %}
             </div>
 
             {% if entries %}
             <ol>
-                {% for entry in entries %}
+                {% for entry in timeline %}
                 <li class="timeline-entry">
                     <div class="timeline-rail" aria-hidden="true">
                         <span class="timeline-dot" data-stage="{{ entry.stage }}"></span>
