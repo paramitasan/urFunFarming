@@ -186,7 +186,7 @@
     {% endif %}
 
     {% if is_owner %}
-        {% include 'journal/delete_dialog.html' with title='Delete this entry?' message="This entry and its photos will be removed. This can't be undone." confirm_label='Delete entry' %}
+        {% include 'journal/delete_dialog.html' with title='Delete this entry?' message="This entry and its photos will be removed. This can't be undone." confirm_label='Delete entry' error_title="Couldn't delete this entry" %}
     {% endif %}
 </div>
 

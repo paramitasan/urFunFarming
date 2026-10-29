@@ -1,6 +1,6 @@
 {% load static %}
-{# The Figma confirm dialog. Pass title, message and confirm_label. delete-entry.js opens it and sends the delete #}
-<div id="delete-dialog" class="delete-dialog" popover role="dialog" aria-modal="true" aria-labelledby="delete-dialog-title" data-delete-dialog>
+{# The Figma confirm dialog. Pass title, message, confirm_label and error_title. delete-entry.js opens it and sends the delete #}
+<div id="delete-dialog" class="delete-dialog" popover role="dialog" aria-modal="true" aria-labelledby="delete-dialog-title" data-delete-dialog data-error-title="{{ error_title }}">
     <button class="delete-dialog-backdrop" type="button" popovertarget="delete-dialog" popovertargetaction="hide" aria-label="Cancel"></button>
     <div class="delete-dialog-card">
         <div class="delete-dialog-content">

@@ -14,9 +14,9 @@ if (deleteDialog) {
         }
     });
 
-    // Ask the server for this page again and swap in the new header and timeline,
-    // so the height changes, entry count and growth stage stay right
-    async function refreshTimeline() {
+    // Ask the server for this page again and swap in the new header and body,
+    // so the numbers on the timeline or the rows of the list stay right
+    async function refreshPage() {
         const response = await fetch(window.location.href);
         const page = new DOMParser().parseFromString(await response.text(), 'text/html');
         ['[data-journal-header]', '[data-journal-body]'].forEach((selector) => {
@@ -35,21 +35,21 @@ if (deleteDialog) {
             deleteDialog.hidePopover();
 
             if (response.ok && document.querySelector('[data-journal-body]')) {
-                // On the plant page: show the toast and refresh the timeline here
-                showToast('success', result.message);
+                // On the plant page or the list: show the toast and refresh the page here
+                showToast('success', result.message, result.detail || '');
                 // If the refresh fails, reloading the page shows the same thing
-                refreshTimeline().catch(() => window.location.reload());
+                refreshPage().catch(() => window.location.reload());
             } else if (response.ok) {
                 // On the Edit page the entry is gone, so go back to its plant and show the toast there
                 sessionStorage.setItem('journalToast', result.message);
                 window.location.href = result.plant_url;
             } else {
-                showToast('error', "Couldn't delete this entry", result.message || 'Something went wrong. Try again.');
+                showToast('error', deleteDialog.dataset.errorTitle, result.message || 'Something went wrong. Try again.');
             }
         } catch (error) {
             // The server couldn't be reached, so offer to try again
             deleteDialog.hidePopover();
-            showToast('error', "Couldn't delete this entry", 'Something went wrong. Try again.', {
+            showToast('error', deleteDialog.dataset.errorTitle, 'Something went wrong. Try again.', {
                 label: 'Retry',
                 onClick: () => deleteEntry(url),
             });
