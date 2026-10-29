@@ -33,7 +33,7 @@
 </section>
 
 <div class="container home-content">
-    {# TODO: journal:index, care:index and forum:index once those modules exist #}
+    {# TODO: journal:index once that module exists #}
     <div class="launchpads">
     {% if profile.is_grower %}
     <section class="launchpad">
@@ -45,7 +45,8 @@
             {% url 'gardens:mine' as my_gardens_url %}
             {% include 'partials/launch_tile.html' with tone='gardens' icon='svg/icons/gardens.svg' title='My gardens' text='Your gardens and what is planted in each one.' href=my_gardens_url %}
             {% include 'partials/launch_tile.html' with tone='journal' icon='svg/icons/journal.svg' title='Plant journal' text='Dated entries and photos for every planting.' %}
-            {% include 'partials/launch_tile.html' with tone='care' icon='svg/icons/care.svg' title='Plant care' text='This week’s tasks, planned around the forecast.' %}
+            {% url 'care:index' as care_url %}
+            {% include 'partials/launch_tile.html' with tone='care' icon='svg/icons/care.svg' title='Plant care' text='Tasks for the next 3 days, planned around the forecast.' href=care_url %}
         </div>
     </section>
     {% endif %}

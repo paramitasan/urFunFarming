@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Plant care · UrFunFarming{% endblock %}
+{% block content %}
+{% include 'partials/grower_subnav.html' %}
+<section class="care-page" aria-labelledby="care-heading">
+    <p class="eyebrow">CHECK THE WEATHER, PLAN YOUR CARE</p>
+    <h1 id="care-heading">Plant care</h1>
+    <p>Keep a to-do list for each planting and pick times the weather agrees with.</p>
+    <a href="{% url 'care:create' %}">Add task</a>
+    {% include 'care/_messages.html' %}
+
+    <section aria-labelledby="weather-heading">
+        <h2 id="weather-heading">Weather today{% if weather.location_name %} in {{ weather.location_name }}{% endif %}</h2>
+        {% if weather.available %}
+        <ul>
+            {% for slot in card.slots %}
+            <li data-good="{{ slot.good|yesno:'true,false' }}">{{ slot.time|date:'H:i' }} {{ slot.temp|floatformat:0 }}&deg; {{ slot.description }}</li>
+            {% endfor %}
+        </ul>
+        <p>{{ card.summary }}</p>
+        {% else %}
+        <p>{{ weather.error }}</p>
+        {% endif %}
+        {% include 'weather/_source.html' %}
+        {% if not weather.has_location %}<a href="{% url 'accounts:profile' %}">Set your area in your profile to see local weather</a>{% endif %}
+    </section>
+
+    <section aria-labelledby="tasks-heading">
+        <h2 id="tasks-heading">Plant care tasks</h2>
+        <p>Only you can see your tasks and notes.</p>
+        <ul>
+            {% for value, label, count in status_filters %}
+            <li><a href="?status={{ value }}&sort={{ sort }}"{% if value == status %} aria-current="true"{% endif %}>{{ label }} <span>{{ count }}</span></a></li>
+            {% endfor %}
+        </ul>
+        {% if tasks %}
+        <table>
+            <thead><tr><th>Task</th><th>Completion target</th><th>Plant</th><th>Status</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
+            <tbody>
+            {% for task in tasks %}
+            <tr>
+                <td>{{ task.title }}{% if task.notes %}<br>{{ task.notes }}{% endif %}</td>
+                <td>{{ task.target_date|date:'D, j M' }}{% if task.target_time %} {{ task.target_time|time:'H:i' }}{% endif %}</td>
+                <td>{{ task.planting.display_name }}, {{ task.planting.garden.name }}</td>
+                <td>{{ task.get_status_display }}</td>
+                <td><a href="{% url 'care:edit' task.pk %}">Edit</a> <a href="{% url 'care:delete' task.pk %}">Delete</a></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <h3>No tasks yet</h3>
+        <a href="{% url 'care:create' %}">Add your first task</a>
+        {% endif %}
+    </section>
+</section>
+{% endblock %}

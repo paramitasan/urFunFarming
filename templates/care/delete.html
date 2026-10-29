@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Delete {{ task.title }} · UrFunFarming{% endblock %}
+{% block content %}
+{% include 'partials/grower_subnav.html' %}
+<section class="care-page" aria-labelledby="care-delete-heading">
+    <h1 id="care-delete-heading">Delete "{{ task.title }}"?</h1>
+    <p>This removes the task and its notes. This action cannot be undone.</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Delete task</button>
+        <a href="{% url 'care:index' %}">Keep task</a>
+    </form>
+</section>
+{% endblock %}
