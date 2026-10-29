@@ -958,3 +958,22 @@ class GardenHookTest(JournalTestCase):
         response = self.client.get(reverse('gardens:detail', args=[self.garden.pk]))
         self.assertContains(response, '3 entries')
         self.assertContains(response, reverse('journal:plant_detail', args=[self.tomato.pk]) + '?from=garden')
+
+
+class DecimalHeightTest(JournalTestCase):
+    def test_height_can_have_two_decimal_places(self):
+        self.client.force_login(self.grower)
+        self.client.post(reverse('journal:create_plant_entry', args=[self.tomato.pk]), self.entry_data(height_cm='92.75'))
+        response = self.client.get(reverse('journal:plant_detail', args=[self.tomato.pk]))
+        self.assertContains(response, '92.75 cm')
+        self.assertContains(response, '+0.75 cm since last entry')
+
+    def test_whole_numbers_show_without_a_decimal(self):
+        self.client.force_login(self.grower)
+        response = self.client.get(reverse('journal:plant_detail', args=[self.tomato.pk]))
+        self.assertContains(response, '<strong>92 cm</strong>', html=True)
+
+    def test_more_than_two_decimal_places_are_rejected(self):
+        form = JournalEntryForm(self.grower, {**self.entry_data(height_cm='92.555'), 'planting': self.tomato.pk})
+        self.assertFalse(form.is_valid())
+        self.assertIn('height_cm', form.errors)
