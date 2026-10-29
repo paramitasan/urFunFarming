@@ -67,13 +67,14 @@
                         <span class="filter-select filter-select-wide">{{ form.sort }}</span>
                     </div>
                     <div class="filter-actions">
-                        <a class="small-button" href="{% url 'journal:index' %}">Reset Filter</a>
-                        <p class="count-badge">{{ count_label }}</p>
+                        <a class="small-button" href="{% url 'journal:index' %}" data-filter-reset>Reset Filter</a>
+                        <p class="count-badge" data-count-badge>{{ count_label }}</p>
                     </div>
                 </div>
                 <noscript><button class="small-button" type="submit">Apply filters</button></noscript>
             </form>
 
+            <div class="journal-results" data-journal-results>
             <div class="table-card">
                 <table class="journal-table">
                     <thead>
@@ -135,7 +136,7 @@
                                     <img src="{% static 'journal/icons/leaf.svg' %}" alt="" width="40" height="40">
                                     <p class="no-results-title">No plants match these filters</p>
                                     <p>Try another stage or health status, or clear the search.</p>
-                                    <a class="small-button" href="{% url 'journal:index' %}">Reset Filter</a>
+                                    <a class="small-button" href="{% url 'journal:index' %}" data-filter-reset>Reset Filter</a>
                                 </div>
                             </td>
                         </tr>
@@ -144,6 +145,7 @@
                 </table>
             </div>
             {% include 'journal/pagination.html' %}
+            </div>
         {% endif %}
     </div>
 

@@ -1057,6 +1057,12 @@
     gap: 28px;
 }
 
+.journal-results {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
 .empty-card h2 {
     font-size: 18px;
     font-weight: 700;
