@@ -205,11 +205,16 @@
 /* Location: City, District and Village dropdowns */
 
 .location-field {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+    /* No flex on the fieldset itself: Safari and older Chrome ignore it there */
     min-width: 0;
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
     border: 0;
+}
+
+.location-field > * + * {
+    margin-top: 8px;
 }
 
 .location-field legend {

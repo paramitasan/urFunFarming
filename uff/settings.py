@@ -144,6 +144,13 @@ BMKG_DEFAULT_ADM4 = os.getenv('BMKG_DEFAULT_ADM4', '31.71.03.1001')
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Hashed file names in production, so browsers never keep an old CSS or JS file after a deploy
+if PRODUCTION:
+    STORAGES = {
+        'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+        'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'},
+    }
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
