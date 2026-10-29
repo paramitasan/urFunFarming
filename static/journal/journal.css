@@ -1048,6 +1048,91 @@
     outline-offset: 2px;
 }
 
+/* Toasts: bottom center, 24px from the bottom, one color set per type */
+
+.toast-area {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: min(420px, calc(100% - 32px));
+    transform: translateX(-50%);
+}
+
+.toast[data-type="success"] { --toast-surface: #EEF7F0; --toast-border: #BFDDC8; --toast-text: #125133; --toast-circle: #D3EBDA; --toast-detail: #2F6650; }
+.toast[data-type="error"] { --toast-surface: #FDF1EE; --toast-border: #EDC3B9; --toast-text: #8A2E1C; --toast-circle: #F8DDD6; --toast-detail: #9E3A27; }
+.toast[data-type="info"] { --toast-surface: #EEF4FB; --toast-border: #C5D7EC; --toast-text: #1E4A73; --toast-circle: #DAE6F5; --toast-detail: #33608A; }
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px 14px 14px;
+    background-color: var(--toast-surface);
+    border: 1px solid var(--toast-border);
+    border-radius: 12px;
+    box-shadow: 0 8px 12px rgba(11, 46, 29, 0.14);
+    color: var(--toast-text);
+    line-height: normal;
+}
+
+.toast-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    background-color: var(--toast-circle);
+    border-radius: 50%;
+}
+
+.toast-text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.toast-message {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.toast-detail {
+    font-size: 12.5px;
+    color: var(--toast-detail);
+}
+
+.toast-action,
+.toast-close {
+    flex-shrink: 0;
+    padding: 0;
+    background: none;
+    border: 0;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: inherit;
+    cursor: pointer;
+}
+
+.toast-close {
+    display: flex;
+}
+
+.toast-action:focus-visible,
+.toast-close:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
+
+
 /* Errors: the banner at the top of the form and the message under each field */
 
 .form-error-banner {

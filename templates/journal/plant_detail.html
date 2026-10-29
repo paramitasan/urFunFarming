@@ -5,14 +5,13 @@
 
 {% block head %}
 <link rel="stylesheet" href="{% static 'journal/journal.css' %}">
+<script defer src="{% static 'journal/journal.js' %}"></script>
 {% endblock head %}
 
 {% block content %}
 {% include 'partials/grower_subnav.html' %}
 <div class="journal">
-    {% for message in messages %}
-        <p role="status">{{ message }}</p>
-    {% endfor %}
+    {% include 'journal/toast.html' %}
     {% if from_garden %}
         {% if is_owner %}
             {% url 'gardens:detail' planting.garden.pk as garden_url %}

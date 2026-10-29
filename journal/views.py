@@ -134,7 +134,7 @@ def create_entry(request, planting_id=None):
 
     # Bad upload: show the "Couldn't upload your photo" toast as well as the field error
     if PHOTO_ERROR in form.errors.get('photos', []):
-        messages.error(request, "Couldn't upload your photo")
+        messages.error(request, "Couldn't upload your photo", extra_tags=PHOTO_ERROR)
 
     context = {
         'form': form,
@@ -176,7 +176,7 @@ def edit_entry(request, entry_id):
         return redirect('journal:plant_detail', planting_id=entry.planting.pk)
 
     if PHOTO_ERROR in form.errors.get('photos', []):
-        messages.error(request, "Couldn't upload your photo")
+        messages.error(request, "Couldn't upload your photo", extra_tags=PHOTO_ERROR)
 
     context = {
         'form': form,
