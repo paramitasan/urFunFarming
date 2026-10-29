@@ -1,3 +1,4 @@
+from django.core.validators import MinValueValidator
 from django.db import models
 
 from gardens.models import Planting
@@ -28,7 +29,8 @@ class JournalEntry(models.Model):
     planting = models.ForeignKey(Planting, on_delete=models.CASCADE, related_name='journal_entries')
     date = models.DateField()
     time = models.TimeField()
-    height_cm = models.PositiveIntegerField()
+    # One decimal place, so 12.75 cm is fine
+    height_cm = models.DecimalField(max_digits=6, decimal_places=2, validators=[MinValueValidator(0)])
     stage = models.CharField(max_length=20, choices=STAGE_CHOICES, default='seedling')
     health = models.CharField(max_length=20, choices=HEALTH_CHOICES, default='healthy')
     observation = models.TextField()

@@ -53,7 +53,7 @@
                 {% if entry %}
                     <span>Editing the entry from {{ original_date|date:"j M Y" }} · {{ original_time|time:"H.i" }}</span>
                 {% elif latest %}
-                    <span>Last entry: {{ latest.date|date:"j M Y" }} · {{ latest.height_cm }} cm · {{ latest.get_stage_display }} · {{ latest.get_health_display }}</span>
+                    <span>Last entry: {{ latest.date|date:"j M Y" }} · {{ latest.height_cm|floatformat:"-2" }} cm · {{ latest.get_stage_display }} · {{ latest.get_health_display }}</span>
                 {% else %}
                     <span>No entries yet</span>
                 {% endif %}
@@ -90,7 +90,7 @@
                     <span>cm</span>
                 </div>
                 {% include 'journal/field_errors.html' with field=form.height_cm %}
-                {% if latest %}<p class="field-hint">Last time: {{ latest.height_cm }} cm</p>{% endif %}
+                {% if latest %}<p class="field-hint">Last time: {{ latest.height_cm|floatformat:"-2" }} cm</p>{% endif %}
             </div>
         </div>
 

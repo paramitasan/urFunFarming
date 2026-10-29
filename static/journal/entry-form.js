@@ -1,6 +1,12 @@
 // Photos on the entry form: uploads and links together, up to a set number
 const photoBox = document.querySelector('[data-photo-box]');
 
+// Scrolling the page over the height box shouldn't change the number, so the box lets go of focus
+const heightInput = document.querySelector('input[name="height_cm"]');
+if (heightInput) {
+    heightInput.addEventListener('wheel', () => heightInput.blur());
+}
+
 if (photoBox) {
     const maxPhotos = Number(photoBox.dataset.maxPhotos);
     const trashIcon = photoBox.dataset.trashIcon;

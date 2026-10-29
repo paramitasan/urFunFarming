@@ -92,8 +92,8 @@
                         </div>
 
                         <p class="entry-height">
-                            <strong>{{ entry.height_cm }} cm</strong>
-                            <span>{% if entry.height_change is None %}First entry{% else %}{% if entry.height_change >= 0 %}+{% endif %}{{ entry.height_change }} cm since last entry{% endif %}</span>
+                            <strong>{{ entry.height_cm|floatformat:"-2" }} cm</strong>
+                            <span>{% if entry.height_change is None %}First entry{% else %}{% if entry.height_change >= 0 %}+{% endif %}{{ entry.height_change|floatformat:"-2" }} cm since last entry{% endif %}</span>
                         </p>
 
                         <p class="entry-note">{{ entry.observation|linebreaksbr }}</p>
