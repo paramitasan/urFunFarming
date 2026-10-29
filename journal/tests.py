@@ -561,3 +561,119 @@ class EditPhotosTest(JournalTestCase):
         response = self.client.post(self.edit_url(), data)
         self.assertEqual(response.context['form']['remove_photos'].value(), [str(self.link.pk)])
         self.assertTrue(EntryPhoto.objects.filter(pk=self.link.pk).exists())
+
+
+class DeleteEntryTest(JournalTestCase):
+    def delete_url(self, entry):
+        return reverse('journal:delete_entry', args=[entry.pk])
+
+    def test_owner_deletes_an_entry_with_its_photos(self):
+        upload = EntryPhoto.objects.create(entry=self.latest, image=make_image('leaf.png'))
+        EntryPhoto.objects.create(entry=self.latest, url='https://example.com/tomato.jpg')
+        storage, file_name = upload.image.storage, upload.image.name
+        self.client.force_login(self.grower)
+
+        response = self.client.post(self.delete_url(self.latest))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['message'], 'Entry deleted')
+        self.assertEqual(response.json()['plant_url'], reverse('journal:plant_detail', args=[self.tomato.pk]))
+        self.assertFalse(JournalEntry.objects.filter(pk=self.latest.pk).exists())
+        self.assertFalse(EntryPhoto.objects.exists())
+        self.assertFalse(storage.exists(file_name))
+
+    def test_other_grower_gets_a_json_403(self):
+        self.client.force_login(self.other_grower)
+        response = self.client.post(self.delete_url(self.latest))
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()['message'], 'You can only delete your own entries.')
+        self.assertTrue(JournalEntry.objects.filter(pk=self.latest.pk).exists())
+
+    def test_visitor_gets_a_json_403_not_a_login_page(self):
+        response = self.client.post(self.delete_url(self.latest))
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response['Content-Type'], 'application/json')
+
+    def test_get_is_not_allowed(self):
+        self.client.force_login(self.grower)
+        response = self.client.get(self.delete_url(self.latest))
+        self.assertEqual(response.status_code, 405)
+        self.assertTrue(JournalEntry.objects.filter(pk=self.latest.pk).exists())
+
+    def test_missing_entry_gives_404(self):
+        self.client.force_login(self.grower)
+        response = self.client.post(reverse('journal:delete_entry', args=[999]))
+        self.assertEqual(response.status_code, 404)
+
+
+class DeletePlantEntriesTest(JournalTestCase):
+    def delete_url(self, planting):
+        return reverse('journal:delete_plant_entries', args=[planting.pk])
+
+    def test_owner_deletes_all_entries_but_keeps_the_plant(self):
+        EntryPhoto.objects.create(entry=self.first, url='https://example.com/a.jpg')
+        EntryPhoto.objects.create(entry=self.latest, image=make_image('leaf.png'))
+        chili_entry = JournalEntry.objects.create(
+            planting=self.chili, date=date(2026, 10, 2), time=time(8, 0),
+            height_cm=5, observation='Sprouted.',
+        )
+        self.client.force_login(self.grower)
+
+        response = self.client.post(self.delete_url(self.tomato))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['message'], 'Entries deleted')
+        self.assertEqual(response.json()['detail'], "Cherry Tomato's entries were removed. The plant stays in My gardens.")
+        self.assertFalse(self.tomato.journal_entries.exists())
+        self.assertFalse(EntryPhoto.objects.exists())
+        self.assertTrue(Planting.objects.filter(pk=self.tomato.pk).exists())
+        # Another plant's entries are left alone
+        self.assertTrue(JournalEntry.objects.filter(pk=chili_entry.pk).exists())
+
+    def test_other_grower_gets_a_json_403(self):
+        self.client.force_login(self.other_grower)
+        response = self.client.post(self.delete_url(self.tomato))
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(self.tomato.journal_entries.count(), 3)
+
+
+class DeleteOnTimelineTest(JournalTestCase):
+    def detail_url(self):
+        return reverse('journal:plant_detail', args=[self.tomato.pk])
+
+    def test_owner_sees_trash_buttons_and_the_dialog(self):
+        self.client.force_login(self.grower)
+        response = self.client.get(self.detail_url())
+        self.assertContains(response, f'data-delete-url="{reverse("journal:delete_entry", args=[self.latest.pk])}"')
+        self.assertContains(response, 'Delete this entry?')
+        self.assertContains(response, "This entry and its photos will be removed. This can't be undone.")
+
+    def test_others_get_no_trash_buttons_or_dialog(self):
+        self.journal.is_public = True
+        self.journal.save()
+        self.client.force_login(self.buyer)
+        response = self.client.get(self.detail_url())
+        self.assertNotContains(response, 'data-delete-url')
+        self.assertNotContains(response, 'Delete this entry?')
+
+    def test_only_one_new_entry_button_after_the_last_entry_is_deleted(self):
+        self.client.force_login(self.grower)
+        new_entry_url = reverse('journal:create_plant_entry', args=[self.tomato.pk])
+        # With entries, only the header has it. Without, only the empty card does
+        self.assertContains(self.client.get(self.detail_url()), new_entry_url, count=1)
+        self.client.post(reverse('journal:delete_plant_entries', args=[self.tomato.pk]))
+        response = self.client.get(self.detail_url())
+        self.assertContains(response, 'No entries yet')
+        self.assertContains(response, new_entry_url, count=1)
+
+
+class DeleteOnEditPageTest(JournalTestCase):
+    def test_edit_page_has_the_delete_button_and_dialog(self):
+        self.client.force_login(self.grower)
+        response = self.client.get(reverse('journal:edit_entry', args=[self.latest.pk]))
+        self.assertContains(response, f'data-delete-url="{reverse("journal:delete_entry", args=[self.latest.pk])}"')
+        self.assertContains(response, 'Delete this entry?')
+
+    def test_new_entry_page_has_no_delete_dialog(self):
+        self.client.force_login(self.grower)
+        response = self.client.get(reverse('journal:create_entry'))
+        self.assertNotContains(response, 'data-delete-url')
+        self.assertNotContains(response, 'Delete this entry?')
