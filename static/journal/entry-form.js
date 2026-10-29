@@ -18,6 +18,7 @@ if (photoBox) {
     const fileInput = photoBox.querySelector('input[type="file"]');
     const keptBoxes = Array.from(photoBox.querySelectorAll('input[name="remove_photos"]'));
     const uploadError = photoBox.querySelector('[data-upload-error]');
+    const limitWarning = photoBox.querySelector('[data-photo-limit]');
     const fullNote = photoBox.querySelector('[data-photo-full]');
     const linkBox = photoBox.querySelector('[data-link-box]');
     const linkInput = photoBox.querySelector('[data-link-input]');
@@ -75,7 +76,10 @@ if (photoBox) {
         icon.width = 14;
         icon.height = 14;
         remove.append(icon);
-        remove.addEventListener('click', onRemove);
+        remove.addEventListener('click', () => {
+            limitWarning.hidden = true;
+            onRemove();
+        });
 
         slot.append(img, remove);
         return slot;
@@ -133,8 +137,10 @@ if (photoBox) {
 
     function addFiles(files) {
         let rejected = false;
+        let skipped = 0;
         Array.from(files).forEach((file) => {
             if (photoCount() >= maxPhotos) {
+                skipped += 1;
                 return;
             }
             if (!allowedTypes.includes(file.type) || file.size > maxSize) {
@@ -144,6 +150,10 @@ if (photoBox) {
             chosenFiles.push(file);
         });
         uploadError.hidden = !rejected;
+        // Say how many photos didn't fit, instead of leaving them out without a word
+        limitWarning.hidden = skipped === 0;
+        limitWarning.querySelector('[data-photo-limit-text]').textContent =
+            `One entry can have up to ${maxPhotos} photos, so ${skipped} ${skipped === 1 ? "wasn't" : "weren't"} added.`;
         syncFileInput();
         showPhotos();
     }
@@ -176,6 +186,7 @@ if (photoBox) {
     photoBox.querySelectorAll('[data-remove-kept]').forEach((button) => {
         button.addEventListener('click', () => {
             button.closest('.photo-slot').querySelector('input[name="remove_photos"]').checked = true;
+            limitWarning.hidden = true;
             showPhotos();
         });
     });

@@ -192,6 +192,10 @@
                 <img src="{% static 'journal/icons/alert-small.svg' %}" alt="" width="16" height="16">
                 Use a JPG, PNG or WEBP under 5 MB.
             </p>
+            <p class="field-error" data-photo-limit hidden>
+                <img src="{% static 'journal/icons/alert-small.svg' %}" alt="" width="16" height="16">
+                <span data-photo-limit-text></span>
+            </p>
             <p class="field-hint" data-photo-full hidden>That's 5 photos, the most one entry can have. Remove one with the trash button to add another.</p>
 
             <div class="photo-link" data-link-box>
