@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+from unittest.mock import patch
 
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
@@ -1086,3 +1087,27 @@ class GardenLinkTests(TestCase):
             status_code=403,
         )
         self.assertContains(response, f'href="{reverse("accounts:profile")}#roles"', status_code=403)
+
+
+class PlantOpensJournalTests(TestCase):
+    """A clicked plant goes to its Plant journal page as soon as the journal app exists."""
+
+    def setUp(self):
+        self.user = User.objects.create_user('rina', password='x')
+        Profile.objects.create(user=self.user, display_name='Rina', is_grower=True)
+        garden = Garden.objects.create(owner=self.user, name='Balcony rack', location='Tebet', growing_method='Pots')
+        self.planting = Planting.objects.create(garden=garden, crop='Cherry tomato', planting_date=date(2026, 9, 1))
+        self.client.force_login(self.user)
+        self.url = reverse('gardens:planting_detail', args=[garden.pk, self.planting.pk])
+
+    def test_redirects_to_the_journal_plant_page_when_it_exists(self):
+        with patch('gardens.views.reverse', return_value=f'/journal/plant/{self.planting.pk}/') as journal_reverse:
+            response = self.client.get(self.url)
+        journal_reverse.assert_called_once_with('journal:plant_detail', args=[self.planting.pk])
+        self.assertRedirects(response, f'/journal/plant/{self.planting.pk}/?from=garden', fetch_redirect_response=False)
+
+    def test_shows_the_gardens_plant_page_until_then(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Cherry tomato')
+
