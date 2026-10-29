@@ -124,3 +124,42 @@ class NewEntryForm(JournalEntryForm):
     ]
 
     visibility = forms.ChoiceField(choices=VISIBILITY_CHOICES, initial='private', widget=forms.RadioSelect)
+
+
+class JournalFilterForm(forms.Form):
+    # The GET form above the journal list. Every field is optional, empty means "All"
+    SORT_CHOICES = [
+        ('recent', 'Sort: Recently updated'),
+        ('oldest', 'Sort: Oldest update'),
+        ('name', 'Sort: Plant name A to Z'),
+        ('tallest', 'Sort: Tallest first'),
+    ]
+
+    q = forms.CharField(required=False, widget=forms.TextInput(attrs={
+        'type': 'search',
+        'placeholder': 'Search plants or notes...',
+        'aria-label': 'Search plants or notes',
+    }))
+    plant = forms.ModelChoiceField(
+        queryset=Planting.objects.none(), required=False, empty_label='All Plants',
+        widget=forms.Select(attrs={'aria-label': 'Plant'}),
+    )
+    stage = forms.ChoiceField(
+        required=False,
+        choices=[('', 'All Stages')] + [(value, f'Stage: {label}') for value, label in JournalEntry.STAGE_CHOICES],
+        widget=forms.Select(attrs={'aria-label': 'Growth stage'}),
+    )
+    health = forms.ChoiceField(
+        required=False,
+        choices=[('', 'All Health')] + [(value, f'Health: {label}') for value, label in JournalEntry.HEALTH_CHOICES],
+        widget=forms.Select(attrs={'aria-label': 'Plant health'}),
+    )
+    sort = forms.ChoiceField(required=False, choices=SORT_CHOICES, widget=forms.Select(attrs={'aria-label': 'Sort'}))
+
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Only the grower's own plants that have entries, the same plants the list can show
+        self.fields['plant'].queryset = Planting.objects.filter(
+            garden__owner=user, journal_entries__isnull=False,
+        ).distinct().order_by('crop')
+        self.fields['plant'].label_from_instance = lambda planting: f'Plant: {planting.crop}'

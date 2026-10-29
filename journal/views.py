@@ -1,6 +1,8 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.core.paginator import Paginator
+from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -9,7 +11,7 @@ from django.views.decorators.http import require_POST
 
 from accounts.models import Profile
 from gardens.models import Planting
-from journal.forms import PHOTO_ERROR, JournalEntryForm, NewEntryForm
+from journal.forms import PHOTO_ERROR, JournalEntryForm, JournalFilterForm, NewEntryForm
 from journal.models import EntryPhoto, JournalEntry, PlantJournal
 
 
@@ -45,7 +47,62 @@ def has_missing_required(form):
 
 @login_required(login_url='/login')
 def index(request):
-    context = {}
+    if not is_grower(request.user):
+        return render(request, 'journal/grower_required.html', status=403)
+
+    form = JournalFilterForm(request.user, request.GET)
+    # A filter value that isn't one of the choices (typed into the address bar) is ignored
+    filters = form.cleaned_data if form.is_valid() else {}
+
+    my_plants = Planting.objects.filter(garden__owner=request.user)
+    plants = my_plants.filter(journal_entries__isnull=False).distinct()
+    if filters.get('plant'):
+        plants = plants.filter(pk=filters['plant'].pk)
+    if filters.get('q'):
+        query = filters['q']
+        plants = plants.filter(Q(crop__icontains=query) | Q(journal_entries__observation__icontains=query)).distinct()
+
+    # One row per plant with its latest entry, so stage and health are checked on that entry
+    rows = []
+    for planting in plants.select_related('garden').prefetch_related('journal_entries'):
+        entries = list(planting.journal_entries.all())
+        latest = entries[0]
+        if filters.get('stage') and latest.stage != filters['stage']:
+            continue
+        if filters.get('health') and latest.health != filters['health']:
+            continue
+        rows.append({'planting': planting, 'latest': latest, 'entry_count': len(entries)})
+
+    sort = filters.get('sort') or 'recent'
+    if sort == 'name':
+        rows.sort(key=lambda row: row['planting'].crop.lower())
+    elif sort == 'tallest':
+        rows.sort(key=lambda row: row['latest'].height_cm, reverse=True)
+    elif sort == 'oldest':
+        rows.sort(key=lambda row: (row['latest'].date, row['latest'].time))
+    else:
+        rows.sort(key=lambda row: (row['latest'].date, row['latest'].time), reverse=True)
+
+    paginator = Paginator(rows, 10)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    if paginator.num_pages > 1:
+        count_label = f'Showing {page_obj.start_index()}–{page_obj.end_index()} of {paginator.count} plants'
+    else:
+        count_label = f'Showing {paginator.count} plant{"" if paginator.count == 1 else "s"}'
+
+    # The page links keep the current filters, only the page number changes
+    params = request.GET.copy()
+    params.pop('page', None)
+
+    context = {
+        'form': form,
+        'page_obj': page_obj,
+        'count_label': count_label,
+        'querystring': params.urlencode(),
+        'public_ids': set(PlantJournal.objects.filter(planting__in=my_plants, is_public=True).values_list('planting_id', flat=True)),
+        'has_plants': my_plants.exists(),
+        'has_entries': JournalEntry.objects.filter(planting__in=my_plants).exists(),
+    }
     return render(request, 'journal/index.html', context)
 
 
