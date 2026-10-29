@@ -1,8 +1,15 @@
 /* Forum list page. */
 
 .forum-page {
-    padding-top: 132px;
+    padding-top: 140px;
     padding-bottom: 96px;
+}
+
+.forum-page h1 {
+    margin-top: 8px;
+    font-size: 44px;
+    font-weight: 700;
+    line-height: 1.15;
 }
 
 /* Heading */
@@ -12,6 +19,7 @@
     align-items: flex-end;
     justify-content: space-between;
     gap: 24px;
+    margin-bottom: 32px;
 }
 
 .forum-heading .eyebrow {
