@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="{% static 'journal/journal.css' %}">
 <script defer src="{% static 'journal/journal.js' %}"></script>
 <script defer src="{% static 'journal/entry-form.js' %}"></script>
+<script defer src="{% static 'journal/delete-entry.js' %}"></script>
 {% endblock head %}
 
 {% block content %}
@@ -223,8 +224,7 @@
 
         <div class="form-footer{% if entry %} form-footer-split{% endif %}">
             {% if entry %}
-                {# TODO: opens the delete dialog in step 5 #}
-                <button class="danger-button" type="button">
+                <button class="danger-button" type="button" data-delete-url="{% url 'journal:delete_entry' entry.pk %}">
                     <img src="{% static 'journal/icons/trash.svg' %}" alt="" width="18" height="18">
                     Delete entry
                 </button>
@@ -235,5 +235,9 @@
             </div>
         </div>
     </form>
+
+    {% if entry %}
+        {% include 'journal/delete_dialog.html' with title='Delete this entry?' message="This entry and its photos will be removed. This can't be undone." confirm_label='Delete entry' %}
+    {% endif %}
 </div>
 {% endblock content %}

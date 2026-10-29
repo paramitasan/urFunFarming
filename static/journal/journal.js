@@ -59,3 +59,10 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+// A toast saved just before moving to this page, like "Entry deleted" after deleting on the Edit page
+const savedToast = sessionStorage.getItem('journalToast');
+if (savedToast) {
+    sessionStorage.removeItem('journalToast');
+    showToast('success', savedToast);
+}

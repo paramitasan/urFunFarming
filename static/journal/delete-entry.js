@@ -34,10 +34,15 @@ if (deleteDialog) {
             const result = await response.json().catch(() => ({}));
             deleteDialog.hidePopover();
 
-            if (response.ok) {
+            if (response.ok && document.querySelector('[data-journal-body]')) {
+                // On the plant page: show the toast and refresh the timeline here
                 showToast('success', result.message);
                 // If the refresh fails, reloading the page shows the same thing
                 refreshTimeline().catch(() => window.location.reload());
+            } else if (response.ok) {
+                // On the Edit page the entry is gone, so go back to its plant and show the toast there
+                sessionStorage.setItem('journalToast', result.message);
+                window.location.href = result.plant_url;
             } else {
                 showToast('error', "Couldn't delete this entry", result.message || 'Something went wrong. Try again.');
             }
