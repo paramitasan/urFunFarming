@@ -143,38 +143,7 @@
                     </tbody>
                 </table>
             </div>
-
-            {% if page_obj.paginator.num_pages > 1 %}
-            <nav class="pagination" aria-label="Pages">
-                {% if page_obj.has_previous %}
-                    <a class="page-button" href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ page_obj.previous_page_number }}" aria-label="Previous page">
-                        <img class="page-arrow-previous" src="{% static 'journal/icons/chevron-page.svg' %}" alt="" width="18" height="18">
-                    </a>
-                {% else %}
-                    <span class="page-button is-disabled">
-                        <img class="page-arrow-previous" src="{% static 'journal/icons/chevron-page.svg' %}" alt="" width="18" height="18">
-                    </span>
-                {% endif %}
-
-                {% for number in page_obj.paginator.page_range %}
-                    {% if number == page_obj.number %}
-                        <span class="page-button is-current" aria-current="page">{{ number }}</span>
-                    {% else %}
-                        <a class="page-button" href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ number }}">{{ number }}</a>
-                    {% endif %}
-                {% endfor %}
-
-                {% if page_obj.has_next %}
-                    <a class="page-button" href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ page_obj.next_page_number }}" aria-label="Next page">
-                        <img class="page-arrow-next" src="{% static 'journal/icons/chevron-page.svg' %}" alt="" width="18" height="18">
-                    </a>
-                {% else %}
-                    <span class="page-button is-disabled">
-                        <img class="page-arrow-next" src="{% static 'journal/icons/chevron-page.svg' %}" alt="" width="18" height="18">
-                    </span>
-                {% endif %}
-            </nav>
-            {% endif %}
+            {% include 'journal/pagination.html' %}
         {% endif %}
     </div>
 

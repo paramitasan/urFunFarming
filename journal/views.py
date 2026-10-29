@@ -314,3 +314,24 @@ def toggle_visibility(request, planting_id):
         message = f'{planting.crop} is now private'
         detail = 'Only you can see its journal.'
     return JsonResponse({'is_public': journal.is_public, 'message': message, 'detail': detail})
+
+
+def grower_journal(request, username):
+    # Another grower's journal as buyers and other growers see it: only their public plants
+    grower = get_object_or_404(User, username=username)
+    plants = Planting.objects.filter(
+        garden__owner=grower, journal__is_public=True, journal_entries__isnull=False,
+    ).distinct()
+
+    rows = []
+    for planting in plants.select_related('garden').prefetch_related('journal_entries'):
+        entries = list(planting.journal_entries.all())
+        rows.append({'planting': planting, 'latest': entries[0], 'entry_count': len(entries)})
+    rows.sort(key=lambda row: (row['latest'].date, row['latest'].time), reverse=True)
+
+    context = {
+        'grower_name': display_name(grower),
+        'page_obj': Paginator(rows, 10).get_page(request.GET.get('page')),
+        'querystring': '',
+    }
+    return render(request, 'journal/grower_journal.html', context)

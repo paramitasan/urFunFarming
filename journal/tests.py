@@ -114,13 +114,13 @@ class PlantDetailTest(JournalTestCase):
     def test_private_journal_is_hidden_from_visitors(self):
         response = self.client.get(self.detail_url(self.tomato))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'This journal is private.')
+        self.assertContains(response, 'This journal is private')
         self.assertNotContains(response, 'First fruits set on the lower truss.')
 
     def test_private_journal_is_hidden_from_other_growers(self):
         self.client.force_login(self.other_grower)
         response = self.client.get(self.detail_url(self.tomato))
-        self.assertContains(response, 'This journal is private.')
+        self.assertContains(response, 'This journal is private')
         self.assertFalse(response.context['is_owner'])
 
     def test_public_journal_is_read_only_for_others(self):
