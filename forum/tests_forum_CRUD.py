@@ -36,7 +36,7 @@ def image_file(name="photo.png", fmt="PNG", content_type="image/png"):
     return SimpleUploadedFile(name, buffer.getvalue(), content_type=content_type)
 
 class ForumTestCase(TestCase):
-    """Two users, plus a temporary MEDIA_ROOT so uploads never touch media/."""
+    # two users, temporary MEDIA_ROOT so uploads don't touch media
 
     def setUp(self):
         media = tempfile.mkdtemp()
