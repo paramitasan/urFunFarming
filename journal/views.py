@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -19,6 +20,12 @@ def is_grower(user):
     # Same lookup as accounts.views.me_json, so a user without a Profile doesn't crash
     profile = Profile.objects.filter(user=user).first()
     return profile is not None and profile.is_grower
+
+
+def display_name(user):
+    # The name other people see, falling back to the username if there's no Profile
+    profile = Profile.objects.filter(user=user).first()
+    return profile.display_name if profile and profile.display_name else user.username
 
 
 def save_new_photos(entry, form):
@@ -108,8 +115,17 @@ def index(request):
 
 def plant_detail(request, planting_id):
     planting = get_object_or_404(Planting, pk=planting_id)
-    is_owner = request.user == planting.garden.owner
+    garden = planting.garden
+    is_owner = request.user == garden.owner
     is_public = PlantJournal.objects.filter(planting=planting, is_public=True).exists()
+
+    # Other people can only open the garden page when the garden itself is public
+    if is_owner:
+        garden_url = reverse('gardens:detail', args=[garden.pk])
+    elif garden.is_public:
+        garden_url = reverse('gardens:public_detail', args=[garden.pk])
+    else:
+        garden_url = None
 
     # Newest first, so the entry after each one in the list is the one before it in time
     entries = list(planting.journal_entries.all())
@@ -145,6 +161,8 @@ def plant_detail(request, planting_id):
         'entries': entries,
         'is_owner': is_owner,
         'can_view': is_owner or is_public,
+        'grower_name': display_name(garden.owner),
+        'garden_url': garden_url,
         'started_on': started_on,
         'days_growing': days_growing,
         'stage_steps': stage_steps,
