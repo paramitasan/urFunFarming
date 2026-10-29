@@ -15,20 +15,22 @@
     </header>
 
     <form class="garden-layout" method="get" action="{% url 'gardens:mine' %}" data-autosubmit>
-        {% include 'gardens/_search_row.html' with search_label='Search my gardens' placeholder='Search my gardens…' sort_label='Sort gardens' %}
+        <div class="list-toolbar">
+            {% include 'gardens/_search_row.html' with search_label='Search my gardens' placeholder='Search my gardens…' %}
+            <label class="list-toolbar-select">
+                <span class="visually-hidden">Location</span>
+                <select id="garden-location" name="location">
+                <option value="">All locations</option>
+                {% for location in locations %}
+                    <option value="{{ location }}"{% if filter_form.location.value == location %} selected{% endif %}>{{ location }}</option>
+                {% endfor %}
+                </select>
+            </label>
+        </div>
 
-        <div class="garden-body">
+        <div class="list-layout">
             <aside class="filter-panel" aria-label="Filter gardens">
                 <div class="filter-panel-heading"><h2>Filters</h2><a href="{% url 'gardens:mine' %}">Reset</a></div>
-                <div class="filter-panel-group">
-                    <label class="filter-panel-label" for="garden-location">Location</label>
-                    <select class="garden-field garden-select" id="garden-location" name="location">
-                        <option value="">All locations</option>
-                        {% for location in locations %}
-                            <option value="{{ location }}"{% if filter_form.location.value == location %} selected{% endif %}>{{ location }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
                 <fieldset class="filter-panel-group">
                     <legend class="filter-panel-label">Visibility</legend>
                     {% for value, label, count in visibility_options %}
@@ -38,8 +40,11 @@
                 <button class="outline-button garden-apply" type="submit">Apply filters</button>
             </aside>
 
-            <div class="garden-results">
-                <p class="garden-results-count" role="status">{{ garden_count }} garden{{ garden_count|pluralize }}</p>
+            <div class="list-results">
+                <div class="list-results-heading">
+                    <p role="status">{{ garden_count }} garden{{ garden_count|pluralize }}</p>
+                    {% include 'gardens/_sort.html' with sort_label='Sort gardens' %}
+                </div>
                 {% if gardens %}
                     <div class="gardens-list">
                         {% for garden in gardens %}

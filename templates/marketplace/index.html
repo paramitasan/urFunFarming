@@ -14,22 +14,22 @@
 </header>
 
 <form method="get" action="{% if mine %}{% url 'marketplace:mine' %}{% else %}{% url 'marketplace:index' %}{% endif %}" id="marketplace-filters">
-    <div class="market-search-row">
-        <label class="market-search">
+    <div class="list-toolbar">
+        <label class="list-search">
             <img src="{% static 'marketplace/img/imgIconSearch.svg' %}" alt="">
             <span class="market-sr">Search harvests</span>
             <input type="search" name="q" value="{{ filter_form.q.value|default_if_none:'' }}" maxlength="120" placeholder="Search vegetables, fruits, herbs…" autocomplete="off">
         </label>
-        <label class="market-area-select">
+        <label class="list-toolbar-select">
             <img src="{% static 'marketplace/img/imgIconPin.svg' %}" alt="">
             <span class="market-sr">Collection city</span>
-            <select name="city" aria-label="Collection city">{% for value, label in filter_form.city.field.choices %}<option value="{{ value }}"{% if filter_form.city.value == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+            <select name="city">{% for value, label in filter_form.city.field.choices %}<option value="{{ value }}"{% if filter_form.city.value == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
         </label>
     </div>
     {% if filter_form.grower.value %}<input type="hidden" name="grower" value="{{ filter_form.grower.value }}">{% endif %}
     <p id="market-filter-feedback" class="market-feedback" role="status" hidden></p>
-    <div class="market-body">
-        <section id="market-results" aria-label="Harvest listings" aria-live="polite" aria-busy="false">{% include 'marketplace/_results.html' %}</section>
+    <div class="list-layout">
+        <section id="market-results" class="list-results" aria-label="Harvest listings" aria-live="polite" aria-busy="false">{% include 'marketplace/_results.html' %}</section>
         <aside class="market-filters filter-panel" aria-label="Filter harvests">
             <div class="filter-panel-heading"><h2>Filters</h2><button class="market-filter-toggle" id="market-filter-toggle" type="button" aria-expanded="false" aria-controls="market-filter-fields">Show filters</button><a href="{% if mine %}{% url 'marketplace:mine' %}{% else %}{% url 'marketplace:index' %}{% endif %}">Reset</a></div>
             <div class="market-filter-fields" id="market-filter-fields">

@@ -33,27 +33,32 @@
     {# One GET form for search, sort and filters. The fields sit in different grid cells and point at it with form="forum-filters". #}
     <form id="forum-filters" method="get" action="{% url 'forum:forum_list' %}"></form>
 
-    <div class="forum-layout">
-
-        <div class="forum-search">
+    <div class="list-toolbar">
+        <label class="list-search">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
                 <circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.6"/>
                 <path d="M12.5 12.5L16 16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
             </svg>
-            <input type="search" name="q" form="forum-filters" value="{{ q }}" placeholder="Search questions..." aria-label="Search questions" data-search>
-        </div>
+            <span class="visually-hidden">Search questions</span>
+            <input type="search" name="q" form="forum-filters" value="{{ q }}" placeholder="Search questions..." data-search>
+        </label>
+    </div>
 
-        <div class="forum-sort">
-            <select name="sort" form="forum-filters" data-autosubmit aria-label="Sort questions">
-                <option value="newest" {% if selected_sort == "newest" or not selected_sort %}selected{% endif %}>Newest first</option>
-                <option value="oldest" {% if selected_sort == "oldest" %}selected{% endif %}>Oldest first</option>
-                <option value="answers" {% if selected_sort == "answers" %}selected{% endif %}>Most answers</option>
-                <option value="asked" {% if selected_sort == "asked" %}selected{% endif %}>Most asked</option>
-            </select>
-        </div>
+    <div class="list-layout">
 
-        <section class="forum-results" aria-labelledby="forum-count">
-            <h2 id="forum-count" class="forum-count">{{ total }} question{{ total|pluralize }}</h2>
+        <section class="forum-results list-results" aria-labelledby="forum-count">
+            <div class="list-results-heading">
+                <h2 id="forum-count" class="forum-count">{{ total }} question{{ total|pluralize }}</h2>
+                <label class="list-sort">
+                    <span class="visually-hidden">Sort questions</span>
+                    <select name="sort" form="forum-filters" data-autosubmit>
+                        <option value="newest" {% if selected_sort == "newest" or not selected_sort %}selected{% endif %}>Newest first</option>
+                        <option value="oldest" {% if selected_sort == "oldest" %}selected{% endif %}>Oldest first</option>
+                        <option value="answers" {% if selected_sort == "answers" %}selected{% endif %}>Most answers</option>
+                        <option value="asked" {% if selected_sort == "asked" %}selected{% endif %}>Most asked</option>
+                    </select>
+                </label>
+            </div>
 
             {% if not user.is_authenticated %}
             <p class="forum-notice">

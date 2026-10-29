@@ -11,8 +11,7 @@
     padding-top: 19px;
 }
 
-.gardens-page :focus-visible,
-.garden-search-field:focus-within {
+.gardens-page :focus-visible {
     outline: 2px solid var(--color-forest);
     outline-offset: 3px;
 }
@@ -140,53 +139,6 @@
     }
 }
 
-/* Search row */
-
-.garden-toolbar {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 32px;
-}
-
-.garden-search-field {
-    display: flex;
-    flex: 1;
-    min-width: 0;
-    height: 56px;
-    align-items: center;
-    gap: 12px;
-    padding: 0 18px;
-    border: 1.5px solid var(--color-field);
-    border-radius: 14px;
-    background-color: #FFFFFF;
-}
-
-.garden-search-field input {
-    flex: 1;
-    min-width: 0;
-    border: 0;
-    outline: none;
-    background: transparent;
-    -webkit-appearance: none;
-    appearance: none;
-    font: 400 16px/normal 'Poppins', sans-serif;
-    color: var(--color-ink);
-}
-
-.garden-search-field input::-webkit-search-decoration {
-    -webkit-appearance: none;
-}
-
-.garden-search-field input::placeholder {
-    color: var(--color-sage);
-    opacity: 1;
-}
-
-.garden-toolbar .garden-sort {
-    flex-shrink: 0;
-    width: 280px;
-}
-
 /* Fields */
 
 .garden-field {
@@ -223,20 +175,6 @@ textarea.garden-field {
     cursor: pointer;
 }
 
-/* Body: results on the left, filters on the right under the sort select */
-
-.garden-body {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 280px;
-    align-items: start;
-    gap: 32px;
-}
-
-.garden-body > aside {
-    grid-row: 1;
-    grid-column: 2;
-}
-
 /* Apply filters: always shown without JavaScript, otherwise only when it has keyboard focus */
 .is-live .garden-apply:not(:focus-visible) {
     position: absolute;
@@ -250,31 +188,6 @@ textarea.garden-field {
 }
 
 /* Results */
-
-.garden-results {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    min-width: 0;
-}
-
-.garden-results-count {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    font-size: 18px;
-    font-weight: 600;
-    line-height: normal;
-    color: var(--color-forest);
-}
-
-.garden-results-count span {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--color-deep);
-    text-align: right;
-}
 
 .gardens-list,
 .planting-cards {
@@ -713,15 +626,6 @@ textarea.garden-field {
         padding-inline: 40px;
     }
 
-    .garden-toolbar .garden-sort {
-        width: 240px;
-    }
-
-    .garden-body {
-        grid-template-columns: minmax(0, 1fr) 240px;
-        gap: 24px;
-    }
-
     .garden-photo {
         width: 160px;
         height: 120px;
@@ -753,30 +657,6 @@ textarea.garden-field {
         align-items: flex-start;
     }
 
-    .garden-toolbar {
-        flex-direction: column;
-        gap: 10px;
-        margin-bottom: 20px;
-    }
-
-    .garden-toolbar .garden-sort {
-        width: 100%;
-    }
-
-    .garden-search-field {
-        flex: none;
-    }
-
-    .garden-body {
-        grid-template-columns: minmax(0, 1fr);
-        gap: 20px;
-    }
-
-    .garden-body > aside {
-        grid-row: auto;
-        grid-column: auto;
-    }
-
     .garden-item,
     .planting-card {
         gap: 14px;
@@ -802,14 +682,6 @@ textarea.garden-field {
         height: 140px;
     }
 
-    .garden-results-count {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .garden-results-count span {
-        text-align: left;
-    }
 }
 
 /* Touch screens: iPhone zooms into any field under 16px */

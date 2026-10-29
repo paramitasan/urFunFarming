@@ -79,7 +79,7 @@
     <section class="forum-answers" aria-labelledby="answers-heading">
         <div class="answers-head">
             <h2 id="answers-heading">{{ replies|length }} answer{{ replies|length|pluralize }}</h2>
-            <form class="forum-sort answers-sort" method="get" action="{% url 'forum:forum_detail' forum.pk %}#answers-heading">
+            <form class="list-sort answers-sort" method="get" action="{% url 'forum:forum_detail' forum.pk %}#answers-heading">
                 <select name="sort" data-autosubmit aria-label="Sort answers">
                     <option value="best"{% if reply_sort == "best" %} selected{% endif %}>Best first</option>
                     <option value="oldest"{% if reply_sort == "oldest" %} selected{% endif %}>Oldest first</option>

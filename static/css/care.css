@@ -103,10 +103,6 @@
     color: var(--color-deep);
 }
 
-.care-sort {
-    width: 200px;
-}
-
 .care-chips {
     display: flex;
     flex-wrap: wrap;
@@ -307,10 +303,6 @@
 /* Phone: each task becomes a small card */
 
 @media (max-width: 767px) {
-    .care-sort {
-        width: 100%;
-    }
-
     .care-tasks-heading form {
         width: 100%;
     }
