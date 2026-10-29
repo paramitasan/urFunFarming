@@ -677,3 +677,138 @@ class DeleteOnEditPageTest(JournalTestCase):
         response = self.client.get(reverse('journal:create_entry'))
         self.assertNotContains(response, 'data-delete-url')
         self.assertNotContains(response, 'Delete this entry?')
+
+
+class JournalListTest(JournalTestCase):
+    list_url = reverse('journal:index')
+
+    def plant(self, crop, day, height=10, stage='seedling', health='healthy', observation='Growing well.'):
+        # A plant in Ranu's garden with one entry on the given October day
+        planting = Planting.objects.create(crop=crop, garden=self.garden, planting_date=date(2026, 9, 1))
+        JournalEntry.objects.create(
+            planting=planting, date=date(2026, 10, day), time=time(8, 0), height_cm=height,
+            stage=stage, health=health, observation=observation,
+        )
+        return planting
+
+    def rows(self, response):
+        return [row['planting'].crop for row in response.context['page_obj']]
+
+    def test_visitor_is_sent_to_login(self):
+        response = self.client.get(self.list_url)
+        self.assertEqual(response.status_code, 302)
+
+    def test_buyer_sees_the_growers_only_page(self):
+        self.client.force_login(self.buyer)
+        response = self.client.get(self.list_url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_one_row_per_plant_with_its_latest_entry(self):
+        self.client.force_login(self.grower)
+        response = self.client.get(self.list_url)
+        rows = list(response.context['page_obj'])
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]['latest'], self.latest)
+        self.assertEqual(rows[0]['entry_count'], 3)
+        self.assertContains(response, 'Tebet Rooftop Garden · 3 entries')
+        self.assertContains(response, 'Showing 1 plant')
+        # The chili has no entries, so it isn't a row
+        self.assertNotIn("Bird's eye chili", self.rows(response))
+
+    def test_only_my_own_plants_are_listed(self):
+        other_garden = Garden.objects.create(name='Depok Yard', owner=self.other_grower)
+        other_plant = Planting.objects.create(crop='Okra', garden=other_garden, planting_date=date(2026, 9, 1))
+        JournalEntry.objects.create(planting=other_plant, date=date(2026, 10, 1), time=time(8, 0), height_cm=9, observation='Mine.')
+        self.client.force_login(self.grower)
+        self.assertEqual(self.rows(self.client.get(self.list_url)), ['Cherry Tomato'])
+
+    def test_search_looks_in_plant_names_and_notes(self):
+        self.plant('Thai basil', 20, observation='Pinched the top.')
+        self.client.force_login(self.grower)
+        self.assertEqual(self.rows(self.client.get(self.list_url, {'q': 'basil'})), ['Thai basil'])
+        # 'true leaves' is only in the tomato's oldest entry
+        self.assertEqual(self.rows(self.client.get(self.list_url, {'q': 'true leaves'})), ['Cherry Tomato'])
+
+    def test_plant_filter(self):
+        basil = self.plant('Thai basil', 20)
+        self.client.force_login(self.grower)
+        response = self.client.get(self.list_url, {'plant': basil.pk})
+        self.assertEqual(self.rows(response), ['Thai basil'])
+        self.assertContains(response, 'filter-select is-active')
+
+    def test_stage_and_health_use_the_latest_entry(self):
+        self.plant('Pak choy', 20, stage='seedling', health='pest')
+        self.client.force_login(self.grower)
+        # The tomato had a seedling entry once, but its latest one is fruiting
+        self.assertEqual(self.rows(self.client.get(self.list_url, {'stage': 'seedling'})), ['Pak choy'])
+        self.assertEqual(self.rows(self.client.get(self.list_url, {'health': 'pest'})), ['Pak choy'])
+        self.assertEqual(self.rows(self.client.get(self.list_url, {'stage': 'fruiting', 'health': 'healthy'})), ['Cherry Tomato'])
+
+    def test_no_results_state(self):
+        self.client.force_login(self.grower)
+        response = self.client.get(self.list_url, {'stage': 'harvested'})
+        self.assertContains(response, 'No plants match these filters')
+        self.assertContains(response, 'Showing 0 plants')
+
+    def test_a_filter_value_that_is_not_a_choice_is_ignored(self):
+        self.client.force_login(self.grower)
+        response = self.client.get(self.list_url, {'stage': 'giant'})
+        self.assertEqual(self.rows(response), ['Cherry Tomato'])
+
+    def test_sort_options(self):
+        self.plant('Basil', 26, height=24)
+        self.plant('Zucchini', 1, height=150)
+        self.client.force_login(self.grower)
+        self.assertEqual(self.rows(self.client.get(self.list_url)), ['Basil', 'Cherry Tomato', 'Zucchini'])
+        self.assertEqual(self.rows(self.client.get(self.list_url, {'sort': 'oldest'})), ['Zucchini', 'Cherry Tomato', 'Basil'])
+        self.assertEqual(self.rows(self.client.get(self.list_url, {'sort': 'name'})), ['Basil', 'Cherry Tomato', 'Zucchini'])
+        self.assertEqual(self.rows(self.client.get(self.list_url, {'sort': 'tallest'})), ['Zucchini', 'Cherry Tomato', 'Basil'])
+
+    def test_ten_plants_per_page_and_links_keep_the_filters(self):
+        for day in range(1, 14):
+            self.plant(f'Lettuce {day}', day)
+        self.client.force_login(self.grower)
+        first = self.client.get(self.list_url, {'health': 'healthy'})
+        self.assertEqual(len(first.context['page_obj']), 10)
+        self.assertContains(first, 'Showing 1–10 of 14 plants')
+        self.assertContains(first, 'health=healthy&amp;page=2')
+
+        second = self.client.get(self.list_url, {'health': 'healthy', 'page': 2})
+        self.assertEqual(len(second.context['page_obj']), 4)
+        self.assertContains(second, 'Showing 11–14 of 14 plants')
+        # Rows keep counting from 11 on the second page
+        self.assertContains(second, '<td class="cell-no">11</td>', html=True)
+
+    def test_page_number_past_the_end_shows_the_last_page(self):
+        self.client.force_login(self.grower)
+        response = self.client.get(self.list_url, {'page': 99})
+        self.assertEqual(response.context['page_obj'].number, 1)
+
+    def test_lock_shows_private_or_public(self):
+        self.client.force_login(self.grower)
+        self.assertContains(self.client.get(self.list_url), 'aria-label="Make Cherry Tomato public"')
+        self.journal.is_public = True
+        self.journal.save()
+        self.assertContains(self.client.get(self.list_url), 'aria-label="Make Cherry Tomato private"')
+
+    def test_row_actions_and_delete_dialog(self):
+        self.client.force_login(self.grower)
+        response = self.client.get(self.list_url)
+        self.assertContains(response, reverse('journal:plant_detail', args=[self.tomato.pk]))
+        self.assertContains(response, reverse('journal:create_plant_entry', args=[self.tomato.pk]))
+        self.assertContains(response, f'data-delete-url="{reverse("journal:delete_plant_entries", args=[self.tomato.pk])}"')
+        self.assertContains(response, 'Delete all entries for this plant?')
+
+    def test_empty_state_with_plants_but_no_entries(self):
+        JournalEntry.objects.all().delete()
+        self.client.force_login(self.grower)
+        response = self.client.get(self.list_url)
+        self.assertContains(response, 'Start your first entry')
+        self.assertNotContains(response, 'data-filter-form')
+
+    def test_empty_state_without_plants(self):
+        self.client.force_login(self.other_grower)
+        response = self.client.get(self.list_url)
+        self.assertContains(response, 'Add a plant to start your journal')
+        self.assertContains(response, reverse('gardens:mine'))
+        self.assertNotContains(response, reverse('journal:create_entry'))
