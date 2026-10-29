@@ -8,7 +8,7 @@ class PlantJournal(models.Model):
     is_public = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'Journal for {self.planting.crop}'
+        return f'Journal for {self.planting.display_name}'
 
 
 class JournalEntry(models.Model):
@@ -40,7 +40,7 @@ class JournalEntry(models.Model):
         verbose_name_plural = 'journal entries'
 
     def __str__(self):
-        return f'{self.planting.crop} on {self.date}'
+        return f'{self.planting.display_name} on {self.date}'
 
 
 class EntryPhoto(models.Model):

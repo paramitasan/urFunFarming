@@ -67,7 +67,9 @@ def index(request):
         plants = plants.filter(pk=filters['plant'].pk)
     if filters.get('q'):
         query = filters['q']
-        plants = plants.filter(Q(crop__icontains=query) | Q(journal_entries__observation__icontains=query)).distinct()
+        plants = plants.filter(
+            Q(name__icontains=query) | Q(crop__icontains=query) | Q(journal_entries__observation__icontains=query)
+        ).distinct()
 
     # One row per plant with its latest entry, so stage and health are checked on that entry
     rows = []
@@ -82,7 +84,7 @@ def index(request):
 
     sort = filters.get('sort') or 'recent'
     if sort == 'name':
-        rows.sort(key=lambda row: row['planting'].crop.lower())
+        rows.sort(key=lambda row: row['planting'].display_name.lower())
     elif sort == 'tallest':
         rows.sort(key=lambda row: row['latest'].height_cm, reverse=True)
     elif sort == 'oldest':
@@ -291,7 +293,7 @@ def delete_plant_entries(request, planting_id):
     planting.journal_entries.all().delete()
     return JsonResponse({
         'message': 'Entries deleted',
-        'detail': f"{planting.crop}'s entries were removed. The plant stays in My gardens.",
+        'detail': f"{planting.display_name}'s entries were removed. The plant stays in My gardens.",
     })
 
 
@@ -307,9 +309,9 @@ def toggle_visibility(request, planting_id):
     journal.save()
 
     if journal.is_public:
-        message = f'{planting.crop} is now public'
+        message = f'{planting.display_name} is now public'
         detail = 'Other growers and buyers can see its journal.'
     else:
-        message = f'{planting.crop} is now private'
+        message = f'{planting.display_name} is now private'
         detail = 'Only you can see its journal.'
     return JsonResponse({'is_public': journal.is_public, 'message': message, 'detail': detail})

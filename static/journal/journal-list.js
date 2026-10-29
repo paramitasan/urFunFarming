@@ -97,7 +97,7 @@ document.addEventListener('click', (event) => {
 
 // The lock next to the time switches a plant's journal between private and public
 async function toggleVisibility(button) {
-    const crop = button.dataset.crop;
+    const plantName = button.dataset.plantName;
     const wasPublic = button.dataset.public === 'true';
     button.disabled = true;
     try {
@@ -111,13 +111,13 @@ async function toggleVisibility(button) {
         }
 
         button.dataset.public = result.is_public;
-        button.setAttribute('aria-label', `Make ${crop} ${result.is_public ? 'private' : 'public'}`);
+        button.setAttribute('aria-label', `Make ${plantName} ${result.is_public ? 'private' : 'public'}`);
         // Undo just switches it back
         showToast('info', result.message, result.detail, { label: 'Undo', onClick: () => toggleVisibility(button) });
     } catch (error) {
         showToast(
             'error',
-            `Couldn't make ${crop} ${wasPublic ? 'private' : 'public'}`,
+            `Couldn't make ${plantName} ${wasPublic ? 'private' : 'public'}`,
             `Its journal is still ${wasPublic ? 'public' : 'private'}. Try again.`,
             { label: 'Retry', onClick: () => toggleVisibility(button) },
         );

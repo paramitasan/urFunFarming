@@ -162,4 +162,4 @@ class JournalFilterForm(forms.Form):
         self.fields['plant'].queryset = Planting.objects.filter(
             garden__owner=user, journal_entries__isnull=False,
         ).distinct().order_by('crop')
-        self.fields['plant'].label_from_instance = lambda planting: planting.crop
+        self.fields['plant'].label_from_instance = lambda planting: planting.display_name

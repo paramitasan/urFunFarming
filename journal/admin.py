@@ -11,7 +11,7 @@ class EntryPhotoInline(admin.TabularInline):
 class JournalEntryAdmin(admin.ModelAdmin):
     list_display = ('planting', 'date', 'time', 'stage', 'health', 'height_cm')
     list_filter = ('stage', 'health')
-    search_fields = ('planting__crop', 'observation')
+    search_fields = ('planting__name', 'planting__crop', 'observation')
     inlines = [EntryPhotoInline]
 
 

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ planting.crop }} · Plant Journal{% endblock title %}
+{% block title %}{{ planting.display_name }} · Plant Journal{% endblock title %}
 
 {% block head %}
 <link rel="stylesheet" href="{% static 'journal/journal.css' %}">
@@ -34,7 +34,7 @@
         <div class="journal-title-block">
             <p class="journal-eyebrow">Plant journal · Timeline</p>
             <div class="journal-title-row">
-                <h1 class="journal-title">{{ planting.crop }}</h1>
+                <h1 class="journal-title">{{ planting.display_name }}</h1>
                 {% if can_view and entries %}
                     <span class="stage-tag" data-stage="{{ entries.0.stage }}">{{ entries.0.get_stage_display }}</span>
                 {% endif %}
@@ -101,7 +101,7 @@
                         {% if entry.photos.all %}
                         <div class="entry-photos">
                             {% for photo in entry.photos.all %}
-                                <img src="{{ photo.src }}" alt="Photo {{ forloop.counter }} of {{ planting.crop }} on {{ entry.date|date:'j M Y' }}" loading="lazy">
+                                <img src="{{ photo.src }}" alt="Photo {{ forloop.counter }} of {{ planting.display_name }} on {{ entry.date|date:'j M Y' }}" loading="lazy">
                             {% endfor %}
                         </div>
                         {% endif %}
@@ -115,7 +115,7 @@
                     <img src="{% static 'journal/icons/sprout.svg' %}" alt="" width="26" height="26">
                 </span>
                 <h3>No entries yet</h3>
-                <p>{% if is_owner %}Log the first entry for {{ planting.crop }} to start its timeline.{% else %}{{ grower_name }} hasn't logged anything for {{ planting.crop }} yet. Check back later to see how it grows.{% endif %}</p>
+                <p>{% if is_owner %}Log the first entry for {{ planting.display_name }} to start its timeline.{% else %}{{ grower_name }} hasn't logged anything for {{ planting.display_name }} yet. Check back later to see how it grows.{% endif %}</p>
                 {% if is_owner %}
                     <a class="pill-button" href="{% url 'journal:create_plant_entry' planting.pk %}">
                         <img src="{% static 'journal/icons/plus.svg' %}" alt="" width="18" height="18">
@@ -191,7 +191,7 @@
                 <img src="{% static 'journal/icons/lock.svg' %}" alt="" width="26" height="26">
             </span>
             <h2>This journal is private</h2>
-            <p>{{ grower_name }} keeps the journal for {{ planting.crop }} private, so its entries can't be shown. You can still see the other plants in {{ grower_name }}'s garden.</p>
+            <p>{{ grower_name }} keeps the journal for {{ planting.display_name }} private, so its entries can't be shown. You can still see the other plants in {{ grower_name }}'s garden.</p>
         </div>
     {% endif %}
 
