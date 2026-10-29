@@ -24,12 +24,15 @@
     --stage-harvested-dot: #7C68C4;
     --health-healthy-text: #125133;
     --health-healthy-fill: #D9EDDF;
+    --health-healthy-border: #BDD7C7;
     --health-healthy-dot: #21C37E;
     --health-attention-text: #6E5100;
     --health-attention-fill: #FFF2C6;
+    --health-attention-border: #EBDBAA;
     --health-attention-dot: #D9A300;
     --health-pest-text: #B5452F;
     --health-pest-fill: #F8E3DE;
+    --health-pest-border: #EFCDC5;
     --health-pest-dot: #B5452F;
 
 
@@ -130,13 +133,14 @@
 .stage-tag[data-stage="harvested"] { color: var(--stage-harvested-text); background-color: var(--stage-harvested-fill); border-color: var(--stage-harvested-border); }
 
 
-/* Health tag: dot plus label, no border */
+/* Health tag: dot plus label, with a border like the stage tag */
 .health-tag {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     padding: 6px 12px;
-    border-radius: 8px;
+    border: 1px solid;
+    border-radius: 999px;
     font-size: 12.5px;
     font-weight: 600;
     line-height: normal;
@@ -148,12 +152,13 @@
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background-color: var(--dot);
+    /* The dot is the same color as the text */
+    background-color: currentColor;
 }
 
-.health-tag[data-health="healthy"] { --dot: var(--health-healthy-dot); color: var(--health-healthy-text); background-color: var(--health-healthy-fill); }
-.health-tag[data-health="attention"] { --dot: var(--health-attention-dot); color: var(--health-attention-text); background-color: var(--health-attention-fill); }
-.health-tag[data-health="pest"] { --dot: var(--health-pest-dot); color: var(--health-pest-text); background-color: var(--health-pest-fill); }
+.health-tag[data-health="healthy"] { color: var(--health-healthy-text); background-color: var(--health-healthy-fill); border-color: var(--health-healthy-border); }
+.health-tag[data-health="attention"] { color: var(--health-attention-text); background-color: var(--health-attention-fill); border-color: var(--health-attention-border); }
+.health-tag[data-health="pest"] { color: var(--health-pest-text); background-color: var(--health-pest-fill); border-color: var(--health-pest-border); }
 
 
 /* Round icon buttons (edit, delete) */
@@ -906,6 +911,54 @@
     background-color: var(--health-pest-fill);
 }
 
+/* Edit page: a saved photo whose remove box is ticked is hidden, and leaves when the form is saved */
+.photo-slot input[type="checkbox"],
+.photo-slot:has(input:checked) {
+    display: none;
+}
+
+/* Edit page: the dashed tile after the photos opens the file picker */
+.photo-add {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 132px;
+    height: 100px;
+    background-color: var(--color-surface);
+    border: 1.5px dashed var(--color-sage);
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-forest);
+    cursor: pointer;
+}
+
+.photo-add:hover {
+    background-color: var(--color-band);
+}
+
+.photo-add:focus-within {
+    outline: 2px solid var(--color-forest);
+    outline-offset: 2px;
+}
+
+.photo-add input[type="file"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+/* At 5 photos the ways of adding more are hidden */
+.dropzone[hidden],
+.photo-add[hidden],
+.photo-link[hidden] {
+    display: none;
+}
+
 .dropzone {
     position: relative;
     display: flex;
@@ -987,18 +1040,6 @@
 
 .small-button:hover {
     background-color: var(--color-band);
-}
-
-/* At 5 photos the ways of adding more turn grey */
-.dropzone.is-full,
-.photo-link-row input:disabled,
-.small-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.dropzone.is-full .small-button {
-    pointer-events: none;
 }
 
 .photo-remove:focus-visible,

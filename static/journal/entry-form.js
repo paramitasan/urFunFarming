@@ -3,13 +3,17 @@ const photoBox = document.querySelector('[data-photo-box]');
 
 if (photoBox) {
     const maxPhotos = Number(photoBox.dataset.maxPhotos);
-    const keptPhotos = Number(photoBox.dataset.keptPhotos || 0);
     const trashIcon = photoBox.dataset.trashIcon;
     const list = photoBox.querySelector('[data-photo-list]');
+    // New Entry has the dropzone, Edit Entry has the "Add photo" tile instead
     const dropzone = photoBox.querySelector('[data-dropzone]');
-    const fileInput = dropzone.querySelector('input[type="file"]');
+    const addTile = photoBox.querySelector('[data-add-tile]');
+    const photoHint = photoBox.querySelector('[data-photo-hint]');
+    const fileInput = photoBox.querySelector('input[type="file"]');
+    const keptBoxes = Array.from(photoBox.querySelectorAll('input[name="remove_photos"]'));
     const uploadError = photoBox.querySelector('[data-upload-error]');
     const fullNote = photoBox.querySelector('[data-photo-full]');
+    const linkBox = photoBox.querySelector('[data-link-box]');
     const linkInput = photoBox.querySelector('[data-link-input]');
     const linkButton = photoBox.querySelector('[data-link-add]');
     const linkError = photoBox.querySelector('[data-link-error]');
@@ -23,8 +27,13 @@ if (photoBox) {
         return linkFields.filter((field) => field.value).length;
     }
 
+    // Saved photos on the edit page that aren't ticked for removal
+    function keptCount() {
+        return keptBoxes.filter((box) => !box.checked).length;
+    }
+
     function photoCount() {
-        return keptPhotos + chosenFiles.length + linkCount();
+        return keptCount() + chosenFiles.length + linkCount();
     }
 
     // The file input is what gets sent, so keep it in step with chosenFiles
@@ -67,10 +76,15 @@ if (photoBox) {
     }
 
     function showPhotos() {
-        // Free the old preview addresses before making new ones
-        list.querySelectorAll('img[data-preview]').forEach((img) => URL.revokeObjectURL(img.src));
-        list.innerHTML = '';
-        let number = keptPhotos;
+        // Take away the new photos shown last time (saved photos stay), freeing their preview addresses
+        list.querySelectorAll('[data-new-photo]').forEach((slot) => {
+            const preview = slot.querySelector('img[data-preview]');
+            if (preview) {
+                URL.revokeObjectURL(preview.src);
+            }
+            slot.remove();
+        });
+        let number = keptCount();
 
         chosenFiles.forEach((file, i) => {
             number += 1;
@@ -80,7 +94,9 @@ if (photoBox) {
                 showPhotos();
             });
             slot.querySelector('img').dataset.preview = '';
-            list.append(slot);
+            slot.dataset.newPhoto = '';
+            // Before the "Add photo" tile on the edit page, at the end on the new entry page
+            list.insertBefore(slot, addTile);
         });
 
         linkFields.forEach((field) => {
@@ -88,18 +104,25 @@ if (photoBox) {
                 return;
             }
             number += 1;
-            list.append(makeSlot(field.value, `Photo ${number}`, () => {
+            const slot = makeSlot(field.value, `Photo ${number}`, () => {
                 field.value = '';
                 packLinks();
                 showPhotos();
-            }));
+            });
+            slot.dataset.newPhoto = '';
+            list.insertBefore(slot, addTile);
         });
 
         const full = photoCount() >= maxPhotos;
-        dropzone.classList.toggle('is-full', full);
-        linkInput.disabled = full;
-        linkButton.disabled = full;
+        // At 5 photos the ways of adding more are hidden, on both pages
         fullNote.hidden = !full;
+        linkBox.hidden = full;
+        if (dropzone) {
+            dropzone.hidden = full;
+        } else {
+            addTile.hidden = full;
+            photoHint.hidden = full;
+        }
     }
 
     function addFiles(files) {
@@ -126,23 +149,29 @@ if (photoBox) {
         addFiles(newFiles);
     });
 
-    dropzone.addEventListener('dragover', (event) => {
-        event.preventDefault();
-        if (!dropzone.classList.contains('is-full')) {
+    if (dropzone) {
+        dropzone.addEventListener('dragover', (event) => {
+            event.preventDefault();
             dropzone.classList.add('is-dragging');
-        }
-    });
+        });
 
-    dropzone.addEventListener('dragleave', () => {
-        dropzone.classList.remove('is-dragging');
-    });
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('is-dragging');
+        });
 
-    dropzone.addEventListener('drop', (event) => {
-        event.preventDefault();
-        dropzone.classList.remove('is-dragging');
-        if (!dropzone.classList.contains('is-full')) {
+        dropzone.addEventListener('drop', (event) => {
+            event.preventDefault();
+            dropzone.classList.remove('is-dragging');
             addFiles(event.dataTransfer.files);
-        }
+        });
+    }
+
+    // Edit page: the trash button on a saved photo ticks its hidden remove box, and CSS hides the photo
+    photoBox.querySelectorAll('[data-remove-kept]').forEach((button) => {
+        button.addEventListener('click', () => {
+            button.closest('.photo-slot').querySelector('input[name="remove_photos"]').checked = true;
+            showPhotos();
+        });
     });
 
     function addLink() {
