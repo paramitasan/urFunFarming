@@ -1,6 +1,6 @@
 from django.urls import path
 from journal.views import (
-    create_entry, delete_entry, delete_plant_entries, edit_entry, index, plant_detail,
+    create_entry, delete_entry, delete_plant_entries, edit_entry, index, plant_detail, toggle_visibility,
 )
 
 app_name = 'journal'
@@ -13,4 +13,5 @@ urlpatterns = [
     path('entry/<int:entry_id>/edit/', edit_entry, name='edit_entry'),
     path('entry/<int:entry_id>/delete/', delete_entry, name='delete_entry'),
     path('plant/<int:planting_id>/delete-entries/', delete_plant_entries, name='delete_plant_entries'),
+    path('plant/<int:planting_id>/visibility/', toggle_visibility, name='toggle_visibility'),
 ]

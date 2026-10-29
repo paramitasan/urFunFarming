@@ -276,3 +276,23 @@ def delete_plant_entries(request, planting_id):
         'message': 'Entries deleted',
         'detail': f"{planting.crop}'s entries were removed. The plant stays in My gardens.",
     })
+
+
+@require_POST
+def toggle_visibility(request, planting_id):
+    # The lock in the journal list: switches this plant's journal between private and public
+    planting = get_object_or_404(Planting, pk=planting_id)
+    if planting.garden.owner != request.user:
+        return JsonResponse({'message': 'You can only change your own plants.'}, status=403)
+
+    journal, _ = PlantJournal.objects.get_or_create(planting=planting)
+    journal.is_public = not journal.is_public
+    journal.save()
+
+    if journal.is_public:
+        message = f'{planting.crop} is now public'
+        detail = 'Other growers and buyers can see its journal.'
+    else:
+        message = f'{planting.crop} is now private'
+        detail = 'Only you can see its journal.'
+    return JsonResponse({'is_public': journal.is_public, 'message': message, 'detail': detail})
