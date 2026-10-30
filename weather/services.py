@@ -191,18 +191,22 @@ def forecast_for_user(user):
         return result
 
     now = timezone.now()
-    today = timezone.localdate()
     # Keep the slot that is still running (each one covers 3 hours)
     upcoming = [slot for slot in data['slots'] if slot['time'] > now - timedelta(hours=3)]
     current = [slot for slot in upcoming if slot['time'] <= now]
-    shown_today = [slot for slot in upcoming if timezone.localtime(slot['time']).date() == today] or upcoming[:8]
+    if upcoming:
+        today = now.astimezone(upcoming[0]['time'].tzinfo).date()
+        today_indices = [index for index, slot in enumerate(upcoming) if slot['time'].date() == today]
+        shown_today = upcoming[:today_indices[-1] + 1] if today_indices else upcoming[:8]
+    else:
+        shown_today = []
     result.update(
         available=bool(upcoming),
         error='' if upcoming else UNAVAILABLE_MESSAGE,
         location_name=place['name'] or data['location']['village'] or data['location']['district'],
         slots=upcoming,
         today=shown_today,
-        later=[slot for slot in upcoming if slot['time'] > shown_today[-1]['time']] if shown_today else [],
+        later=upcoming[len(shown_today):],
         current=current[-1] if current else (upcoming[0] if upcoming else None),
         fetched_at=data['fetched_at'],
     )
