@@ -911,8 +911,8 @@
     display: none;
 }
 
-/* New Entry before the first photo: the row only holds the hidden "Add photo" tile, so it takes no space */
-.photo-list:has(> .photo-add[hidden]:only-child) {
+/* While the dropzone shows, the JS hides the row of photos */
+.photo-list[hidden] {
     display: none;
 }
 

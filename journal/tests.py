@@ -553,7 +553,8 @@ class EditPhotosTest(JournalTestCase):
         self.assertContains(response, 'src="https://example.com/tomato.jpg"')
         self.assertContains(response, 'name="remove_photos"', count=2)
         self.assertContains(response, 'Add photo')
-        self.assertNotContains(response, 'Drag photos here')
+        # The dropzone is there for when every photo is removed, but hidden for now
+        self.assertContains(response, 'data-dropzone hidden')
 
     def test_new_entry_page_keeps_the_dropzone(self):
         response = self.client.get(reverse('journal:create_entry'))

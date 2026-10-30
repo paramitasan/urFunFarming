@@ -156,8 +156,9 @@
         <div class="field" data-photo-box data-max-photos="5" data-trash-icon="{% static 'journal/icons/trash.svg' %}">
             <span class="field-label">Photos</span>
 
-            {% if entry and entry.photos.exists %}
-            <div class="photo-list" data-photo-list>
+            {# One layout for New and Edit: the file input sits outside the dropzone, so it still works after the dropzone hides #}
+            {{ form.photos }}
+            <div class="photo-list" data-photo-list{% if not form.kept_photos %} hidden{% endif %}>
                 {% for checkbox in form.remove_photos %}
                 <div class="photo-slot">
                     <img src="{{ checkbox.data.value.instance.src }}" alt="Photo {{ forloop.counter }}">
@@ -167,26 +168,15 @@
                     </button>
                 </div>
                 {% endfor %}
-                <label class="photo-add" data-add-tile>
-                    {{ form.photos }}
+                <label class="photo-add" for="{{ form.photos.id_for_label }}" data-add-tile{% if not form.kept_photos %} hidden{% endif %}>
                     <img src="{% static 'journal/icons/plus.svg' %}" alt="" width="22" height="22">
                     Add photo
                 </label>
             </div>
-            <p class="field-hint" data-photo-hint>Up to 5 photos. JPG, PNG or WEBP, up to 5 MB each. Use the trash button to remove one.</p>
+            <p class="field-hint" data-photo-hint{% if not form.kept_photos %} hidden{% endif %}>Up to 5 photos. JPG, PNG or WEBP, up to 5 MB each. Use the trash button to remove one.</p>
             {% include 'journal/field_errors.html' with field=form.remove_photos %}
-            {% else %}
-            {# The file input stays outside the dropzone, so it still works after the dropzone hides #}
-            {{ form.photos }}
-            <div class="photo-list" data-photo-list>
-                <label class="photo-add" for="{{ form.photos.id_for_label }}" data-add-tile hidden>
-                    <img src="{% static 'journal/icons/plus.svg' %}" alt="" width="22" height="22">
-                    Add photo
-                </label>
-            </div>
-            <p class="field-hint" data-photo-hint hidden>Up to 5 photos. JPG, PNG or WEBP, up to 5 MB each. Use the trash button to remove one.</p>
 
-            <div class="dropzone" data-dropzone>
+            <div class="dropzone" data-dropzone{% if form.kept_photos %} hidden{% endif %}>
                 <img src="{% static 'journal/icons/camera.svg' %}" alt="" width="32" height="32">
                 <p class="dropzone-title">Drag photos here</p>
                 <p class="dropzone-or">or</p>
@@ -194,7 +184,6 @@
                 <p class="dropzone-hint">Up to 5 photos. JPG, PNG or WEBP, up to 5 MB each. A photo from the same angle each time makes growth easier to compare.</p>
             </div>
 
-            {% endif %}
             {% include 'journal/field_errors.html' with field=form.photos %}
             <p class="field-error" data-upload-error hidden>
                 <img src="{% static 'journal/icons/alert-small.svg' %}" alt="" width="16" height="16">

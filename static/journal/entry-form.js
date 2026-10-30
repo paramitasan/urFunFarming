@@ -135,6 +135,8 @@ if (photoBox) {
         }
         addTile.hidden = full || showDropzone;
         photoHint.hidden = addTile.hidden;
+        // With the dropzone showing, the row (even its hidden saved photos) takes no space
+        list.hidden = showDropzone;
     }
 
     function addFiles(files) {
