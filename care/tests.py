@@ -446,8 +446,12 @@ class CareThresholdPanelTests(CareViewTestCase):
         html = response.content.decode()
         self.assertEqual(html.count('class="care-preview-chip'), len(slots))
         self.assertEqual(html.count('class="care-preview-chip is-good"'), sum(slot['good'] for slot in slots))
-        # Readings are written with a dot, so the script can compare them
-        self.assertIn('data-temp="35', html)
+
+    def test_preview_readings_use_a_decimal_point(self):
+        # One slot only, so it is "today" at any time of day; the script needs 0.5, not 0,5
+        self.remote.return_value.json.return_value = bmkg_payload(slots_from_now(count=1, tp=0.5))
+        response = self.client.get(reverse('care:index'))
+        self.assertContains(response, 'data-rain="0.5"')
 
     def test_no_preview_when_weather_is_down(self):
         self.remote.side_effect = requests.ConnectionError('down')
@@ -461,3 +465,32 @@ class CareThresholdPanelTests(CareViewTestCase):
         self.assertRedirects(response, '/care/?status=all', fetch_redirect_response=False)
         saved = CareSettings.for_user(self.user)
         self.assertEqual((saved.max_rain_mm, saved.max_temp_c, saved.max_wind_kmh), (Decimal('3'), Decimal('33.5'), Decimal('20')))
+
+
+class CareWeatherReadingsTests(CareViewTestCase):
+    """Today's hours and the next days show the same readings and the same green marking."""
+
+    def test_today_hours_show_rain_and_wind(self):
+        self.remote.return_value.json.return_value = bmkg_payload(slots_from_now(count=1, tp=1.5, ws=12))
+        response = self.client.get(reverse('care:index'))
+        hours = response.content.decode().split('<ol class="weather-hours">')[1].split('</ol>')[0]
+        self.assertIn('<dt>Rain</dt><dd>1.5 mm</dd>', hours)
+        self.assertIn('<dt>Wind</dt><dd>12 km/h</dd>', hours)
+
+    def test_next_days_are_marked_with_the_same_limits(self):
+        # Three days of 3-hourly slots; every hour from tomorrow on is too hot
+        today = slots_from_now(count=1, t=28)
+        later = slots_from_now(count=16, start_hours=26, t=35)
+        self.remote.return_value.json.return_value = bmkg_payload(today + later)
+        response = self.client.get(reverse('care:index'))
+        marked = response.context['card']['later']
+        self.assertTrue(marked)
+        self.assertFalse(any(slot['good'] for slot in marked))
+        days = response.content.decode().split('<details class="weather-days">')[1]
+        self.assertNotIn('<li class="is-good">', days)
+        # Within the limits again: every next-day hour turns green
+        CareSettings.objects.filter(user=self.user).update(max_temp_c=Decimal('40'))
+        cache.clear()
+        response = self.client.get(reverse('care:index'))
+        days = response.content.decode().split('<details class="weather-days">')[1]
+        self.assertEqual(days.count('<li class="is-good">'), len(response.context['card']['later']))

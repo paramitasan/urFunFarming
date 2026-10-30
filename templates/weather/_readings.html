@@ -1,0 +1,5 @@
+{# Rain and wind under one forecast hour, the same on today's row and in the next days #}
+<dl class="weather-readings">
+    <div><dt>Rain</dt><dd>{{ slot.rain_mm|floatformat:1 }} mm</dd></div>
+    <div><dt>Wind</dt><dd>{{ slot.wind_kmh|floatformat:0 }} km/h</dd></div>
+</dl>

@@ -1850,9 +1850,11 @@ textarea:focus-visible {
     align-items: center;
     gap: 8px;
     padding: 14px 12px;
-    border: 1px solid var(--color-field);
+    border: 1.5px solid var(--color-field);
     border-radius: 14px;
     background-color: #FFFFFF;
+    /* Lifts the hour off the card so it doesn't blend into the background */
+    box-shadow: 0 2px 8px rgba(18, 81, 51, 0.06);
     color: var(--color-deep);
     text-align: center;
 }
@@ -1984,16 +1986,24 @@ textarea:focus-visible {
 }
 
 .weather-day li {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 6px;
     padding: 12px 10px;
-    border: 1px solid var(--color-field);
+    border: 1.5px solid var(--color-field);
     border-radius: 14px;
     background-color: #FFFFFF;
+    box-shadow: 0 2px 8px rgba(18, 81, 51, 0.06);
     color: var(--color-deep);
     text-align: center;
+}
+
+/* Same green as today's hours when the hour is within the grower's limits */
+.weather-day li.is-good {
+    border-color: var(--color-accent);
+    background-color: var(--color-mist);
 }
 
 .weather-day time {
@@ -2020,29 +2030,37 @@ textarea:focus-visible {
     color: var(--color-sage);
 }
 
-.weather-day dl {
+/* Rain and wind rows (templates/weather/_readings.html), on today's hours and the next days */
+.weather-readings {
     display: flex;
     flex-direction: column;
     gap: 2px;
     width: 100%;
+    max-width: 170px;
     padding-top: 8px;
     border-top: 1px solid var(--color-band);
     font-size: 12px;
 }
 
-.weather-day dl div {
+.weather-hour.is-good .weather-readings,
+.weather-day li.is-good .weather-readings {
+    border-top-color: var(--color-mint);
+}
+
+.weather-readings div {
     display: flex;
     justify-content: space-between;
     gap: 6px;
 }
 
-.weather-day dt {
+.weather-readings dt {
     color: var(--color-sage);
 }
 
-.weather-day dd {
+.weather-readings dd {
     font-weight: 600;
     color: var(--color-deep);
+    white-space: nowrap;
 }
 
 .weather-card-unavailable {
@@ -2065,8 +2083,9 @@ textarea:focus-visible {
         scroll-snap-type: x mandatory;
     }
 
+    /* Same width as the next days' hours, so the rain and wind fit on one line */
     .weather-hour {
-        flex: 0 0 96px;
+        flex: 0 0 112px;
         scroll-snap-align: start;
     }
 

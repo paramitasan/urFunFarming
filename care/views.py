@@ -12,7 +12,7 @@ from django.views.decorators.http import require_http_methods, require_POST
 from care.forms import CareSettingsForm, CareTaskForm, StatusForm, TaskFilterForm
 from care.models import CareSettings, CareTask
 from care.planning import best_times, check_data, today_card, weather_check
-from weather.services import forecast_for_user
+from weather.services import forecast_for_user, mark_good
 
 
 def _require_grower(request):
@@ -116,7 +116,11 @@ def _list_context(request):
         'status_choices': CareTask.Status.choices,
         'care_settings': care_settings,
         'weather': weather,
-        'card': today_card(weather, care_settings),
+        'card': {
+            **today_card(weather, care_settings),
+            # The "Next 2 days" hours, green when they are within the same limits
+            'later': mark_good(weather['later'], care_settings.max_rain_mm, care_settings.max_temp_c, care_settings.max_wind_kmh),
+        },
         'settings_form': CareSettingsForm(instance=care_settings),
         'today': timezone.localdate(),
         'nav_active': 'home',

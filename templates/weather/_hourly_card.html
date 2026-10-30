@@ -3,6 +3,7 @@ Hourly weather card for any page.
     {% include 'weather/_hourly_card.html' with weather=weather slots=card.slots summary=card.summary %}
 weather: from forecast_for_user (or {% user_forecast as weather %}).
 slots: optional, defaults to weather.today. A slot with good=True is drawn green.
+later: optional, defaults to weather.later (the next days). Marked the same way as slots.
 summary: optional note under the hours (summary_rain=True shows the rain icon). legend, legend_url, legend_link: optional text and link on the right.
 {% endcomment %}
 <section class="weather-card" aria-labelledby="weather-card-heading">
@@ -27,13 +28,14 @@ summary: optional note under the hours (summary_rain=True shows the rain icon). 
             {% include 'weather/_icon.html' with kind=slot.kind %}
             <strong>{{ slot.temp|floatformat:0 }}&deg;</strong>
             <span>{{ slot.description }}</span>
+            {% include 'weather/_readings.html' %}
             {% if slot.good %}<span class="weather-good-label">Meets your limits</span>{% endif %}
         </li>
         {% endfor %}
     </ol>
     <div class="weather-card-note">
         {% if summary %}<p{% if summary_rain %} class="is-rain"{% endif %}>{% if summary_rain %}{% include 'svg/icons/weather-rain.svg' %}{% else %}{% include 'svg/icons/weather-sun.svg' %}{% endif %}{{ summary }}</p>{% endif %}
-        {% regroup weather.later by time.date as days %}
+        {% regroup later|default:weather.later by time.date as days %}
         {% if days %}
         {# Today's hours are already in the row above, so this only lists the days after #}
         <details class="weather-days">
@@ -43,15 +45,13 @@ summary: optional note under the hours (summary_rain=True shows the rain icon). 
                 <h3>{{ day.grouper|date:'l, j M' }}</h3>
                 <ol>
                     {% for slot in day.list %}
-                    <li>
+                    <li{% if slot.good %} class="is-good"{% endif %}>
                         <time datetime="{{ slot.time|date:'c' }}">{{ slot.time|date:'H:i' }}</time>
                         {% include 'weather/_icon.html' with kind=slot.kind %}
                         <strong>{{ slot.temp|floatformat:0 }}&deg;</strong>
                         <span class="weather-day-description">{{ slot.description }}</span>
-                        <dl>
-                            <div><dt>Rain</dt><dd>{{ slot.rain_mm|floatformat:1 }} mm</dd></div>
-                            <div><dt>Wind</dt><dd>{{ slot.wind_kmh|floatformat:0 }} km/h</dd></div>
-                        </dl>
+                        {% include 'weather/_readings.html' %}
+                        {% if slot.good %}<span class="weather-good-label">Meets your limits</span>{% endif %}
                     </li>
                     {% endfor %}
                 </ol>

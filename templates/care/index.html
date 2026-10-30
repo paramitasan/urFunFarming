@@ -15,7 +15,7 @@
         <a class="pill-button" href="{% url 'care:create' %}"><img src="{% static 'marketplace/img/imgIconPlus.svg' %}" alt="">Add task</a>
     </header>
 
-    {% include 'weather/_hourly_card.html' with weather=weather slots=card.slots summary=card.summary summary_rain=card.rain legend='Green hours: suggested time to do plant care tasks based on your preferred weather threshold' %}
+    {% include 'weather/_hourly_card.html' with weather=weather slots=card.slots later=card.later summary=card.summary summary_rain=card.rain legend='Green hours: suggested time to do plant care tasks based on your preferred weather threshold' %}
 
     {% include 'care/_threshold_panel.html' %}
 
