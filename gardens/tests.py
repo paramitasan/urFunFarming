@@ -153,7 +153,7 @@ class GardenOwnerViewTests(TestCase):
         self.assertContains(detail_response, 'Planted in')
         self.assertContains(detail_response, 'Open journal')
         self.assertContains(detail_response, 'Private garden: only you can see these plants')
-        self.assertRedirects(edit_response, self.detail_url)
+        self.assertRedirects(edit_response, self.mine_url)
         self.garden.refresh_from_db()
         self.assertEqual(self.garden.name, 'Updated garden')
 
@@ -215,7 +215,7 @@ class GardenOwnerViewTests(TestCase):
         self.assertEqual(self.client.get(self.detail_url).status_code, 200)
         response = self.client.post(self.edit_url, self.garden_data(name='Renamed garden'))
 
-        self.assertRedirects(response, self.detail_url)
+        self.assertRedirects(response, self.mine_url)
         self.garden.refresh_from_db()
         self.assertEqual(self.garden.name, 'Renamed garden')
         self.assertEqual(self.client.get(self.create_url).status_code, 403)

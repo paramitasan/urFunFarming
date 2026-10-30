@@ -264,7 +264,7 @@ def edit(request, pk):
     if request.method == 'POST' and form.is_valid():
         form.save()
         messages.success(request, 'Garden updated.')
-        return redirect('gardens:detail', pk=garden.pk)
+        return redirect('gardens:mine')
     return render(
         request,
         'gardens/form.html',

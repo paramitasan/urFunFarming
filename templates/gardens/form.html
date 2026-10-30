@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}{% if garden %}Edit {{ garden.name }}{% else %}Add a garden{% endif %} · UrFunFarming{% endblock %}
+{% block head %}<script defer src="{% static 'js/garden-photo.js' %}"></script>{% endblock head %}
 {% block content %}
 {% include 'partials/grower_subnav.html' %}
 <section class="gardens-page" aria-labelledby="garden-form-heading">
@@ -18,8 +19,10 @@
         {% for field in form %}
             {% if field.name == 'is_public' %}
                 <label class="garden-checkbox-row">{{ field }}<span>{{ field.label }}{% if field.help_text %}<small id="{{ field.auto_id }}_helptext">{{ field.help_text }}</small>{% endif %}</span></label>
+            {% elif field.name == 'photo' %}
+                {% include 'gardens/_photo_field.html' %}
             {% else %}
-                <div class="garden-form-field{% if field.errors %} has-error{% endif %}">
+                <div class="garden-form-field{% if field.errors %} has-error{% endif %}"{% if field.name == 'photo_url' %} data-photo-link{% endif %}>
                     <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                     {{ field }}
                     {% if field.help_text %}<small id="{{ field.auto_id }}_helptext">{{ field.help_text }}</small>{% endif %}
@@ -29,7 +32,7 @@
         {% endfor %}
         <div class="gardens-actions">
             <button class="pill-button" type="submit">{% if garden %}Save changes{% else %}Create garden{% endif %}</button>
-            <a class="outline-button" href="{% if garden %}{% url 'gardens:detail' garden.pk %}{% else %}{% url 'gardens:mine' %}{% endif %}">Cancel</a>
+            <a class="outline-button" href="{% url 'gardens:mine' %}">Cancel</a>
         </div>
     </form>
 </section>
