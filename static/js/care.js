@@ -77,6 +77,11 @@ async function refreshList() {
         const payload = await response.json();
         taskArea.innerHTML = payload.html;
         wireDoneButtons(taskArea);
+        // The counts travel with the list, otherwise the chips keep yesterday's numbers.
+        Object.entries(payload.counts || {}).forEach(([bucket, total]) => {
+            const slot = document.querySelector(`[data-count="${bucket}"]`);
+            if (slot) slot.textContent = total;
+        });
         // Keep the address bar in step, so a reload shows the same filtering.
         window.history.replaceState({}, '', query ? `?${query}` : window.location.pathname);
     } catch (error) {
@@ -116,7 +121,7 @@ if (limitsForm) {
         } else if (payload.errors) {
             Object.entries(payload.errors).forEach(([field, errors]) => {
                 const slot = limitsForm.querySelector(`[data-error-for="${field}"]`);
-                if (slot) slot.textContent = errors.map((e) => e.message).join(' ');
+                if (slot) slot.textContent = errors.join(' ');
             });
         }
     });
@@ -126,6 +131,7 @@ if (limitsForm) {
 
 const taskForm = document.querySelector('[data-task-form]');
 if (taskForm) {
+    const checkUrl = taskForm.dataset.weatherUrl;
     const dateField = taskForm.querySelector('#id_planned_for');
     const timeField = taskForm.querySelector('#id_planned_time');
     const verdict = document.querySelector('[data-verdict]');
@@ -139,7 +145,7 @@ if (taskForm) {
 
         const query = new URLSearchParams({ date: dateField.value || '', time: timeField.value || '' });
         try {
-            const response = await fetch(`/care/weather-check/?${query}`, {
+            const response = await fetch(`${checkUrl}?${query}`, {
                 headers: ajaxHeaders({ Accept: 'application/json' }),
                 credentials: 'same-origin',
                 signal: checkController.signal,

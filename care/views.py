@@ -5,10 +5,12 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.utils import timezone
+from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 
 from care import planning
 from care.forms import CareTaskFilterForm, CareTaskForm, WeatherPreferenceForm
+from accounts.views import form_errors
 from care.models import CareTask, WeatherPreference
 
 
@@ -22,7 +24,7 @@ def _require_grower(request):
     """Plant care is a grower tool. Buyers get a short explanation instead of a form."""
     profile = getattr(request.user, 'profile', None)
     if not getattr(profile, 'is_grower', False):
-        return render(request, 'care/grower_required.html', status=403)
+        return render(request, 'care/grower_required.html', {'nav_active': 'home'}, status=403)
     return None
 
 
@@ -78,15 +80,18 @@ def _list_context(request):
         'tasks': tasks,
         'counts': counts,
         'filter_form': form,
+        # the cleaned value, because a bound field would hand the template the raw GET data
+        'show': form.cleaned_data.get('show', 'open'),
         'preference': preference,
         'preference_form': WeatherPreferenceForm(instance=preference),
         'outlook': planning.today_outlook(data, preference),
         'today': timezone.localdate(),
-        'nav_active': 'care',
+        'nav_active': 'home',
     }
 
 
 @login_required(login_url='/login')
+@never_cache
 @require_GET
 def index(request):
     denied = _require_grower(request)
@@ -128,7 +133,7 @@ def _form_context(request, form, task=None):
         'suggestions': planning.suggestions(data, preference),
         'verdict': planning.verdict(data, preference, planned_for, planned_time),
         'has_plantings': form.fields['planting'].queryset.exists(),
-        'nav_active': 'care',
+        'nav_active': 'home',
     }
 
 
@@ -147,7 +152,7 @@ def _save_task(request, task=None):
         return redirect('care:index')
 
     if request.method == 'POST' and _wants_json(request):
-        return JsonResponse({'status': 'error', 'errors': form.errors.get_json_data()}, status=400)
+        return JsonResponse({'status': 'error', 'errors': form_errors(form)}, status=400)
 
     return render(
         request, 'care/form.html', _form_context(request, form, task),
@@ -156,6 +161,7 @@ def _save_task(request, task=None):
 
 
 @login_required(login_url='/login')
+@never_cache
 @require_http_methods(['GET', 'POST'])
 def create(request):
     denied = _require_grower(request)
@@ -165,6 +171,7 @@ def create(request):
 
 
 @login_required(login_url='/login')
+@never_cache
 @require_http_methods(['GET', 'POST'])
 def edit(request, pk):
     denied = _require_grower(request)
@@ -174,6 +181,7 @@ def edit(request, pk):
 
 
 @login_required(login_url='/login')
+@never_cache
 @require_POST
 def toggle_done(request, pk):
     denied = _require_grower(request)
@@ -235,7 +243,7 @@ def update_preference(request):
         return redirect('care:index')
 
     if _wants_json(request):
-        return JsonResponse({'status': 'error', 'errors': form.errors.get_json_data()}, status=400)
+        return JsonResponse({'status': 'error', 'errors': form_errors(form)}, status=400)
     messages.error(request, 'Weather limits must be numbers inside the allowed range.')
     return redirect('care:index')
 

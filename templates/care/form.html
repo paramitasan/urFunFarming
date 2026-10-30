@@ -26,7 +26,7 @@
         </div>
     {% else %}
         <div class="care-form-layout">
-            <form method="post" class="care-form" data-task-form>
+            <form method="post" class="care-form" data-task-form data-weather-url="{% url 'care:weather_check' %}">
                 {% csrf_token %}
                 {% for field in form %}
                     <label class="care-field">

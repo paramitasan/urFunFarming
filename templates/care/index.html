@@ -47,9 +47,9 @@
             <legend class="care-visually-hidden">Which tasks</legend>
             {% for value, label in filter_form.fields.show.choices %}
                 <label class="care-chip">
-                    <input type="radio" name="show" value="{{ value }}"{% if filter_form.show.value == value %} checked{% endif %}>
+                    <input type="radio" name="show" value="{{ value }}"{% if show == value %} checked{% endif %}>
                     <span>{{ label }}</span>
-                    <small>{% if value == 'all' %}{{ counts.all }}{% elif value == 'open' %}{{ counts.open }}{% elif value == 'done' %}{{ counts.done }}{% else %}{{ counts.overdue }}{% endif %}</small>
+                    <small data-count="{{ value }}">{% if value == 'all' %}{{ counts.all }}{% elif value == 'open' %}{{ counts.open }}{% elif value == 'done' %}{{ counts.done }}{% else %}{{ counts.overdue }}{% endif %}</small>
                 </label>
             {% endfor %}
         </fieldset>
