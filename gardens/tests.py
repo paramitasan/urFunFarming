@@ -1232,3 +1232,76 @@ class GardenPhotoTests(TestCase):
         response = self.client.get(reverse('gardens:edit', args=[self.garden.pk]))
         self.assertContains(response, 'src="https://example.com/balcony.jpg"')
         self.assertContains(response, 'enctype="multipart/form-data"')
+
+
+@override_settings(MEDIA_ROOT=TEST_MEDIA)
+class PlantingPhotoTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.owner = User.objects.create_user(username='plant_photo_owner', password='test-password')
+        Profile.objects.create(user=cls.owner, display_name='Plant Photo Owner', is_grower=True)
+        cls.visitor = User.objects.create_user(username='plant_photo_visitor', password='test-password')
+        Profile.objects.create(user=cls.visitor, display_name='Plant Photo Visitor', is_buyer=True)
+        cls.garden = Garden.objects.create(
+            owner=cls.owner, name='Balcony garden', location='Depok',
+            growing_method='Container pots', is_public=True,
+        )
+        cls.planting = Planting.objects.create(
+            garden=cls.garden, name='Pak choy', crop='Leafy greens', planting_date=date(2026, 10, 1),
+        )
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(TEST_MEDIA, ignore_errors=True)
+
+    def planting_data(self, **changes):
+        data = {'name': 'Pak choy', 'crop': 'Leafy greens', 'planting_date': '2026-10-01', 'growing_method': ''}
+        data.update(changes)
+        return data
+
+    def test_add_plant_with_an_upload(self):
+        self.client.force_login(self.owner)
+        data = self.planting_data(name='Kale', photo=make_image('kale.png'))
+        self.client.post(reverse('gardens:planting_create', args=[self.garden.pk]), data)
+        planting = Planting.objects.get(name='Kale')
+        self.assertTrue(planting.photo.name.startswith('plantings/kale'))
+        self.assertEqual(planting.photo_url, '')
+
+    def test_edit_plant_with_a_link_replaces_the_upload(self):
+        self.planting.photo = make_image('old.png')
+        self.planting.save()
+        self.client.force_login(self.owner)
+        data = self.planting_data(photo_url='https://example.com/pak-choy.jpg')
+        self.client.post(reverse('gardens:planting_edit', args=[self.garden.pk, self.planting.pk]), data)
+        self.planting.refresh_from_db()
+        self.assertFalse(self.planting.photo)
+        self.assertEqual(self.planting.photo_url, 'https://example.com/pak-choy.jpg')
+
+    def test_plant_form_uses_the_same_photo_rules(self):
+        form = PlantingForm(self.planting_data(), {'photo': make_image('leaf.gif', 'GIF')})
+        self.assertFalse(form.is_valid())
+        self.assertEqual(form.errors['photo'], [GARDEN_PHOTO_ERROR])
+
+    def test_plant_cards_show_the_photo_to_owner_and_visitors(self):
+        self.planting.photo = make_image('card.png')
+        self.planting.save()
+        photo_src = f'src="{self.planting.photo.url}"'
+        self.client.force_login(self.owner)
+        self.assertContains(self.client.get(reverse('gardens:detail', args=[self.garden.pk])), photo_src)
+        self.client.force_login(self.visitor)
+        self.assertContains(self.client.get(reverse('gardens:public_detail', args=[self.garden.pk])), photo_src)
+
+    def test_plant_card_without_a_photo_keeps_the_green_box(self):
+        self.client.force_login(self.owner)
+        response = self.client.get(reverse('gardens:detail', args=[self.garden.pk]))
+        self.assertContains(response, '<div class="garden-photo" aria-hidden="true"></div>', html=True)
+        self.assertNotContains(response, '<img class="garden-photo"')
+
+    def test_edit_plant_form_shows_the_saved_photo(self):
+        self.planting.photo_url = 'https://example.com/pak-choy.jpg'
+        self.planting.save()
+        self.client.force_login(self.owner)
+        response = self.client.get(reverse('gardens:planting_edit', args=[self.garden.pk, self.planting.pk]))
+        self.assertContains(response, 'src="https://example.com/pak-choy.jpg"')
+        self.assertContains(response, 'enctype="multipart/form-data"')
