@@ -44,7 +44,8 @@ class JournalTestCase(TestCase):
         self.buyer = User.objects.create_user('dewi', password='Seedling-Tray-42')
         Profile.objects.create(user=self.buyer, display_name='Dewi', is_buyer=True)
 
-        self.garden = Garden.objects.create(name='Tebet Rooftop Garden', owner=self.grower)
+        # Public, so visitors can reach the plant page; each journal's own switch decides the rest
+        self.garden = Garden.objects.create(name='Tebet Rooftop Garden', owner=self.grower, is_public=True)
         self.tomato = Planting.objects.create(crop='Cherry Tomato', garden=self.garden, planting_date=date(2026, 9, 5))
         self.chili = Planting.objects.create(crop="Bird's eye chili", garden=self.garden, planting_date=date(2026, 10, 1))
         self.journal = PlantJournal.objects.create(planting=self.tomato, is_public=False)
@@ -132,6 +133,30 @@ class PlantDetailTest(JournalTestCase):
         self.assertContains(response, 'First fruits set on the lower truss.')
         self.assertNotContains(response, reverse('journal:edit_entry', args=[self.latest.pk]))
         self.assertNotContains(response, reverse('journal:create_plant_entry', args=[self.tomato.pk]))
+
+    def test_private_garden_is_no_access_for_everyone_but_the_owner(self):
+        self.garden.is_public = False
+        self.garden.save()
+        self.journal.is_public = True
+        self.journal.save()
+        for user in (None, self.other_grower, self.buyer):
+            self.client.logout()
+            if user:
+                self.client.force_login(user)
+            response = self.client.get(self.detail_url(self.tomato))
+            self.assertEqual(response.status_code, 403, user)
+            self.assertNotContains(response, 'Tebet Rooftop Garden', status_code=403)
+            self.assertNotContains(response, 'Cherry Tomato', status_code=403)
+        self.client.force_login(self.grower)
+        self.assertContains(self.client.get(self.detail_url(self.tomato)), 'First fruits set on the lower truss.')
+
+    def test_inactive_owner_hides_the_plant(self):
+        self.grower.is_active = False
+        self.grower.save()
+        self.journal.is_public = True
+        self.journal.save()
+        response = self.client.get(self.detail_url(self.tomato))
+        self.assertEqual(response.status_code, 403)
 
     def test_missing_plant_gives_404(self):
         response = self.client.get(reverse('journal:plant_detail', args=[999]))
@@ -922,12 +947,15 @@ class BuyerViewTest(JournalTestCase):
         self.assertContains(response, 'Grown by Ranu · Started 5 Sep 2026')
         self.assertNotContains(response, 'View in My gardens')
 
-    def test_private_garden_gets_no_garden_links(self):
-        # The garden isn't public, so its page would be a 404 for the buyer
+    def test_private_garden_gets_the_no_access_page(self):
+        # Same rule as the Gardens plant page, even though this journal is public
+        self.garden.is_public = False
+        self.garden.save()
         response = self.client.get(self.detail_url(self.tomato, from_garden=True))
-        self.assertContains(response, 'Back to gardens')
-        self.assertContains(response, reverse('gardens:explore'))
-        self.assertNotContains(response, reverse('gardens:public_detail', args=[self.garden.pk]))
+        self.assertEqual(response.status_code, 403)
+        self.assertNotContains(response, 'Cherry Tomato', status_code=403)
+        self.assertNotContains(response, 'Ranu', status_code=403)
+        self.assertNotContains(response, 'First fruits set on the lower truss.', status_code=403)
 
     def test_public_garden_links_to_its_public_page(self):
         self.garden.is_public = True

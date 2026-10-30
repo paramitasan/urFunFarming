@@ -114,18 +114,20 @@ def index(request):
 
 
 def plant_detail(request, planting_id):
-    planting = get_object_or_404(Planting, pk=planting_id)
+    planting = get_object_or_404(Planting.objects.select_related('garden__owner'), pk=planting_id)
     garden = planting.garden
     is_owner = request.user == garden.owner
-    is_public = PlantJournal.objects.filter(planting=planting, is_public=True).exists()
 
-    # Other people can only open the garden page when the garden itself is public
+    # Same rule as the Gardens plant page: other people only see plants of a public garden whose
+    # owner is still active, anyone else gets the shared "No access" page without any details
+    if not is_owner and not (garden.is_public and garden.owner.is_active):
+        return render(request, 'gardens/planting_detail.html', {'no_access': True, 'nav_active': 'explore'}, status=403)
+
+    is_public = PlantJournal.objects.filter(planting=planting, is_public=True).exists()
     if is_owner:
         garden_url = reverse('gardens:detail', args=[garden.pk])
-    elif garden.is_public:
-        garden_url = reverse('gardens:public_detail', args=[garden.pk])
     else:
-        garden_url = None
+        garden_url = reverse('gardens:public_detail', args=[garden.pk])
 
     # Newest first, so the entry after each one in the list is the one before it in time
     entries = list(planting.journal_entries.all())
