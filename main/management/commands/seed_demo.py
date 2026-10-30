@@ -4,7 +4,9 @@ Every demo account's username starts with demo_, and everything else this comman
 belongs to one of them, so --reset can remove it all without touching anyone else.
 Each record is found by a stable key before it is made, so running it twice adds nothing new.
 """
+import random
 from collections import Counter
+from datetime import timedelta
 
 from django.apps import apps
 from django.conf import settings
@@ -39,6 +41,95 @@ USERS = [
      'Runs a small warung near campus in Pondok Cina and buys fresh herbs and greens every week.'),
 ]
 
+# owner: [(garden name, location, growing method, public, public summary, private notes,
+#          [(planting name, crop, optional growing method), ...])]
+# Planting names are unique across the demo, so later parts can refer to a planting by name.
+GARDENS = {
+    'demo_ayu': [
+        ('Rooftop Grow Bags', 'Tebet, Jakarta Selatan', 'Grow bags', True,
+         'Twelve grow bags on the roof of our rumah susun, full sun from 9 to 3.',
+         'Roof door key is with Pak RT. Water is off from 10:00 to 14:00.',
+         [('Rooftop pak choy', 'Pak choy'), ('Rooftop selada keriting', 'Selada'),
+          ('Tomat ceri by the water tank', 'Tomat ceri'), ('Rooftop cabai rawit', 'Cabai rawit')]),
+        ('Kitchen Window Herbs', 'Tebet, Jakarta Selatan', 'Pots', False,
+         'Two pots on the kitchen window ledge.',
+         'Window only gets sun until 11. Turn the pots every few days.',
+         [('Kitchen basil', 'Basil'), ('Kitchen mint', 'Mint')]),
+        ('Stairwell Seed Trays', 'Tebet, Jakarta Selatan', 'Recycled trays', True,
+         'Old egg trays and takeaway boxes on the stairwell railing, shared with the neighbours.',
+         'Ask Bu Ani before moving her trays.',
+         [('Stairwell kangkung', 'Kangkung'), ('Stairwell pak choy', 'Pak choy'), ('Stairwell selada', 'Selada')]),
+    ],
+    'demo_bima': [
+        ('Kos NFT Rack', 'Beji, Depok', 'NFT hydroponics', True,
+         'A four-pipe NFT rack behind the kos, built from PVC and a fish tank pump.',
+         'Pump is on the timer by the laundry tap. AB mix is under the sink.',
+         [('NFT kangkung', 'Kangkung'), ('NFT pak choy', 'Pak choy'), ('NFT selada', 'Selada'),
+          ('NFT basil', 'Basil'), ('Mint cuttings in a jar', 'Mint', 'Water propagation')]),
+        ('Cabai Corner', 'Beji, Depok', 'Polybags', False,
+         'Polybags along the back fence.',
+         'Landlord asked to keep the path clear. Neem oil is in the blue bottle.',
+         [('Cabai rawit hijau', 'Cabai rawit'), ('Cabai rawit merah', 'Cabai rawit'),
+          ('Polybag tomat ceri', 'Tomat ceri')]),
+    ],
+    'demo_rina': [
+        ('Rawamangun Balcony Herbs', 'Pulogadung, Jakarta Timur', 'Containers', True,
+         'A sunny third-floor balcony packed with herbs for cooking and tea.',
+         'Neighbour below complained about drips, so water before 7.',
+         [('Balcony basil', 'Basil'), ('Thai basil (kemangi)', 'Basil'), ('Balcony mint', 'Mint'),
+          ('Balcony selada', 'Selada')]),
+        ('Laundry Line Planters', 'Pulogadung, Jakarta Timur', 'Hanging planters', False,
+         'Hanging planters on the old laundry line.',
+         'Hooks on the left side are loose. Do not hang anything heavier than 3 kg.',
+         [('Hanging kangkung', 'Kangkung'), ('Hanging mint', 'Mint')]),
+        ('Front Gate Pots', 'Pulogadung, Jakarta Timur', 'Pots', True,
+         'Big pots by the front gate that everyone on the gang walks past.',
+         'Kids pick the tomatoes, which is fine. Keep the cabai out of reach.',
+         [('Gate cabai rawit', 'Cabai rawit'), ('Gate tomat ceri', 'Tomat ceri'), ('Gate basil', 'Basil')]),
+    ],
+    'demo_dimas': [
+        ('Backyard Raised Beds', 'Pancoran Mas, Depok', 'Raised beds', True,
+         'Three raised beds made from old pallets, filled with compost from the RW bank sampah.',
+         'Bed 3 drains badly after heavy rain. Compost bin is behind the shed.',
+         [('Raised bed tomat ceri', 'Tomat ceri'), ('Raised bed cabai rawit', 'Cabai rawit'),
+          ('Raised bed pak choy', 'Pak choy'), ('Raised bed kangkung', 'Kangkung'), ('Raised bed selada', 'Selada')]),
+        ('Wick Hydroponic Shelf', 'Pancoran Mas, Depok', 'Wick hydroponics', True,
+         'A three-level shelf of wick pots under the carport roof.',
+         'Top up the reservoirs every Monday and Thursday.',
+         [('Wick selada', 'Selada'), ('Wick pak choy', 'Pak choy'), ('Wick basil', 'Basil')]),
+        ('Seedling Nursery', 'Pancoran Mas, Depok', 'Seedling trays', False,
+         'Seedling trays on a shelf by the kitchen door.',
+         'Keep the shade net on until the seedlings have four leaves.',
+         [('Nursery tomat ceri', 'Tomat ceri'), ('Nursery cabai rawit', 'Cabai rawit')]),
+    ],
+    'demo_nadia': [
+        ('Beji Terrace Greens', 'Beji, Depok', 'Containers', True,
+         'Long planter boxes along the terrace railing, mostly leafy greens.',
+         'The tap on the terrace leaks, close it tight.',
+         [('Terrace selada', 'Selada'), ('Terrace pak choy', 'Pak choy'), ('Terrace kangkung', 'Kangkung')]),
+        ('Bedroom Window Sill', 'Beji, Depok', 'Pots', False,
+         'Two small pots on the bedroom window sill.',
+         'Only morning sun here. Mint likes it, basil not so much.',
+         [('Window mint', 'Mint'), ('Window basil', 'Basil')]),
+    ],
+    'demo_yoga': [
+        ('Lenteng Agung Community Plot', 'Jagakarsa, Jakarta Selatan', 'In-ground beds', True,
+         'A shared plot near Lenteng Agung station, tended by volunteers every Saturday morning.',
+         'Tool shed code is 2306. Log what you take in the book.',
+         [('Community cabai rawit', 'Cabai rawit'), ('Community kangkung', 'Kangkung'),
+          ('Community tomat ceri', 'Tomat ceri'), ('Community pak choy', 'Pak choy')]),
+        ('Station Fence Planters', 'Jagakarsa, Jakarta Selatan', 'Vertical planters', True,
+         'Vertical planters made from paint buckets, hung on the fence by the station path.',
+         'Two planters were knocked down last month. Check the wire ties.',
+         [('Vertical selada', 'Selada'), ('Vertical mint', 'Mint'), ('Vertical basil', 'Basil')]),
+        ('Home Dutch Bucket', 'Jagakarsa, Jakarta Selatan', 'Dutch bucket hydroponics', False,
+         'Two dutch buckets in the side yard.',
+         'Pump fuse blew once. Spare fuse is taped under the reservoir lid.',
+         [('Dutch bucket tomat ceri', 'Tomat ceri'), ('Dutch bucket cabai rawit', 'Cabai rawit')]),
+    ],
+}
+SLOW_CROPS = {'Tomat ceri', 'Cabai rawit'}
+
 
 class Command(BaseCommand):
     help = 'Create demo users, gardens, journals, care tasks, listings and forum posts. Safe to run more than once.'
@@ -62,8 +153,14 @@ class Command(BaseCommand):
             if options['reset']:
                 self.reset()
             self.seed_users()
+            self.seed_gardens()
 
         self.print_summary()
+
+    def rng(self, *key):
+        # Each record gets its own generator from the fixed seed, so its values are the same
+        # on every run and never depend on what else already exists
+        return random.Random(':'.join(str(part) for part in (SEED, *key)))
 
     def model(self, app_label, model_name, part):
         # A missing app or model skips its part, so the command still runs while a module is unfinished
@@ -111,6 +208,33 @@ class Command(BaseCommand):
             self.users[username] = user
 
         self.growers = [self.users[row[0]] for row in USERS if row[2]]
+
+    def seed_gardens(self):
+        self.plantings = {}
+        Garden = self.model('gardens', 'Garden', 'gardens and plantings')
+        if not Garden:
+            return
+        Planting = self.model('gardens', 'Planting', 'plantings')
+
+        for username, gardens in GARDENS.items():
+            for name, location, method, is_public, summary, notes, plants in gardens:
+                garden, created = Garden.objects.get_or_create(owner=self.users[username], name=name, defaults={
+                    'location': location, 'growing_method': method, 'is_public': is_public,
+                    'public_summary': summary, 'private_notes': notes,
+                })
+                self.tally('gardens', created)
+                if not Planting:
+                    continue
+
+                for plant_name, crop, *plant_method in plants:
+                    # Planted some time in the past two months; fruit crops grow slowly, so they went in earlier
+                    earliest = 25 if crop in SLOW_CROPS else 2
+                    planted = self.today - timedelta(days=self.rng('planting', plant_name).randint(earliest, 60))
+                    planting, created = Planting.objects.get_or_create(garden=garden, name=plant_name, defaults={
+                        'crop': crop, 'planting_date': planted, 'growing_method': plant_method[0] if plant_method else '',
+                    })
+                    self.tally('plantings', created)
+                    self.plantings[plant_name] = planting
 
     def print_summary(self):
         if self.removed:
