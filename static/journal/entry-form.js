@@ -1,3 +1,24 @@
+// New entry: picking a plant ticks Public or Private to match that plant's journal right now,
+// unless the grower already chose one themselves
+const visibilityField = document.querySelector('[data-visibility-field]');
+const plantSelect = document.querySelector('select[name="planting"]');
+if (visibilityField && plantSelect) {
+    const publicPlants = visibilityField.dataset.publicPlants.split(',').filter(Boolean);
+    const radios = Array.from(visibilityField.querySelectorAll('input[name="visibility"]'));
+    let chosenByHand = radios.some((radio) => radio.checked);
+
+    radios.forEach((radio) => radio.addEventListener('change', () => { chosenByHand = true; }));
+
+    function matchPlant() {
+        if (chosenByHand || !plantSelect.value) return;
+        const value = publicPlants.includes(plantSelect.value) ? 'public' : 'private';
+        radios.forEach((radio) => { radio.checked = radio.value === value; });
+    }
+
+    plantSelect.addEventListener('change', matchPlant);
+    matchPlant();
+}
+
 // Photos on the entry form: uploads and links together, up to a set number
 const photoBox = document.querySelector('[data-photo-box]');
 

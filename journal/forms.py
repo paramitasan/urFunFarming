@@ -123,7 +123,9 @@ class NewEntryForm(JournalEntryForm):
         ('public', 'Public'),
     ]
 
-    visibility = forms.ChoiceField(choices=VISIBILITY_CHOICES, initial='private', widget=forms.RadioSelect)
+    # No preset: the page ticks the chosen plant's current setting, and leaving it empty keeps that
+    # setting, so adding an entry never quietly turns a public journal private
+    visibility = forms.ChoiceField(choices=VISIBILITY_CHOICES, required=False, widget=forms.RadioSelect)
 
 
 class JournalFilterForm(forms.Form):

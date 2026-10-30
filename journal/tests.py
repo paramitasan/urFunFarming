@@ -281,8 +281,10 @@ class EntryFormTest(JournalTestCase):
         self.assertFalse(form.is_valid())
         self.assertEqual(form.errors['observation'], ['Please write what you noticed.'])
 
-    def test_visibility_starts_private_and_is_only_on_the_new_form(self):
-        self.assertEqual(NewEntryForm(self.grower).fields['visibility'].initial, 'private')
+    def test_visibility_has_no_preset_and_is_only_on_the_new_form(self):
+        field = NewEntryForm(self.grower).fields['visibility']
+        self.assertIsNone(field.initial)
+        self.assertFalse(field.required)
         self.assertNotIn('visibility', JournalEntryForm(self.grower).fields)
 
     def test_photo_links_are_collected_in_order(self):
@@ -384,6 +386,28 @@ class CreateEntryTest(JournalTestCase):
         self.assertEqual(entry.photos.filter(url='https://example.com/chili.jpg').count(), 1)
         # The chili had no journal yet, so saving made one with the chosen visibility
         self.assertTrue(PlantJournal.objects.get(planting=self.chili).is_public)
+
+    def test_saving_without_a_visibility_keeps_a_public_journal_public(self):
+        self.journal.is_public = True
+        self.journal.save()
+        self.client.force_login(self.grower)
+        self.client.post(self.new_url, self.entry_data(planting=self.tomato.pk))
+        self.journal.refresh_from_db()
+        self.assertTrue(self.journal.is_public)
+        self.assertEqual(self.tomato.journal_entries.count(), 4)
+
+    def test_first_entry_without_a_visibility_starts_private(self):
+        self.client.force_login(self.grower)
+        self.client.post(self.new_url, self.entry_data(planting=self.chili.pk))
+        self.assertFalse(PlantJournal.objects.get(planting=self.chili).is_public)
+
+    def test_new_entry_page_knows_which_plants_are_public(self):
+        self.journal.is_public = True
+        self.journal.save()
+        self.client.force_login(self.grower)
+        response = self.client.get(self.new_url)
+        self.assertContains(response, f'data-public-plants="{self.tomato.pk}"')
+        self.assertNotContains(response, 'value="private" checked')
 
     def test_private_choice_makes_the_journal_private(self):
         self.journal.is_public = True

@@ -123,7 +123,7 @@
         </div>
 
         {% if form.visibility %}
-        <div class="field">
+        <div class="field" data-visibility-field data-public-plants="{{ public_plant_ids|join:',' }}">
             <fieldset class="choice-group">
                 <legend class="field-label">Visibility</legend>
                 <div class="cards">

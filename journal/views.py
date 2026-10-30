@@ -210,8 +210,8 @@ def create_entry(request, planting_id=None):
         save_new_photos(entry, form)
 
         journal, _ = PlantJournal.objects.get_or_create(planting=entry.planting)
-        # Only the general form has the Private/Public choice
-        if 'visibility' in form.cleaned_data:
+        # Only the general form has the Private/Public choice, and an empty choice keeps the current one
+        if form.cleaned_data.get('visibility'):
             journal.is_public = form.cleaned_data['visibility'] == 'public'
             journal.save()
 
@@ -233,6 +233,10 @@ def create_entry(request, planting_id=None):
         'missing_required': has_missing_required(form),
         'nav_active': 'home',
         'from_list': request.GET.get('from') == 'list',
+        # entry-form.js ticks Public or Private to match the plant picked in the dropdown
+        'public_plant_ids': list(PlantJournal.objects.filter(
+            planting__garden__owner=request.user, is_public=True,
+        ).values_list('planting_id', flat=True)),
     }
     return render(request, 'journal/entry_form.html', context)
 
