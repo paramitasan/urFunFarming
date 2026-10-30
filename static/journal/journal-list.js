@@ -112,8 +112,8 @@ async function toggleVisibility(button) {
 
         button.dataset.public = result.is_public;
         button.setAttribute('aria-label', `Make ${plantName} ${result.is_public ? 'private' : 'public'}`);
-        // Undo just switches it back
-        showToast('info', result.message, result.detail, { label: 'Undo', onClick: () => toggleVisibility(button) });
+        showToast('info', result.message, result.detail);
+
     } catch (error) {
         showToast(
             'error',

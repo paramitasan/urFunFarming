@@ -9,11 +9,17 @@ document.querySelectorAll('[data-toast-template]').forEach((template) => {
     });
 });
 
+// Plays the slide down, then takes the toast off the page once it has finished
+function hideToast(toast) {
+    toast.classList.add('is-leaving');
+    toast.addEventListener('animationend', () => toast.remove());
+}
+
 function setUpToast(toast) {
-    toast.querySelector('[data-toast-close]').addEventListener('click', () => toast.remove());
+    toast.querySelector('[data-toast-close]').addEventListener('click', () => hideToast(toast));
     // Success and info toasts go away by themselves, error toasts stay until closed
     if (toast.dataset.type !== 'error') {
-        setTimeout(() => toast.remove(), 4000);
+        setTimeout(() => hideToast(toast), 4000);
     }
 }
 
@@ -32,12 +38,13 @@ function showToast(type, message, detail = '', action = null) {
         actionButton.textContent = action.label;
         actionButton.hidden = false;
         actionButton.addEventListener('click', () => {
-            toast.remove();
+            hideToast(toast);
             action.onClick();
         });
     }
 
-    toastArea.append(toast);
+    // Only one toast at a time: the new one takes the place of any toast still showing
+    toastArea.replaceChildren(toast);
     setUpToast(toast);
 }
 

@@ -855,7 +855,7 @@ class ToggleVisibilityTest(JournalTestCase):
         self.journal.refresh_from_db()
         self.assertTrue(self.journal.is_public)
 
-        # Pressing it again (or Undo) switches it back
+        # Pressing it again switches it back
         response = self.client.post(self.toggle_url(self.tomato))
         self.assertEqual(response.json()['message'], 'Cherry Tomato is now private')
         self.assertEqual(response.json()['detail'], 'Only you can see its journal.')
