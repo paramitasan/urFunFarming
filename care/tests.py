@@ -46,6 +46,11 @@ class CareBaseTest(TestCase):
             garden=self.garden, name='Cherry tomato', crop='Tomato', planting_date=date(2026, 9, 1)
         )
         self.today = timezone.localdate()
+        # No test may depend on the weather service being reachable.
+        forecast_patch = patch('care.planning.forecast', return_value=fake_forecast(self.today))
+        forecast_patch.start()
+        self.addCleanup(forecast_patch.stop)
+
         self.task = CareTask.objects.create(
             owner=self.owner, planting=self.planting, activity=CareTask.Activity.WATERING,
             planned_for=self.today + timedelta(days=1), planned_time=time(6, 30), notes='Private note',
@@ -217,6 +222,23 @@ class CareFormTest(CareBaseTest):
         )
         self.assertFalse(form.is_valid())
         self.assertIn('planting', form.errors)
+
+    def test_malformed_dates_and_times_do_not_crash_the_page(self):
+        """A typo in the date used to raise ValidationError out of the context builder."""
+        self.client.force_login(self.owner)
+        for bad_date in ['31-02-2026', 'tomorrow', '2026-13-45']:
+            response = self.client.post(reverse('care:create'), {
+                'planting': self.planting.pk, 'activity': 'watering',
+                'planned_for': bad_date, 'planned_time': '', 'notes': '',
+            })
+            self.assertEqual(response.status_code, 400)
+            self.assertContains(response, 'Enter a valid date', status_code=400)
+
+        response = self.client.post(reverse('care:create'), {
+            'planting': self.planting.pk, 'activity': 'watering',
+            'planned_for': self.today.isoformat(), 'planned_time': '25:99', 'notes': '',
+        })
+        self.assertEqual(response.status_code, 400)
 
     def test_a_task_needs_a_date(self):
         form = CareTaskForm(

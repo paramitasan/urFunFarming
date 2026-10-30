@@ -104,17 +104,22 @@ def index(request):
     return render(request, 'care/index.html', context)
 
 
+def _chosen_moment(form):
+    """The date and time the form currently holds, or None where they are unusable.
+
+    cleaned_data only ever contains fields that passed validation, so a typo in
+    the date simply leaves it out instead of raising.
+    """
+    if form.is_bound:
+        form.is_valid()
+        return form.cleaned_data.get('planned_for'), form.cleaned_data.get('planned_time')
+    return form.initial.get('planned_for'), form.initial.get('planned_time')
+
+
 def _form_context(request, form, task=None):
     preference = WeatherPreference.for_user(request.user)
     data = planning.load_forecast(preference)
-    planned_for = form['planned_for'].value()
-    planned_time = form['planned_time'].value()
-    if form.is_bound and form.is_valid():
-        planned_for = form.cleaned_data['planned_for']
-        planned_time = form.cleaned_data['planned_time']
-    else:
-        planned_for = form.fields['planned_for'].clean(planned_for) if planned_for else None
-        planned_time = form.fields['planned_time'].clean(planned_time) if planned_time else None
+    planned_for, planned_time = _chosen_moment(form)
 
     return {
         'form': form,
