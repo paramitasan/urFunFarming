@@ -6,7 +6,8 @@ Each record is found by a stable key before it is made, so running it twice adds
 """
 import random
 from collections import Counter
-from datetime import timedelta
+from datetime import time, timedelta
+from decimal import Decimal
 
 from django.apps import apps
 from django.conf import settings
@@ -130,6 +131,134 @@ GARDENS = {
 }
 SLOW_CROPS = {'Tomat ceri', 'Cabai rawit'}
 
+# crop: (note group, height in cm when grown, [(days after planting, stage it reaches), ...])
+CROPS = {
+    'Pak choy': ('leafy', 25, [(0, 'seedling'), (10, 'vegetative'), (35, 'harvested')]),
+    'Selada': ('leafy', 22, [(0, 'seedling'), (12, 'vegetative'), (40, 'harvested')]),
+    'Kangkung': ('leafy', 35, [(0, 'seedling'), (7, 'vegetative'), (25, 'harvested')]),
+    'Basil': ('herb', 45, [(0, 'seedling'), (12, 'vegetative'), (45, 'flowering')]),
+    'Mint': ('herb', 30, [(0, 'seedling'), (10, 'vegetative'), (35, 'harvested')]),
+    'Cabai rawit': ('fruit', 60, [(0, 'seedling'), (14, 'vegetative'), (38, 'flowering'), (48, 'fruiting'), (58, 'harvested')]),
+    'Tomat ceri': ('fruit', 110, [(0, 'seedling'), (12, 'vegetative'), (30, 'flowering'), (40, 'fruiting'), (54, 'harvested')]),
+}
+
+# Plantings left without entries, so the journal's empty state shows too
+NO_JOURNAL = {
+    'Kitchen mint', 'Stairwell selada', 'Cabai rawit merah', 'Hanging mint',
+    'Nursery cabai rawit', 'Window basil', 'Dutch bucket cabai rawit',
+}
+
+FIRST_NOTES = [
+    'Planted the {plant} today and watered it in well.',
+    'Sowed the {plant} today. Covered the seeds lightly and misted until damp.',
+    'Transplanted the {plant} seedlings today and shaded them with a net for a few days.',
+]
+
+NOTES = {
+    ('leafy', 'seedling'): [
+        'First true leaves are out on the {plant}.',
+        'Thinned the {plant} to one seedling per hole and kept the strongest.',
+        'Seedlings look a bit leggy, moved them to a spot with more morning sun.',
+        'Misted the {plant} twice today, the top layer dries out fast in this heat.',
+    ],
+    ('leafy', 'vegetative'): [
+        'Leaves filling out nicely. Watering every morning before 7.',
+        'Gave the {plant} a half dose of liquid fertilizer.',
+        "Growing fast after this week's rain. New leaves almost every day.",
+        'Loosened the soil around the base and topped up with compost.',
+        'Leaves are deep green and about hand-sized now.',
+    ],
+    ('leafy', 'harvested'): [
+        'Harvested the first {plant} today, enough for dinner.',
+        'Cut the outer leaves and left the centre to keep growing.',
+        'Picked another batch of {plant} and shared some with the neighbours.',
+        'Still picking a few leaves every couple of days.',
+        'Harvest done. Cleared the spot and added compost for the next round.',
+    ],
+    ('herb', 'seedling'): [
+        'New leaves coming in, the {plant} has settled in well. Keeping it in light shade.',
+        'First pair of true leaves on the {plant}.',
+        'Moved the {plant} to a bigger pot, the roots were circling the bottom.',
+        'Watering lightly every evening, the soil stays damp until morning.',
+    ],
+    ('herb', 'vegetative'): [
+        'Pinched the top of the {plant} so it grows bushier.',
+        "New side shoots coming out after last week's pinching.",
+        'Picked a few leaves for cooking. It smells amazing.',
+        'Turned the pot so the {plant} stops leaning toward the light.',
+        'Fed it with diluted rice water once this week.',
+    ],
+    ('herb', 'flowering'): [
+        'Flower spikes appearing on the {plant}. Pinched them off to keep the leaves coming.',
+        'Left one flower spike for the bees and pinched the rest.',
+        'Lots of buds this week. Harvested the tops before they open.',
+    ],
+    ('herb', 'harvested'): [
+        'Cut a big handful of {plant} for tea. It bounced back within days.',
+        'Trimmed the long stems and hung them to dry.',
+        'Harvested about a third of the {plant} and gave some to the warung next door.',
+    ],
+    ('fruit', 'seedling'): [
+        'Seedlings have their first true leaves.',
+        'Kept the strongest {plant} seedling and removed the rest.',
+        'Hardening off the seedlings in the morning sun for an hour a day.',
+        'Still small but the stem is getting thicker.',
+    ],
+    ('fruit', 'vegetative'): [
+        'Tied the {plant} loosely to a bamboo stake.',
+        'Pinched off the small shoots below the first branch.',
+        'Added a handful of compost around the base and watered it in.',
+        'Bushy and dark green. Gave it a little NPK.',
+        'Removed the lowest leaves so soil does not splash onto them.',
+    ],
+    ('fruit', 'flowering'): [
+        'First flower buds on the {plant}.',
+        'Flowers opening. Tapped the stems in the morning to help pollination.',
+        'More flowers this week, a few dropped after the heavy rain.',
+    ],
+    ('fruit', 'fruiting'): [
+        'First small green fruits have set on the {plant}.',
+        'Counted a dozen fruits on the {plant}. Switched to a potassium-rich fertilizer.',
+        'Fruits getting bigger. Added another stake because the branches are bending.',
+    ],
+    ('fruit', 'harvested'): [
+        'Picked the first ripe {plant} today!',
+        'Harvested a small bowl of {plant}. More are turning colour.',
+        'Second picking, enough to share with the neighbours.',
+    ],
+}
+
+# Added after the stage note when the plant is not healthy
+HEALTH_NOTES = {
+    'attention': [
+        'A few lower leaves turned yellow, removed them.',
+        'Leaves drooping in the afternoon heat, added straw mulch.',
+        'Some leaf tips look burnt, cutting back the fertilizer.',
+        'Soil stayed soggy after the rain, holding off on watering.',
+    ],
+    'pest': [
+        'Found aphids under some leaves and sprayed soapy water.',
+        'Snails ate two leaves overnight, set up a beer trap.',
+        'Spotted whiteflies, sprayed diluted neem oil in the evening.',
+        'Caterpillar holes on a few leaves, picked them off by hand.',
+    ],
+}
+
+# activity: [(title, private notes), ...]; check_ph only goes to hydroponic plantings
+CARE_TASKS = {
+    'water': [('Water the {plant}', 'Water early, before the sun gets strong.'),
+              ('Deep watering for the {plant}', 'Soak until it drains from the bottom.')],
+    'fertilize': [('Feed the {plant} with liquid fertilizer', 'POC from the bank sampah, 5 ml per litre.'),
+                  ('Add compost around the {plant}', 'One handful per plant, keep it off the stem.')],
+    'prune': [('Prune the {plant}', 'Take off yellow leaves and anything touching the soil.')],
+    'check_ph': [('Check the pH for the {plant}', 'Target 5.8 to 6.5. pH down is in the red bottle.')],
+    'harvest': [('Harvest the {plant}', 'Bring scissors and the basket. Morning is best.')],
+    'other': [('Check the {plant} for pests', 'Look under the leaves after the rain.'),
+              ('Mulch around the {plant}', 'Use the dry leaves from the yard.')],
+}
+# Five tasks per grower; completed ones are in the past, to-dos in the coming week
+TASK_STATUSES = [('completed', -10, -1), ('completed', -10, -1), ('in_progress', -1, 0), ('todo', 0, 3), ('todo', 1, 7)]
+
 
 class Command(BaseCommand):
     help = 'Create demo users, gardens, journals, care tasks, listings and forum posts. Safe to run more than once.'
@@ -154,6 +283,8 @@ class Command(BaseCommand):
                 self.reset()
             self.seed_users()
             self.seed_gardens()
+            self.seed_journals()
+            self.seed_care_tasks()
 
         self.print_summary()
 
@@ -235,6 +366,99 @@ class Command(BaseCommand):
                     })
                     self.tally('plantings', created)
                     self.plantings[plant_name] = planting
+
+    def seed_journals(self):
+        Entry = self.model('journal', 'JournalEntry', 'journal entries')
+        if not Entry:
+            return
+        Journal = self.model('journal', 'PlantJournal', 'journal visibility')
+
+        for name, planting in self.plantings.items():
+            if name in NO_JOURNAL:
+                continue
+            if Journal:
+                # Most journals in a public garden are public too; a private garden keeps them private
+                is_public = planting.garden.is_public and self.rng('journal-visibility', name).random() < 0.8
+                _, created = Journal.objects.get_or_create(planting=planting, defaults={'is_public': is_public})
+                self.tally('plant journals', created)
+
+            # A planting that already has entries keeps them, so a rerun on a later day adds nothing
+            existing = planting.journal_entries.count()
+            if existing:
+                self.existing['journal entries'] += existing
+                continue
+            for entry in self.journal_plan(planting):
+                Entry.objects.create(planting=planting, **entry)
+                self.created['journal entries'] += 1
+
+    def journal_plan(self, planting):
+        """3 to 10 entries from planting day to today, each with a note that fits its stage."""
+        rng = self.rng('journal', planting.name)
+        group, full_height, stages = CROPS.get(planting.crop, CROPS['Selada'])
+        plant = planting.crop.lower()
+        age = (self.today - planting.planting_date).days
+        if age < 2:
+            # Too new for three dated entries, e.g. after someone edited the planting date
+            return
+        count = min(rng.randint(3, 10), age + 1)
+        used = set()
+        height = 0
+
+        for i in range(count):
+            # Spread evenly; steps of at least one day keep every date apart
+            day = round(i * age / (count - 1))
+            stage = [name for start, name in stages if start <= day][-1]
+            # Growth speeds up after the seedling weeks instead of rising in a straight line
+            grown = 2 + (full_height - 2) * min(day / stages[-1][0], 1) ** 1.5 * rng.uniform(0.9, 1.05)
+            height = max(height, round(grown, 1))
+
+            pool =FIRST_NOTES if i == 0 else NOTES[group, stage]
+            unused = [n for n in pool if n not in used]
+            if not unused:
+                # More entries than notes: repeat one from the middle, never "first" or "done"
+                note = rng.choice(pool[1:-1] or pool)
+            elif i == 0 or stage == 'vegetative':
+                note = rng.choice(unused)
+            else:
+                # Stage notes are written in order, e.g. the first harvest before the last
+                note = unused[0]
+            used.add(note)
+            roll = rng.random()
+            health = 'pest' if roll < 0.08 else 'attention' if roll < 0.22 else 'healthy'
+            observation = note.format(plant=plant)
+            if health != 'healthy':
+                observation += ' ' + rng.choice(HEALTH_NOTES[health])
+
+            # Today's entry is always from this morning, never later than now
+            hour = rng.choice([6, 7]) if day == age else rng.choice([6, 7, 16, 17])
+            yield {
+                'date': planting.planting_date + timedelta(days=day), 'time': time(hour, rng.choice([0, 15, 30, 45])),
+                'height_cm': Decimal(str(height)), 'stage': stage, 'health': health, 'observation': observation,
+            }
+
+    def seed_care_tasks(self):
+        Task = self.model('care', 'CareTask', 'care tasks')
+        if not Task or not self.plantings:
+            return
+
+        for username, gardens in GARDENS.items():
+            owner = self.users[username]
+            names = [plant[0] for garden in gardens for plant in garden[6]]
+            rng = self.rng('care', username)
+            # Five different plantings, all the grower's own
+            for name, (status, earliest, latest) in zip(rng.sample(names, len(TASK_STATUSES)), TASK_STATUSES):
+                planting = self.plantings[name]
+                activities = [a for a in CARE_TASKS if a != 'check_ph' or 'hydroponics' in planting.method.lower()]
+                activity = rng.choice(activities)
+                title, notes = rng.choice(CARE_TASKS[activity])
+                _, created = Task.objects.get_or_create(
+                    owner=owner, planting=planting, title=title.format(plant=planting.crop.lower()), defaults={
+                        'activity': activity, 'status': status, 'notes': notes,
+                        'target_date': self.today + timedelta(days=rng.randint(earliest, latest)),
+                        'target_time': rng.choice([None, time(6, 30), time(7, 0), time(16, 30), time(17, 0)]),
+                    },
+                )
+                self.tally('care tasks', created)
 
     def print_summary(self):
         if self.removed:
