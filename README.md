@@ -89,6 +89,37 @@ The `feat/harvest-marketplace` branch implements Marcel's harvest listing CRUD, 
 
 For setup, the repeatable **50-listing seed command**, JSON endpoints, verification, and the group integration checklist, see [docs/marketplace.md](docs/marketplace.md). The remaining modules and the final deployed integration must still be verified by the group.
 
+## Demo data
+
+`python manage.py seed_demo` fills every module with demo content set in Jakarta and Depok: 8 users with profiles, 16 gardens (public and private) with 50 plantings, journal entries, 30 care tasks, 54 market listings and 15 forum questions with answers. Photos are left empty, so the "no photo" tiles show. The data is the same on every run, and dates are counted back from the day you run it.
+
+**Locally**, after `python manage.py migrate`:
+
+```
+python manage.py seed_demo
+```
+
+**On PWS**, set the `DEMO_PASSWORD` environment variable first, then run the same command wherever you run `migrate` for the deployment. Add `--force` if `DEBUG` is off there.
+
+| Flag | What it does |
+| --- | --- |
+| *(none)* | Creates whatever is missing. Running it again adds no duplicates. |
+| `--reset` | Deletes every account whose username starts with `demo_`, and everything those accounts own, then seeds again. Other accounts are never touched. This also removes the `demo_` accounts made by `seed_journal` and `seed_marketplace`. |
+| `--force` | Lets the command run while `DEBUG` is off. Without it, the command refuses. |
+
+All demo users share one password: the `DEMO_PASSWORD` setting, which is read from the environment and defaults to `tanam-sayur-demo` for local use.
+
+| Username | Role | Area |
+| --- | --- | --- |
+| `demo_ayu` | Grower | Tebet, Jakarta Selatan |
+| `demo_bima` | Grower | Beji, Depok |
+| `demo_rina` | Grower | Pulogadung, Jakarta Timur |
+| `demo_dimas` | Grower | Pancoran Mas, Depok |
+| `demo_nadia` | Grower and buyer | Beji, Depok |
+| `demo_yoga` | Grower and buyer | Jagakarsa, Jakarta Selatan |
+| `demo_sekar` | Buyer | Tebet, Jakarta Selatan |
+| `demo_fajar` | Buyer | Beji, Depok |
+
 ## AI Assistance
 
 ChatGPT assisted with drafting this initial project description and module plan. The group will review the proposed scope and allocation together and will be responsible for implementation decisions, verification, and explaining the completed application.
