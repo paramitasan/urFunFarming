@@ -10,6 +10,8 @@ class Profile(models.Model):
     bio = models.CharField(max_length=300, blank=True)
     area = models.CharField(max_length=80, blank=True)
     city = models.CharField(max_length=80, blank=True)
+    # BMKG village code (adm4) from the location dropdowns, e.g. 31.74.01.1001 for Tebet Timur
+    adm4_code = models.CharField(max_length=13, blank=True)
     phone = models.CharField(max_length=30, blank=True)
     contact_email = models.EmailField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

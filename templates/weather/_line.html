@@ -1,0 +1,14 @@
+{# One line of weather for any page: {% load weather_tags %}{% weather_line %} #}
+<p class="weather-line">
+    {% if weather.available %}
+    {% with slot=weather.current %}
+    <span>Now in {{ weather.location_name }}: <strong>{{ slot.temp|floatformat:0 }}&deg;</strong> {{ slot.description }}{% if slot.rain_mm %}, {{ slot.rain_mm|floatformat:1 }} mm rain{% endif %}</span>
+    {% endwith %}
+    {% else %}
+    <span>{{ weather.error|default:"Weather is unavailable right now" }}</span>
+    {% endif %}
+    {% include 'weather/_source.html' %}
+</p>
+{% if not weather.has_location %}
+<a class="weather-set-area" href="{% url 'accounts:profile' %}#location">Set your area in your profile to see local weather</a>
+{% endif %}

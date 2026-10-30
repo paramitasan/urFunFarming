@@ -1,6 +1,6 @@
 {% load static %}
 {% if filter_form.errors %}<div class="market-error" role="alert"><strong>Please check your filters.</strong>{{ filter_form.errors }}</div>{% endif %}
-<div class="market-results-heading"><h2 tabindex="-1">{{ listing_count }} harvest{{ listing_count|pluralize }} {% if mine %}in your listings{% else %}available{% endif %}</h2><label class="market-sort"><span class="market-sr">Sort harvests</span><select name="sort" aria-label="Sort harvests">{% for value, label in filter_form.sort.field.choices %}<option value="{{ value }}"{% if filter_form.sort.value == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label></div>
+<div class="list-results-heading"><h2 tabindex="-1">{{ listing_count }} harvest{{ listing_count|pluralize }} {% if mine %}in your listings{% else %}available{% endif %}</h2><label class="list-sort"><span class="market-sr">Sort harvests</span><select name="sort">{% for value, label in filter_form.sort.field.choices %}<option value="{{ value }}"{% if filter_form.sort.value == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label></div>
 {% if page_obj.object_list %}
 <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-4 market-cards">
     {% for listing in page_obj %}<div class="col">{% include 'marketplace/_card.html' %}</div>{% endfor %}

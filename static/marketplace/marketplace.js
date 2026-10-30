@@ -4,7 +4,6 @@
     document.documentElement.classList.add('market-js');
     const filterForm = document.getElementById('marketplace-filters');
     let catalogController;
-    let searchTimer;
     // Safari before 16 has no requestSubmit(), so send the same submit event by hand
     const submitForm = (form) => {
         if (form.requestSubmit) form.requestSubmit();
@@ -56,15 +55,8 @@
     }
 
     if (filterForm) {
-        const toggle = document.getElementById('market-filter-toggle');
-        toggle.addEventListener('click', () => {
-            const open = filterForm.querySelector('.market-filters').classList.toggle('is-open');
-            toggle.setAttribute('aria-expanded', String(open));
-            toggle.textContent = open ? 'Hide filters' : 'Show filters';
-        });
         filterForm.addEventListener('submit', (event) => {
             event.preventDefault();
-            clearTimeout(searchTimer);
             const params = new URLSearchParams(new FormData(filterForm));
             for (const [key, value] of [...params.entries()]) if (value === '') params.delete(key);
             loadCatalog(`${filterForm.action}?${params.toString()}`);
@@ -72,16 +64,11 @@
         filterForm.addEventListener('change', (event) => {
             if (event.target.matches('select, input[type=radio], input[type=number]')) submitForm(filterForm);
         });
-        filterForm.addEventListener('input', (event) => {
-            if (event.target.name !== 'q') return;
-            clearTimeout(searchTimer);
-            searchTimer = setTimeout(() => submitForm(filterForm), 300);
-        });
+        // Typing in the search box: the shared static/js/list-search.js submits after 500 ms
         filterForm.addEventListener('click', (event) => {
             const link = event.target.closest('[data-market-page]');
             if (!link || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
             event.preventDefault();
-            clearTimeout(searchTimer);
             loadCatalog(link.href);
         });
         window.addEventListener('popstate', () => window.location.reload());
@@ -109,7 +96,7 @@
                     message.setAttribute('role', 'alert');
                     target.appendChild(message);
                 }
-                message.textContent = 'The forecast could not be loaded. Please try again.';
+                message.textContent = 'Weather is unavailable right now. Please try again.';
             } finally {
                 button.disabled = false;
             }

@@ -1,0 +1,19 @@
+{# The grower's weather limits; saved to their account and used on every Plant care page #}
+<form class="care-thresholds-form" method="post" action="{% url 'care:settings' %}">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <label class="care-threshold" for="{{ settings_form.max_rain_mm.id_for_label }}">
+        <span>{{ settings_form.max_rain_mm.label }}</span>
+        <span class="care-threshold-input">{{ settings_form.max_rain_mm }}<small>mm</small></span>
+    </label>
+    <label class="care-threshold" for="{{ settings_form.max_temp_c.id_for_label }}">
+        <span>{{ settings_form.max_temp_c.label }}</span>
+        <span class="care-threshold-input">{{ settings_form.max_temp_c }}<small>&deg;C</small></span>
+    </label>
+    <label class="care-threshold" for="{{ settings_form.max_wind_kmh.id_for_label }}">
+        <span>{{ settings_form.max_wind_kmh.label }}</span>
+        <span class="care-threshold-input">{{ settings_form.max_wind_kmh }}<small>km/h</small></span>
+    </label>
+    <p class="care-help">Saved to your account and used on every Plant care page.</p>
+    <button class="outline-button" type="submit">Save thresholds</button>
+</form>

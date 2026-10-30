@@ -89,32 +89,7 @@ document.addEventListener("change", (event) => {
     if (event.target.form) event.target.form.requestSubmit();
 });
 
-// Search: submit 400 ms after the user stops typing.
-const searchBox = document.querySelector("[data-search]");
-if (searchBox) {
-    const FOCUS_KEY = "forum-search-focus";
-    let lastSent = searchBox.value.trim();
-    let timer;
-
-    // put the cursor back at the end of the text
-    if (sessionStorage.getItem(FOCUS_KEY)) {
-        sessionStorage.removeItem(FOCUS_KEY);
-        searchBox.focus({ preventScroll: true });
-        const end = searchBox.value.length;
-        searchBox.setSelectionRange(end, end);
-    }
-
-    searchBox.addEventListener("input", () => {
-        clearTimeout(timer);
-        timer = setTimeout(() => {
-            const value = searchBox.value.trim();
-            if (value === lastSent) return;
-            lastSent = value;
-            sessionStorage.setItem(FOCUS_KEY, "1");
-            searchBox.form.requestSubmit();
-        }, 400);
-    });
-}
+// Search: the shared static/js/list-search.js submits 500 ms after the user stops typing.
 
 // Upvote: update the button without reloading the page.
 document.addEventListener("submit", async (event) => {
