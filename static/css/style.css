@@ -441,6 +441,13 @@ select:disabled {
     box-shadow: 0 0 0 3px rgba(33, 195, 126, 0.2);
 }
 
+/* The box above already shows focus, so the field inside skips the page's dark outline */
+.list-search input:focus-visible,
+.list-toolbar-select select:focus-visible,
+.list-sort select:focus-visible {
+    outline: none;
+}
+
 .list-search img,
 .list-search svg,
 .list-toolbar-select img {
