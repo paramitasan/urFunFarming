@@ -31,6 +31,9 @@ class Planting(models.Model):
     crop = models.CharField(max_length=100)
     planting_date = models.DateField()
     growing_method = models.CharField(max_length=80, blank=True)
+    # One thumbnail for the plant card: an uploaded photo or a link to one
+    photo = models.ImageField(upload_to='plantings/', blank=True)
+    photo_url = models.URLField(max_length=500, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
