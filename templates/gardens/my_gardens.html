@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}My gardens · UrFunFarming{% endblock %}
+{% block head %}<script defer src="{% static 'js/delete-dialog.js' %}"></script>{% endblock head %}
 {% block content %}
 {% include 'partials/grower_subnav.html' %}
 <section class="gardens-page" aria-labelledby="gardens-heading">
@@ -66,5 +67,6 @@
             </div>
         </div>
     </form>
+    {% include 'gardens/_delete_dialog.html' with message='This also deletes the plantings recorded in this garden. This action cannot be undone.' confirm_label='Delete garden' %}
 </section>
 {% endblock %}

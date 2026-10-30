@@ -1,15 +1,32 @@
+import io
+import shutil
+import tempfile
 from datetime import date, timedelta
 from unittest.mock import patch
+from unittest import mock
 
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
+from PIL import Image
 
 from accounts.models import Profile
 
-from gardens.forms import PlantingForm
+from gardens.forms import GARDEN_PHOTO_ERROR, GardenForm, PlantingForm
 from gardens.models import Garden, Planting
+
+# Garden photos uploaded during tests go here, never into the real media/ folder
+TEST_MEDIA = tempfile.mkdtemp()
+
+
+def make_image(name='photo.png', image_format='PNG'):
+    # A tiny real image file, made in memory
+    buffer = io.BytesIO()
+    Image.new('RGB', (4, 4), 'green').save(buffer, image_format)
+    return SimpleUploadedFile(name, buffer.getvalue())
+
 
 
 class GardenModelTests(TestCase):
@@ -117,7 +134,7 @@ class GardenOwnerViewTests(TestCase):
         garden = Garden.objects.get(name='Courtyard garden')
         self.assertEqual(garden.owner, self.owner)
         self.assertTrue(garden.is_public)
-        self.assertRedirects(response, reverse('gardens:detail', args=[garden.pk]))
+        self.assertRedirects(response, reverse('gardens:mine'))
 
     def test_invalid_garden_form_is_rendered_with_errors(self):
         self.client.force_login(self.owner)
@@ -154,7 +171,7 @@ class GardenOwnerViewTests(TestCase):
         self.assertContains(detail_response, 'Planted in')
         self.assertContains(detail_response, 'Open journal')
         self.assertContains(detail_response, 'Private garden: only you can see these plants')
-        self.assertRedirects(edit_response, self.detail_url)
+        self.assertRedirects(edit_response, self.mine_url)
         self.garden.refresh_from_db()
         self.assertEqual(self.garden.name, 'Updated garden')
 
@@ -164,7 +181,6 @@ class GardenOwnerViewTests(TestCase):
         for method, url in (
             (self.client.get, self.detail_url),
             (self.client.get, self.edit_url),
-            (self.client.get, self.delete_url),
             (self.client.post, self.edit_url),
             (self.client.post, self.delete_url),
         ):
@@ -173,17 +189,24 @@ class GardenOwnerViewTests(TestCase):
 
         self.assertTrue(Garden.objects.filter(pk=self.garden.pk).exists())
 
-    def test_delete_requires_confirmation_and_post(self):
+    def test_delete_only_accepts_post_from_the_overlay(self):
         self.client.force_login(self.owner)
 
-        confirm_response = self.client.get(self.delete_url)
-
-        self.assertContains(confirm_response, 'This also deletes the plantings')
+        self.assertEqual(self.client.get(self.delete_url).status_code, 405)
         self.assertTrue(Garden.objects.filter(pk=self.garden.pk).exists())
         response = self.client.post(self.delete_url)
 
         self.assertRedirects(response, self.mine_url)
         self.assertFalse(Garden.objects.filter(pk=self.garden.pk).exists())
+
+    def test_my_gardens_has_the_delete_overlay(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(self.mine_url)
+
+        self.assertContains(response, 'data-delete-dialog')
+        self.assertContains(response, f'href="{self.delete_url}" data-delete-name="Balcony garden"')
+        self.assertContains(response, 'Delete garden')
 
     def test_owner_routes_require_login(self):
         owner_urls = [self.mine_url, self.create_url, self.detail_url, self.edit_url, self.delete_url]
@@ -204,9 +227,11 @@ class GardenOwnerViewTests(TestCase):
     def test_non_owners_get_404_whatever_their_role(self):
         for user in (self.buyer, self.no_profile, self.other_owner):
             self.client.force_login(user)
-            for url in (self.detail_url, self.edit_url, self.delete_url):
+            for url in (self.detail_url, self.edit_url):
                 with self.subTest(user=user.username, url=url):
                     self.assertEqual(self.client.get(url).status_code, 404)
+            with self.subTest(user=user.username, url=self.delete_url):
+                self.assertEqual(self.client.post(self.delete_url).status_code, 404)
 
     def test_owner_without_grower_role_still_manages_own_garden(self):
         Profile.objects.filter(user=self.owner).update(is_grower=False)
@@ -216,7 +241,7 @@ class GardenOwnerViewTests(TestCase):
         self.assertEqual(self.client.get(self.detail_url).status_code, 200)
         response = self.client.post(self.edit_url, self.garden_data(name='Renamed garden'))
 
-        self.assertRedirects(response, self.detail_url)
+        self.assertRedirects(response, self.mine_url)
         self.garden.refresh_from_db()
         self.assertEqual(self.garden.name, 'Renamed garden')
         self.assertEqual(self.client.get(self.create_url).status_code, 403)
@@ -297,10 +322,7 @@ class PlantingOwnerViewTests(TestCase):
 
         planting = Planting.objects.get(crop='Lettuce')
         self.assertEqual(planting.garden, self.garden)
-        self.assertRedirects(
-            response,
-            reverse('gardens:planting_detail', args=[self.garden.pk, planting.pk]),
-        )
+        self.assertRedirects(response, self.garden_url)
 
     def test_planting_form_requires_name_crop_and_date(self):
         self.client.force_login(self.owner)
@@ -309,7 +331,10 @@ class PlantingOwnerViewTests(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertContains(response, 'This field is required.', count=3, status_code=400)
-        self.assertEqual(set(PlantingForm().fields), {'name', 'crop', 'planting_date', 'growing_method'})
+        self.assertEqual(
+            set(PlantingForm().fields),
+            {'name', 'crop', 'planting_date', 'growing_method', 'photo', 'photo_url'},
+        )
         self.assertFalse(PlantingForm().fields['growing_method'].required)
 
     def test_owner_can_edit_planting(self):
@@ -317,21 +342,28 @@ class PlantingOwnerViewTests(TestCase):
 
         response = self.client.post(self.edit_url, self.planting_data(crop='Cherry tomatoes'))
 
-        self.assertRedirects(response, self.detail_url)
+        self.assertRedirects(response, self.garden_url)
         self.planting.refresh_from_db()
         self.assertEqual(self.planting.crop, 'Cherry tomatoes')
 
-    def test_delete_planting_requires_post_confirmation(self):
+    def test_delete_planting_only_accepts_post_from_the_overlay(self):
         self.client.force_login(self.owner)
 
-        response = self.client.get(self.delete_url)
-
-        self.assertContains(response, 'Delete Tomatoes?')
+        self.assertEqual(self.client.get(self.delete_url).status_code, 405)
         self.assertTrue(Planting.objects.filter(pk=self.planting.pk).exists())
         response = self.client.post(self.delete_url)
 
         self.assertRedirects(response, self.garden_url)
         self.assertFalse(Planting.objects.filter(pk=self.planting.pk).exists())
+
+    def test_garden_page_has_the_delete_overlay(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(self.garden_url)
+
+        self.assertContains(response, 'data-delete-dialog')
+        self.assertContains(response, f'href="{self.delete_url}" data-delete-name="Tomatoes"')
+        self.assertContains(response, 'Delete plant')
 
     def test_other_grower_cannot_read_or_change_planting(self):
         self.client.force_login(self.other_owner)
@@ -340,9 +372,9 @@ class PlantingOwnerViewTests(TestCase):
         self.assertNotContains(response, 'Tomatoes', status_code=403)
         urls = (self.edit_url, self.delete_url)
 
+        with self.subTest(method='GET', url=self.edit_url):
+            self.assertEqual(self.client.get(self.edit_url).status_code, 404)
         for url in urls:
-            with self.subTest(method='GET', url=url):
-                self.assertEqual(self.client.get(url).status_code, 404)
             with self.subTest(method='POST', url=url):
                 self.assertEqual(self.client.post(url, self.planting_data()).status_code, 404)
 
@@ -369,10 +401,9 @@ class PlantingOwnerViewTests(TestCase):
 
     def test_buyer_cannot_change_someone_elses_planting(self):
         self.client.force_login(self.buyer)
-
+        self.assertEqual(self.client.get(self.edit_url).status_code, 404)
         for url in (self.edit_url, self.delete_url):
             with self.subTest(url=url):
-                self.assertEqual(self.client.get(url).status_code, 404)
                 self.assertEqual(self.client.post(url, self.planting_data()).status_code, 404)
         self.assertTrue(Planting.objects.filter(pk=self.planting.pk).exists())
 
@@ -1049,13 +1080,11 @@ class GardenReviewFixTests(TestCase):
         for text in ('Secret Street', 'Aquaponics', 'My Street', 'Wick'):
             self.assertNotContains(response, text)
 
-    def test_private_notes_stay_off_delete_and_plant_form_pages(self):
+    def test_private_notes_stay_off_plant_form_pages(self):
         self.client.force_login(self.owner)
         pages = (
-            reverse('gardens:delete', args=[self.garden.pk]),
             reverse('gardens:planting_create', args=[self.garden.pk]),
             reverse('gardens:planting_edit', args=[self.garden.pk, self.basil.pk]),
-            reverse('gardens:planting_delete', args=[self.garden.pk, self.basil.pk]),
         )
         for url in pages:
             with self.subTest(url=url):
@@ -1111,3 +1140,200 @@ class PlantOpensJournalTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Cherry tomato')
 
+@override_settings(MEDIA_ROOT=TEST_MEDIA)
+class GardenPhotoTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.owner = User.objects.create_user(username='photo_owner', password='test-password')
+        Profile.objects.create(user=cls.owner, display_name='Photo Owner', is_grower=True)
+        cls.visitor = User.objects.create_user(username='photo_visitor', password='test-password')
+        Profile.objects.create(user=cls.visitor, display_name='Photo Visitor', is_buyer=True)
+        cls.garden = Garden.objects.create(
+            owner=cls.owner, name='Balcony garden', location='Depok',
+            growing_method='Container pots', is_public=True,
+        )
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(TEST_MEDIA, ignore_errors=True)
+
+    def garden_data(self, **changes):
+        data = {'name': 'Balcony garden', 'location': 'Depok', 'growing_method': 'Container pots', 'is_public': 'on'}
+        data.update(changes)
+        return data
+
+    def make_form(self, files=None, instance=None, **changes):
+        return GardenForm(self.garden_data(**changes), files or {}, instance=instance)
+
+    def test_create_with_an_upload(self):
+        self.client.force_login(self.owner)
+        data = self.garden_data(name='Courtyard', photo=make_image('courtyard.png'))
+        response = self.client.post(reverse('gardens:create'), data)
+        self.assertRedirects(response, reverse('gardens:mine'))
+        garden = Garden.objects.get(name='Courtyard')
+        self.assertTrue(garden.photo.name.startswith('gardens/courtyard'))
+        self.assertEqual(garden.photo_url, '')
+
+    def test_create_with_a_link(self):
+        self.client.force_login(self.owner)
+        data = self.garden_data(name='Courtyard', photo_url='https://example.com/courtyard.jpg')
+        self.client.post(reverse('gardens:create'), data)
+        garden = Garden.objects.get(name='Courtyard')
+        self.assertEqual(garden.photo_url, 'https://example.com/courtyard.jpg')
+        self.assertFalse(garden.photo)
+
+    def test_file_that_is_not_an_image_is_rejected(self):
+        form = self.make_form(files={'photo': SimpleUploadedFile('notes.jpg', b'not an image')})
+        self.assertFalse(form.is_valid())
+        self.assertEqual(form.errors['photo'], [GARDEN_PHOTO_ERROR])
+
+    def test_gif_is_rejected(self):
+        # A real image, but not one of the three allowed formats
+        form = self.make_form(files={'photo': make_image('leaf.gif', 'GIF')})
+        self.assertFalse(form.is_valid())
+        self.assertEqual(form.errors['photo'], [GARDEN_PHOTO_ERROR])
+
+    def test_photo_over_the_size_limit_is_rejected(self):
+        # Lower the limit for this test instead of building a real 5 MB file
+        with mock.patch('gardens.forms.GARDEN_PHOTO_MAX_SIZE', 10):
+            form = self.make_form(files={'photo': make_image()})
+            self.assertFalse(form.is_valid())
+        self.assertEqual(form.errors['photo'], [GARDEN_PHOTO_ERROR])
+
+    def test_upload_and_link_together_is_rejected(self):
+        form = self.make_form(files={'photo': make_image()}, photo_url='https://example.com/balcony.jpg')
+        self.assertFalse(form.is_valid())
+        self.assertIn('Choose one photo', form.non_field_errors()[0])
+
+    def test_new_link_replaces_a_saved_upload(self):
+        self.garden.photo = make_image('old.png')
+        self.garden.save()
+        form = self.make_form(instance=self.garden, photo_url='https://example.com/new.jpg')
+        self.assertTrue(form.is_valid())
+        garden = form.save()
+        self.assertFalse(garden.photo)
+        self.assertEqual(garden.photo_url, 'https://example.com/new.jpg')
+
+    def test_new_upload_replaces_a_saved_link(self):
+        self.garden.photo_url = 'https://example.com/old.jpg'
+        self.garden.save()
+        # The old link is still in the form, but it wasn't typed just now, so the upload wins
+        form = self.make_form(
+            files={'photo': make_image('new.png')}, instance=self.garden, photo_url='https://example.com/old.jpg',
+        )
+        self.assertTrue(form.is_valid())
+        garden = form.save()
+        self.assertTrue(garden.photo.name.startswith('gardens/new'))
+        self.assertEqual(garden.photo_url, '')
+
+    def test_clear_removes_a_saved_upload(self):
+        self.garden.photo = make_image('old.png')
+        self.garden.save()
+        # The hidden checkbox the trash button ticks
+        form = self.make_form(instance=self.garden, **{'photo-clear': 'on'})
+        self.assertTrue(form.is_valid())
+        self.assertFalse(form.save().photo)
+
+    def test_cards_show_an_uploaded_photo(self):
+        self.garden.photo = make_image('card.png')
+        self.garden.save()
+        photo_src = f'src="{self.garden.photo.url}"'
+        self.client.force_login(self.owner)
+        self.assertContains(self.client.get(reverse('gardens:mine')), photo_src)
+        # Explore builds its cards from .values(), so this checks the media prefix there too
+        self.client.force_login(self.visitor)
+        self.assertContains(self.client.get(reverse('gardens:explore')), photo_src)
+
+    def test_cards_show_a_linked_photo(self):
+        self.garden.photo_url = 'https://example.com/balcony.jpg'
+        self.garden.save()
+        self.client.force_login(self.visitor)
+        self.assertContains(self.client.get(reverse('gardens:explore')), 'src="https://example.com/balcony.jpg"')
+
+    def test_cards_without_a_photo_keep_the_green_box(self):
+        self.client.force_login(self.owner)
+        response = self.client.get(reverse('gardens:mine'))
+        self.assertContains(response, '<div class="garden-photo" aria-hidden="true"></div>', html=True)
+        self.assertNotContains(response, '<img class="garden-photo"')
+
+    def test_edit_form_shows_the_saved_photo(self):
+        self.garden.photo_url = 'https://example.com/balcony.jpg'
+        self.garden.save()
+        self.client.force_login(self.owner)
+        response = self.client.get(reverse('gardens:edit', args=[self.garden.pk]))
+        self.assertContains(response, 'src="https://example.com/balcony.jpg"')
+        self.assertContains(response, 'enctype="multipart/form-data"')
+
+
+@override_settings(MEDIA_ROOT=TEST_MEDIA)
+class PlantingPhotoTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.owner = User.objects.create_user(username='plant_photo_owner', password='test-password')
+        Profile.objects.create(user=cls.owner, display_name='Plant Photo Owner', is_grower=True)
+        cls.visitor = User.objects.create_user(username='plant_photo_visitor', password='test-password')
+        Profile.objects.create(user=cls.visitor, display_name='Plant Photo Visitor', is_buyer=True)
+        cls.garden = Garden.objects.create(
+            owner=cls.owner, name='Balcony garden', location='Depok',
+            growing_method='Container pots', is_public=True,
+        )
+        cls.planting = Planting.objects.create(
+            garden=cls.garden, name='Pak choy', crop='Leafy greens', planting_date=date(2026, 10, 1),
+        )
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(TEST_MEDIA, ignore_errors=True)
+
+    def planting_data(self, **changes):
+        data = {'name': 'Pak choy', 'crop': 'Leafy greens', 'planting_date': '2026-10-01', 'growing_method': ''}
+        data.update(changes)
+        return data
+
+    def test_add_plant_with_an_upload(self):
+        self.client.force_login(self.owner)
+        data = self.planting_data(name='Kale', photo=make_image('kale.png'))
+        self.client.post(reverse('gardens:planting_create', args=[self.garden.pk]), data)
+        planting = Planting.objects.get(name='Kale')
+        self.assertTrue(planting.photo.name.startswith('plantings/kale'))
+        self.assertEqual(planting.photo_url, '')
+
+    def test_edit_plant_with_a_link_replaces_the_upload(self):
+        self.planting.photo = make_image('old.png')
+        self.planting.save()
+        self.client.force_login(self.owner)
+        data = self.planting_data(photo_url='https://example.com/pak-choy.jpg')
+        self.client.post(reverse('gardens:planting_edit', args=[self.garden.pk, self.planting.pk]), data)
+        self.planting.refresh_from_db()
+        self.assertFalse(self.planting.photo)
+        self.assertEqual(self.planting.photo_url, 'https://example.com/pak-choy.jpg')
+
+    def test_plant_form_uses_the_same_photo_rules(self):
+        form = PlantingForm(self.planting_data(), {'photo': make_image('leaf.gif', 'GIF')})
+        self.assertFalse(form.is_valid())
+        self.assertEqual(form.errors['photo'], [GARDEN_PHOTO_ERROR])
+
+    def test_plant_cards_show_the_photo_to_owner_and_visitors(self):
+        self.planting.photo = make_image('card.png')
+        self.planting.save()
+        photo_src = f'src="{self.planting.photo.url}"'
+        self.client.force_login(self.owner)
+        self.assertContains(self.client.get(reverse('gardens:detail', args=[self.garden.pk])), photo_src)
+        self.client.force_login(self.visitor)
+        self.assertContains(self.client.get(reverse('gardens:public_detail', args=[self.garden.pk])), photo_src)
+
+    def test_plant_card_without_a_photo_keeps_the_green_box(self):
+        self.client.force_login(self.owner)
+        response = self.client.get(reverse('gardens:detail', args=[self.garden.pk]))
+        self.assertContains(response, '<div class="garden-photo" aria-hidden="true"></div>', html=True)
+        self.assertNotContains(response, '<img class="garden-photo"')
+
+    def test_edit_plant_form_shows_the_saved_photo(self):
+        self.planting.photo_url = 'https://example.com/pak-choy.jpg'
+        self.planting.save()
+        self.client.force_login(self.owner)
+        response = self.client.get(reverse('gardens:planting_edit', args=[self.garden.pk, self.planting.pk]))
+        self.assertContains(response, 'src="https://example.com/pak-choy.jpg"')
+        self.assertContains(response, 'enctype="multipart/form-data"')

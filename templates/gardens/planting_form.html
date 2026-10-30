@@ -1,30 +1,36 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}{% if planting %}Edit {{ planting.display_name }}{% else %}Add plant{% endif %} · {{ garden.name }}{% endblock %}
+{% block head %}<script defer src="{% static 'js/garden-photo.js' %}"></script>{% endblock head %}
 {% block content %}
 {% include 'partials/grower_subnav.html' %}
-<section class="gardens-page" aria-labelledby="planting-form-heading">
+<section class="gardens-page gardens-form-page" aria-labelledby="planting-form-heading">
     <header class="gardens-page-heading">
         <div>
-            <a class="gardens-back-link" href="{% if planting %}{% url 'gardens:planting_detail' garden.pk planting.pk %}{% else %}{% url 'gardens:detail' garden.pk %}{% endif %}"><img src="{% static 'img/gardens/back.svg' %}" alt="">{% if planting %}Back to {{ planting.display_name }}{% else %}Back to {{ garden.name }}{% endif %}</a>
+            <a class="gardens-back-link" href="{% url 'gardens:detail' garden.pk %}"><img src="{% static 'img/gardens/back.svg' %}" alt="">Back to {{ garden.name }}</a>
             <h1 id="planting-form-heading">{% if planting %}Edit plant{% else %}Add plant{% endif %}</h1>
             <p class="gardens-subtitle">{{ garden.name }} · {{ garden.growing_method }}</p>
         </div>
     </header>
-    <form class="garden-form" method="post">
+    <form class="garden-form" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {% if form.non_field_errors %}<div class="garden-form-errors" role="alert">{{ form.non_field_errors }}</div>{% endif %}
         {% for field in form %}
-            <div class="garden-form-field{% if field.errors %} has-error{% endif %}">
-                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                {{ field }}
-                {% if field.help_text %}<small id="{{ field.auto_id }}_helptext">{{ field.help_text }}</small>{% endif %}
+            {% if field.name == 'photo' %}
+                {% include 'gardens/_photo_field.html' %}
                 {% if field.errors %}<div class="garden-field-errors" role="alert">{{ field.errors }}</div>{% endif %}
-            </div>
+            {% else %}
+                <div class="garden-form-field{% if field.errors %} has-error{% endif %}"{% if field.name == 'photo_url' %} data-photo-link{% endif %}>
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<small id="{{ field.auto_id }}_helptext">{{ field.help_text }}</small>{% endif %}
+                    {% if field.errors %}<div class="garden-field-errors" role="alert">{{ field.errors }}</div>{% endif %}
+                </div>
+            {% endif %}
         {% endfor %}
         <div class="gardens-actions">
             <button class="pill-button" type="submit">{% if planting %}Save changes{% else %}Add plant{% endif %}</button>
-            <a class="outline-button" href="{% if planting %}{% url 'gardens:planting_detail' garden.pk planting.pk %}{% else %}{% url 'gardens:detail' garden.pk %}{% endif %}">Cancel</a>
+            <a class="outline-button" href="{% url 'gardens:detail' garden.pk %}">Cancel</a>
         </div>
     </form>
 </section>

@@ -1,0 +1,11 @@
+{# Toasts from the Figma Toast component. Django messages show here when the page loads, journal.js adds new ones #}
+<div class="toast-area" data-toast-area>
+    {% for item in messages %}
+        {% include 'journal/toast_item.html' with type=item.level_tag message=item.message detail=item.extra_tags %}
+    {% endfor %}
+</div>
+
+{# Blank toasts that journal.js copies and fills in #}
+<template data-toast-template="success">{% include 'journal/toast_item.html' with type='success' message='' detail='' %}</template>
+<template data-toast-template="error">{% include 'journal/toast_item.html' with type='error' message='' detail='' %}</template>
+<template data-toast-template="info">{% include 'journal/toast_item.html' with type='info' message='' detail='' %}</template>

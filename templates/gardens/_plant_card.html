@@ -1,7 +1,14 @@
-{% load static %}
+{% load static journal_tags %}
+{% journal_for planting as journal %}
 {% url 'gardens:planting_detail' garden_pk planting.pk as plant_url %}
 <article class="planting-card">
-    <div class="garden-photo" aria-hidden="true"></div>
+    {% if planting.photo %}
+        <img class="garden-photo" src="{% get_media_prefix %}{{ planting.photo }}" alt="">
+    {% elif planting.photo_url %}
+        <img class="garden-photo" src="{{ planting.photo_url }}" alt="">
+    {% else %}
+        <div class="garden-photo" aria-hidden="true"></div>
+    {% endif %}
     <div class="planting-card-content">
         <div class="garden-card-top">
             <h2><a href="{{ plant_url }}">{{ planting.display_name }}</a></h2>
@@ -11,7 +18,7 @@
                     <summary aria-label="More actions for {{ planting.display_name }}"><img src="{% static 'img/gardens/more.svg' %}" alt=""></summary>
                     <div class="garden-more-menu">
                         <a href="{% url 'gardens:planting_edit' garden_pk planting.pk %}">Edit</a>
-                        <a class="garden-more-delete" href="{% url 'gardens:planting_delete' garden_pk planting.pk %}">Delete</a>
+                        <a class="garden-more-delete" href="{% url 'gardens:planting_delete' garden_pk planting.pk %}" data-delete-name="{{ planting.display_name }}">Delete</a>
                     </div>
                 </details>
             {% endif %}
@@ -22,9 +29,8 @@
             <span class="garden-method-tag">{{ planting.method_name }}</span>
         </p>
         <div class="garden-card-footer">
-            <a class="gardens-text-link" href="{{ plant_url }}">Open journal {% include 'svg/icons/arrow.svg' %}</a>
-            {# Module 3: swap in the plant's journal entry count #}
-            <span class="garden-added">No journal yet</span>
+            <a class="gardens-text-link" href="{{ journal.url }}">Open journal {% include 'svg/icons/arrow.svg' %}</a>
+            <span class="garden-added">{% if journal.entry_count %}{{ journal.entry_count }} entr{{ journal.entry_count|pluralize:"y,ies" }}{% else %}No journal yet{% endif %}</span>
         </div>
     </div>
 </article>

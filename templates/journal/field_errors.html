@@ -1,0 +1,7 @@
+{% load static %}
+{% for error in field.errors %}
+    <p class="field-error" id="{{ field.auto_id }}_error">
+        <img src="{% static 'journal/icons/alert-small.svg' %}" alt="" width="16" height="16">
+        {{ error }}
+    </p>
+{% endfor %}

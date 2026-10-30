@@ -5,7 +5,7 @@ from django.db.models.functions import Coalesce, Lower, NullIf
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import NoReverseMatch, reverse
 from django.views.decorators.cache import never_cache
-from django.views.decorators.http import require_GET, require_http_methods
+from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from gardens.forms import (
     GardenExploreFilterForm,
@@ -80,7 +80,14 @@ def _filtered_plantings(garden, params):
         plantings = plantings.order_by(*order)
     else:
         plantings = plantings.none()
-    return form, plantings, plantings.count(), methods
+    count = plantings.count()
+    # Each plant card shows "N entries" and checks if the journal is public (journal_for),
+    # so both come with the plantings instead of two queries per card
+    plantings = plantings.annotate(
+        journal_entry_count=Count('journal_entries'),
+        journal_is_public=Coalesce('journal__is_public', Value(False)),
+    )
+    return form, plantings, count, methods
 
 
 @never_cache
@@ -110,7 +117,7 @@ def explore(request):
     order = {'oldest': ('created_at', 'id'), 'name': (Lower('name'), 'id')}.get(sort, ('-created_at', '-id'))
     gardens = gardens.order_by(*order).values(
         'id', 'name', 'location', 'growing_method', 'public_summary', 'planting_count', 'created_at',
-        'owner__username', 'owner__date_joined', 'owner__profile__display_name',
+        'photo', 'photo_url', 'owner__username', 'owner__date_joined', 'owner__profile__display_name',
     )
     return render(
         request,
@@ -216,13 +223,13 @@ def create(request):
     denied = _require_grower(request)
     if denied is not None:
         return denied
-    form = GardenForm(request.POST if request.method == 'POST' else None)
+    form = GardenForm(request.POST if request.method == 'POST' else None, request.FILES if request.method == 'POST' else None)
     if request.method == 'POST' and form.is_valid():
         garden = form.save(commit=False)
         garden.owner = request.user
         garden.save()
         messages.success(request, 'Garden created.')
-        return redirect('gardens:detail', pk=garden.pk)
+        return redirect('gardens:mine')
     return render(
         request,
         'gardens/form.html',
@@ -257,11 +264,15 @@ def detail(request, pk):
 @require_http_methods(['GET', 'POST'])
 def edit(request, pk):
     garden = _owned_garden(request, pk)
-    form = GardenForm(request.POST if request.method == 'POST' else None, instance=garden)
+    form = GardenForm(
+        request.POST if request.method == 'POST' else None,
+        request.FILES if request.method == 'POST' else None,
+        instance=garden,
+    )
     if request.method == 'POST' and form.is_valid():
         form.save()
         messages.success(request, 'Garden updated.')
-        return redirect('gardens:detail', pk=garden.pk)
+        return redirect('gardens:mine')
     return render(
         request,
         'gardens/form.html',
@@ -272,14 +283,14 @@ def edit(request, pk):
 
 @login_required(login_url='/login')
 @never_cache
-@require_http_methods(['GET', 'POST'])
+@require_POST
 def delete(request, pk):
+    # The confirm overlay on My gardens posts here, so there is no separate delete page
     garden = _owned_garden(request, pk)
-    if request.method == 'POST':
-        garden.delete()
-        messages.success(request, 'Garden deleted.')
-        return redirect('gardens:mine')
-    return render(request, 'gardens/delete.html', {'garden': garden, 'nav_active': 'home'})
+    garden.delete()
+    messages.success(request, 'Garden deleted.')
+    return redirect('gardens:mine')
+
 
 
 @login_required(login_url='/login')
@@ -290,13 +301,13 @@ def planting_create(request, garden_pk):
     if denied is not None:
         return denied
     garden = _owned_garden(request, garden_pk)
-    form = PlantingForm(request.POST if request.method == 'POST' else None)
+    form = PlantingForm(request.POST if request.method == 'POST' else None, request.FILES if request.method == 'POST' else None)
     if request.method == 'POST' and form.is_valid():
         planting = form.save(commit=False)
         planting.garden = garden
         planting.save()
         messages.success(request, 'Planting added.')
-        return redirect('gardens:planting_detail', garden_pk=garden.pk, planting_pk=planting.pk)
+        return redirect('gardens:detail', pk=garden.pk)
     return render(
         request,
         'gardens/planting_form.html',
@@ -349,11 +360,15 @@ def planting_detail(request, garden_pk, planting_pk):
 @require_http_methods(['GET', 'POST'])
 def planting_edit(request, garden_pk, planting_pk):
     planting = _owned_planting(request, garden_pk, planting_pk)
-    form = PlantingForm(request.POST if request.method == 'POST' else None, instance=planting)
+    form = PlantingForm(
+        request.POST if request.method == 'POST' else None,
+        request.FILES if request.method == 'POST' else None,
+        instance=planting,
+    )
     if request.method == 'POST' and form.is_valid():
         form.save()
         messages.success(request, 'Planting updated.')
-        return redirect('gardens:planting_detail', garden_pk=garden_pk, planting_pk=planting.pk)
+        return redirect('gardens:detail', pk=garden_pk)
     return render(
         request,
         'gardens/planting_form.html',
@@ -364,15 +379,11 @@ def planting_edit(request, garden_pk, planting_pk):
 
 @login_required(login_url='/login')
 @never_cache
-@require_http_methods(['GET', 'POST'])
+@require_POST
 def planting_delete(request, garden_pk, planting_pk):
+    # The confirm overlay on the garden page posts here, so there is no separate delete page
     planting = _owned_planting(request, garden_pk, planting_pk)
-    if request.method == 'POST':
-        planting.delete()
-        messages.success(request, 'Planting deleted.')
-        return redirect('gardens:detail', pk=garden_pk)
-    return render(
-        request,
-        'gardens/planting_delete.html',
-        {'garden': planting.garden, 'planting': planting, 'nav_active': 'home'},
-    )
+    planting.delete()
+    messages.success(request, 'Planting deleted.')
+    return redirect('gardens:detail', pk=garden_pk)
+
