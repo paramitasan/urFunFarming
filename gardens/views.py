@@ -293,7 +293,7 @@ def planting_create(request, garden_pk):
     if denied is not None:
         return denied
     garden = _owned_garden(request, garden_pk)
-    form = PlantingForm(request.POST if request.method == 'POST' else None)
+    form = PlantingForm(request.POST if request.method == 'POST' else None, request.FILES if request.method == 'POST' else None)
     if request.method == 'POST' and form.is_valid():
         planting = form.save(commit=False)
         planting.garden = garden
@@ -344,7 +344,11 @@ def planting_detail(request, garden_pk, planting_pk):
 @require_http_methods(['GET', 'POST'])
 def planting_edit(request, garden_pk, planting_pk):
     planting = _owned_planting(request, garden_pk, planting_pk)
-    form = PlantingForm(request.POST if request.method == 'POST' else None, instance=planting)
+    form = PlantingForm(
+        request.POST if request.method == 'POST' else None,
+        request.FILES if request.method == 'POST' else None,
+        instance=planting,
+    )
     if request.method == 'POST' and form.is_valid():
         form.save()
         messages.success(request, 'Planting updated.')

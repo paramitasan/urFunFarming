@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}{% if planting %}Edit {{ planting.display_name }}{% else %}Add plant{% endif %} · {{ garden.name }}{% endblock %}
+{% block head %}<script defer src="{% static 'js/garden-photo.js' %}"></script>{% endblock head %}
 {% block content %}
 {% include 'partials/grower_subnav.html' %}
 <section class="gardens-page" aria-labelledby="planting-form-heading">
@@ -11,16 +12,21 @@
             <p class="gardens-subtitle">{{ garden.name }} · {{ garden.growing_method }}</p>
         </div>
     </header>
-    <form class="garden-form" method="post">
+    <form class="garden-form" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {% if form.non_field_errors %}<div class="garden-form-errors" role="alert">{{ form.non_field_errors }}</div>{% endif %}
         {% for field in form %}
-            <div class="garden-form-field{% if field.errors %} has-error{% endif %}">
-                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                {{ field }}
-                {% if field.help_text %}<small id="{{ field.auto_id }}_helptext">{{ field.help_text }}</small>{% endif %}
+            {% if field.name == 'photo' %}
+                {% include 'gardens/_photo_field.html' %}
                 {% if field.errors %}<div class="garden-field-errors" role="alert">{{ field.errors }}</div>{% endif %}
-            </div>
+            {% else %}
+                <div class="garden-form-field{% if field.errors %} has-error{% endif %}"{% if field.name == 'photo_url' %} data-photo-link{% endif %}>
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<small id="{{ field.auto_id }}_helptext">{{ field.help_text }}</small>{% endif %}
+                    {% if field.errors %}<div class="garden-field-errors" role="alert">{{ field.errors }}</div>{% endif %}
+                </div>
+            {% endif %}
         {% endfor %}
         <div class="gardens-actions">
             <button class="pill-button" type="submit">{% if planting %}Save changes{% else %}Add plant{% endif %}</button>
