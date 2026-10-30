@@ -411,3 +411,53 @@ class CarePageStateTests(CareViewTestCase):
         response = self.client.get(reverse('care:index'), {'status': 'todo'})
         self.assertContains(response, 'No tasks with this status')
         self.assertContains(response, '?status=all')
+
+
+class CareThresholdPanelTests(CareViewTestCase):
+    """The Preferred weather threshold card under the weather card on the list page."""
+
+    def test_card_shows_the_saved_limits_and_the_defaults(self):
+        CareSettings.objects.filter(pk=CareSettings.for_user(self.user).pk).update(
+            max_rain_mm=Decimal('1.5'), max_temp_c=Decimal('30'), max_wind_kmh=Decimal('10'),
+        )
+        response = self.client.get(reverse('care:index'))
+        self.assertContains(response, 'Preferred weather threshold')
+        self.assertContains(response, 'Green hours: suggested time to do plant care tasks based on your preferred weather threshold')
+        # Folded summary line uses the saved values
+        self.assertContains(response, 'Green hours: rain up to 1.5 mm, up to 30 °C, wind up to 10 km/h.')
+        for value, default in (('1.5', '2'), ('30', '32'), ('10', '15')):
+            self.assertContains(response, f'value="{value}"')
+            self.assertContains(response, f'data-default="{default}"')
+        self.assertContains(response, f'action="{reverse("care:settings")}"')
+
+    def test_guide_links_open_in_a_new_tab(self):
+        response = self.client.get(reverse('care:index'))
+        self.assertContains(response, 'class="care-limit-link" href="https://', count=3)
+        self.assertContains(response, 'target="_blank" rel="noopener noreferrer">How', count=3)
+        for label in ('How rain affects your plants', 'How heat affects your plants', 'How wind affects your plants'):
+            self.assertContains(response, label)
+
+    def test_preview_has_one_chip_per_hour_today(self):
+        self.remote.return_value.json.return_value = bmkg_payload(
+            slots_from_now(count=2, t=28, tp=0) + slots_from_now(count=1, start_hours=5, t=35)
+        )
+        response = self.client.get(reverse('care:index'))
+        slots = response.context['card']['slots']
+        html = response.content.decode()
+        self.assertEqual(html.count('class="care-preview-chip'), len(slots))
+        self.assertEqual(html.count('class="care-preview-chip is-good"'), sum(slot['good'] for slot in slots))
+        # Readings are written with a dot, so the script can compare them
+        self.assertIn('data-temp="35', html)
+
+    def test_no_preview_when_weather_is_down(self):
+        self.remote.side_effect = requests.ConnectionError('down')
+        response = self.client.get(reverse('care:index'))
+        self.assertContains(response, 'Preferred weather threshold')
+        self.assertNotContains(response, 'Preview for today')
+
+    def test_saving_from_the_card_returns_to_the_list(self):
+        data = {'max_rain_mm': '3', 'max_temp_c': '33.5', 'max_wind_kmh': '20', 'next': '/care/?status=all'}
+        response = self.client.post(reverse('care:settings'), data)
+        self.assertRedirects(response, '/care/?status=all', fetch_redirect_response=False)
+        saved = CareSettings.for_user(self.user)
+        self.assertEqual((saved.max_rain_mm, saved.max_temp_c, saved.max_wind_kmh), (Decimal('3'), Decimal('33.5'), Decimal('20')))
