@@ -163,8 +163,7 @@ python -m venv env
 # Windows: env\Scripts\activate    macOS/Linux: source env/bin/activate
 pip install -r requirements-dev.txt
 python manage.py migrate
-python manage.py seed_marketplace
-python manage.py seed_journal
+python manage.py seed_demo
 python manage.py runserver
 ```
 
@@ -172,21 +171,45 @@ Open http://127.0.0.1:8000/. Without the `PRODUCTION` environment variable the a
 
 ## Demo Data and Accounts
 
-The deployed app has **more than 50 main records**:
+`python manage.py seed_demo` fills every module with demo content set in Jakarta and Depok. Photos are left empty, so the "no photo" tiles show. The data is the same on every run, and dates are counted back from the day you run it.
 
-| Command | What it creates |
+| Module | Records |
 | --- | --- |
-| `python manage.py seed_marketplace` | 50 harvest listings from 10 demo growers (these demo growers cannot log in) |
-| `python manage.py seed_journal` | 2 gardens, 12 plantings and 17 journal entries with photo links, plus the demo accounts below |
+| Accounts | 8 users with profiles (4 growers, 2 buyers, 2 with both roles), each with a valid BMKG village code |
+| Gardens | 16 gardens (11 public, 5 private) and 50 plantings, all planted in the past 2 months |
+| Journal | 43 plant journals with 276 entries (3 to 10 each, from planting day to today); 7 plantings have no entries, so the empty state shows |
+| Care | 30 tasks, 5 per grower, in all three statuses and linked to the grower's own plantings |
+| Marketplace | 54 listings (9 per grower) with rupiah prices; some are free, a few paused, a few starting soon |
+| Forum | 15 questions covering all 7 topics, with 47 answers (0 to 6 each, never from the person who asked) |
 
-Both commands are safe to run again: they don't create duplicates and don't touch real users' records.
+![seed_demo summary: records per module and test results](docs/screenshots/seed-demo.jpg)
 
-| Username | Password | Role |
+**Locally**, after `python manage.py migrate`:
+
+```
+python manage.py seed_demo
+```
+
+**On PWS**, set the `DEMO_PASSWORD` environment variable first, then run the same command wherever you run `migrate` for the deployment. Add `--force` if `DEBUG` is off there.
+
+| Flag | What it does |
+| --- | --- |
+| *(none)* | Creates whatever is missing. Running it again adds no duplicates. |
+| `--reset` | Deletes every account whose username starts with `demo_`, and everything those accounts own, then seeds again. Other accounts are never touched. This also removes the `demo_` accounts made by `seed_journal` and `seed_marketplace`. |
+| `--force` | Lets the command run while `DEBUG` is off. Without it, the command refuses. |
+
+All demo users share one password: the `DEMO_PASSWORD` setting, which is read from the environment and defaults to `tanam-sayur-demo` for local use.
+
+| Username | Role | Area |
 | --- | --- | --- |
-| `demo_grower` (Sari) | `Seedling-Tray-42` | Grower: owns the demo gardens and journals |
-| `demo_buyer` (Dewi) | `Seedling-Tray-42` | Buyer: sees public gardens and journals read-only |
-
-These are demo accounts with demo data only.
+| `demo_ayu` | Grower | Tebet, Jakarta Selatan |
+| `demo_bima` | Grower | Beji, Depok |
+| `demo_rina` | Grower | Pulogadung, Jakarta Timur |
+| `demo_dimas` | Grower | Pancoran Mas, Depok |
+| `demo_nadia` | Grower and buyer | Beji, Depok |
+| `demo_yoga` | Grower and buyer | Jagakarsa, Jakarta Selatan |
+| `demo_sekar` | Buyer | Tebet, Jakarta Selatan |
+| `demo_fajar` | Buyer | Beji, Depok |
 
 ## Testing and Coverage
 
@@ -195,7 +218,7 @@ coverage run --source=accounts,main,marketplace,forum,gardens,journal manage.py 
 coverage report
 ```
 
-Result on `main` on 30 Oct 2026: **430 tests, all passing, 98% total coverage** across the six apps. Tests cover valid and invalid forms, full CRUD, owner checks, login-only data, private records, filters and pagination, JSON endpoints, CSRF, input escaping, weather API failures (mocked) and the seed commands.
+Result on 30 Oct 2026: **505 tests, all passing**. Coverage was 98% across the six apps at the last full measurement (430 tests, before `seed_demo` and its tests). Tests cover valid and invalid forms, full CRUD, owner checks, login-only data, private records, filters and pagination, JSON endpoints, CSRF, input escaping, weather API failures (mocked) and the seed commands.
 
 GitHub Actions (`.github/workflows/django-tests.yml`) runs on every pull request and on pushes to `main` and feature branches. It runs `manage.py check`, checks that no migrations are missing, runs `collectstatic`, then runs the tests with a minimum coverage of 80% (`.coveragerc`).
 
@@ -242,13 +265,61 @@ Taken from a local run with the demo data.
 
 ## AI Disclosure
 
-We used AI tools during this project. Every member is responsible for their own module and can explain every part of it. No AI-generated images or logos are used anywhere in the app or the Figma file.
+We used AI tools as helpers during this project. Each member is responsible for their own module and can explain every part of it. No AI-generated images or logos are used anywhere in the app or the Figma file.
 
-### Group level
+### Tools and what we used them for
 
-- **ChatGPT** helped draft the first project description and module plan for Checkpoint 1. The group reviewed and changed the scope and the module split together.
+| Tool | Used for |
+| --- | --- |
+| ChatGPT | Drafting the first project description and module plan (Checkpoint 1), and help with the marketplace implementation, tests and its documentation ([docs/marketplace.md](docs/marketplace.md)) |
+| Claude Code (Anthropic, in VS Code) | Turning Figma frames into Django templates and CSS, planning views and models, explaining errors, writing tests, and resolving merge conflicts in shared files |
+| Claude (claude.ai) | Planning pieces of work, checking AI-written plans before accepting them, explaining git messages, and drafting group messages. It did not write code into the project |
+| Figma MCP | Letting the assistants read (never edit) our Figma frames |
 
-### Module 3: Plant Progress Journal (Ranu)
+### How we used it
+
+- **We stayed in control of the code.** The AI suggested changes and explained them; we read, typed or applied them ourselves and ran every commit, push, merge and migration ourselves.
+- **Plan first, then build.** For bigger pieces we asked for a plan first, checked it against the repo and the Figma design, and corrected it before any code was written.
+- **Small steps.** We worked one screen or one feature at a time, tested it in the browser, then committed it with a `feat:` / `fix:` / `test:` style message.
+- **Follow the course style.** We asked for the PBP tutorial patterns (function views, ModelForms, `fetch` with the CSRF token, Django `TestCase`) so the code stays familiar and we can defend it.
+- **We made the decisions.** Scope, module split, design and behaviour choices (for example who can see what, photo limits, which filters exist) were decided by us, not by the AI.
+
+### Limitations we ran into and what we fixed by hand
+
+- **Out-of-date view of the repo.** A first plan said the marketplace app didn't exist because a branch hadn't been fetched yet, and it missed the existing grower role (`Profile.is_grower`). We checked GitHub and corrected the plan.
+- **Design details.** Generated templates were sometimes off from Figma (text too big, an arrow pointing the wrong way, the fixed navbar covering the top of a page). We compared each page with the Figma frame and fixed them.
+- **Small logic bugs.** A link with `#timeline` made the page jump; `floatformat` rounded 12.75 cm to one decimal; removing all photos on Edit didn't bring back the upload box. We found these while testing and fixed them.
+- **Missing tests.** Tests for a seed command were forgotten until the coverage report showed the gap.
+- **Integration.** The AI didn't plan for teammates' apps being merged later; when the gardens app landed, a temporary model had to be removed and migrations reset by hand.
+- **Figma gives React and Tailwind code**, which we don't use, so every frame had to be rewritten as Django templates and plain CSS.
+
+### Per module
+
+#### Module 1: Landing Page, Authentication and User Profiles (Idris)
+
+**Tools and purpose**
+
+- **Claude Code** (Anthropic) inside VS Code as a coding assistant. It edited the project files in small stages from my instructions.
+- **Claude on claude.ai** as a design and planning helper in a separate chat. It helped me when I was confused about git, reviewed Claude Code's results and explained git problems.
+- **Figma MCP**, so Claude on claude.ai could read the design frames and tell me what still didn't match the Figma design.
+
+**Prompt strategy**
+
+- I wrote the cookie handling in the auth views myself (setting and deleting the `last_login` cookie and the "Remember me" session behaviour). I used AI mainly for the HTML templates, CSS and JavaScript (AJAX forms, password toggle, navbar menu, GSAP animations).
+- Every prompt required the PBP tutorial patterns: function views (`register`, `login_user`, `logout_user`), `UserCreationForm` and `AuthenticationForm`, `@login_required`, messages and `{% csrf_token %}`, so I could explain each part.
+- Before opening a pull request I ran a review-only pass: Claude Code listed bugs and duplicated code, and things were only changed after I edited them myself.
+- I made the design and behaviour decisions myself, for example the double navbar with a grower sub-nav, a signed-in Home page that doesn't depend on other modules' data, no profile photo upload (no file storage on PWS), no scroll-pinned animations, and animations that always run but stay small and fast.
+
+**Limitations and manual fixes**
+
+- Login seemed to be forgotten between pages. The causes were signed-in users seeing an empty login form, separate cookies for `localhost` and `127.0.0.1`, and a CSRF "Origin checking failed" error on PWS, fixed with `CSRF_TRUSTED_ORIGINS`.
+- The animations didn't run at all when Windows "Animation effects" was off, because of a reduced-motion check. I changed them to always run, with shorter movement and faster text.
+- The market preview first showed "Image placeholder" text and hard-coded listings in the template. I moved the demo listings into the view with a TODO for Module 4.
+- Users created with `createsuperuser` had no `Profile`, so `user.profile` crashed. Profiles are now created automatically.
+- The first signed-in Home design needed data from four other modules, so I simplified it to only use Module 1 data and links.
+- Long design and code changes sometimes had layout bugs (navbar overflowing, misaligned cards, overlapping logos), which I found from screenshots and asked to be fixed.
+
+#### Module 3: Plant Progress Journal (Angin)
 
 **Tools and purpose**
 
@@ -281,10 +352,44 @@ We used AI tools during this project. Every member is responsible for their own 
 
 **Chat history:** [Claude Code log for Module 3](https://gist.github.com/anginputih-droid/571ff3ef996a465baf72cf448b11ff50). It is an edited excerpt of the real log: private data (email, passwords, local paths), off-topic parts and another member's module were removed, and long code and tool output were shortened. Every cut is marked with [...] or [Removed: ...]. Nothing was reworded, added or reordered. The planning chat with Claude on claude.ai is not linked because it also covers other members' work, but it can be shown on request.
 
-### Module 4: Harvest Marketplace (Marcel)
+#### Module 4: Harvest Marketplace (Marcel)
 
 ChatGPT assisted with the Django implementation, adapting the shared Figma design, tests and integration documentation. See [docs/marketplace.md](docs/marketplace.md) for the scope and how it was verified.
 
-### Modules 1, 2, 5 and 6
+#### Module 6: Discussion Forum (Paramita)
 
-<!-- Idris, Azkal, Tahir, Paramita: replace this with your own short disclosure: which tools, what you used them for, and at least one thing you had to fix yourself. Write "No AI tools were used" if that is true. -->
+**Tools and purpose**
+
+- **Claude on claude.ai** (Anthropic, Claude Sonnet 5.5) in one chat, used as a code reviewer and helper for the forum module only. I uploaded the forum files (`models.py`, `forms.py`, `views.py`, `urls.py`, the templates, CSS and JS), then `base.html`, `style.css`, `settings.py` and the project `urls.py` when asked. Claude read them and wrote its findings, fixes and test code in the chat. It had no access to my repository, database or server, and it could not run my project.
+- I used it for four things:
+  - a review for bugs and vulnerabilities;
+  - a unit test file for the forum module;
+  - fixes for specific problems I reported;
+  - a management command to seed demo data on PWS.
+
+**Prompt strategy**
+
+- I first gave the full context: the stack, the module brief and all forum files. I asked for bugs and vulnerabilities, with the code, where to add it and which other files needed changes.
+- I also asked Claude which extra files I should upload, then uploaded `settings.py` and the project `urls.py`.
+- I asked for the unit tests (coverage above 80%) as a separate step, after the review.
+- My follow-up prompts were narrow:
+  - one bug I found myself: the reply sort resets after creating or editing a reply;
+  - two items from the review, rate limiting and session size, where I asked for a "complete and concise guide".
+- For the seed data I gave Claude my Profile model and the 10 display names.
+- I decided which suggestions to apply. <!-- Mita: say which ones you applied, changed or skipped -->
+
+**Limitations and manual fixes**
+
+- Claude could not run Django in its environment, so the fixes, tests and seed script were not run by it. I ran them myself. <!-- Mita: add your results: coverage %, which tests failed and what you changed -->
+- The first review was written without my accounts app. Claude assumed `accounts:login`, the standard user model and the Profile fields, and the tests depend on these assumptions.
+- The first review missed that `reply_create` and `reply_edit` redirect without the chosen sort. I found this while testing, and Claude then fixed both redirects to keep it.
+- For rate limiting, Claude first suggested a library. After seeing my `settings.py` (no `CACHES`, so each worker would count separately), it switched to a small custom limiter using a shared database cache. It also stored the window start in the cached value, because `incr` on a database cache can extend the expiry.
+- Files Claude generated in the chat were lost or replaced between messages, so some later code came as snippets that I had to merge by hand. <!-- Mita: edit if this didn't happen to you -->
+- The seed script assumes Profile is in `accounts.models` and that it goes in `main/management/commands/`. It creates accounts with fake data and one shared password. <!-- Mita: confirm whether you ran it on PWS -->
+- Claude also pointed out `DEBUG = True`, the committed `SECRET_KEY` and media serving in production. These were advice only. <!-- Mita: say what you changed -->
+
+**Chat history:** https://claude.ai/share/268309b0-3ec8-47a5-b2ff-afb44702c572. This was one claude.ai chat that covers only the forum module.
+
+#### Modules 2 and 5
+
+The owners' own AI disclosure was not received before the deadline. Any AI use in those modules is the owner's to disclose.
