@@ -4,7 +4,7 @@
 {% block head %}<script defer src="{% static 'js/garden-photo.js' %}"></script>{% endblock head %}
 {% block content %}
 {% include 'partials/grower_subnav.html' %}
-<section class="gardens-page" aria-labelledby="planting-form-heading">
+<section class="gardens-page gardens-form-page" aria-labelledby="planting-form-heading">
     <header class="gardens-page-heading">
         <div>
             <a class="gardens-back-link" href="{% url 'gardens:detail' garden.pk %}"><img src="{% static 'img/gardens/back.svg' %}" alt="">Back to {{ garden.name }}</a>

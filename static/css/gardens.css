@@ -754,6 +754,13 @@ img.garden-photo {
     gap: 18px;
 }
 
+/* Add and edit pages: the heading and the form card sit together in the middle */
+.gardens-form-page > .gardens-page-heading,
+.gardens-form-page > .garden-form {
+    max-width: 820px;
+    margin-inline: auto;
+}
+
 .garden-form-field label {
     display: block;
     margin-bottom: 10px;
