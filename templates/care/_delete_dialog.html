@@ -1,0 +1,14 @@
+{# Delete confirmation, drawn over the task list. Works without JavaScript: Keep it is a link, Delete posts the form. #}
+<div class="care-dialog-backdrop">
+    <div class="care-dialog" role="alertdialog" aria-modal="true" aria-labelledby="care-dialog-title" aria-describedby="care-dialog-text">
+        <h2 id="care-dialog-title">Delete this task?</h2>
+        <p id="care-dialog-text">&ldquo;{{ task.title }}&rdquo;, {% if task.target_date == today %}due today{% else %}due {{ task.target_date|date:'D, j M' }}{% endif %}, will be removed. This can&rsquo;t be undone.</p>
+        <form method="post" action="{% url 'care:delete' task.pk %}">
+            {% csrf_token %}
+            <div class="care-dialog-actions">
+                <a class="outline-button" href="{% url 'care:index' %}" data-dialog-cancel autofocus>Keep it</a>
+                <button class="pill-button gardens-danger" type="submit">Delete task</button>
+            </div>
+        </form>
+    </div>
+</div>

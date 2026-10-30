@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     'marketplace',
     'forum',
     'gardens',
+    'weather',
+    'care',
     'journal',
 ]
 
@@ -133,6 +135,9 @@ USE_I18N = True
 
 USE_TZ = True
 
+# Weather: BMKG village code (adm4) used when a profile has no area set
+BMKG_DEFAULT_ADM4 = os.getenv('BMKG_DEFAULT_ADM4', '31.71.03.1001')
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
@@ -141,7 +146,13 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Files people upload, like journal photos
+# Hashed file names in production, so browsers never keep an old CSS or JS file after a deploy
+if PRODUCTION:
+    STORAGES = {
+        'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+        'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'},
+    }
+    
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 

@@ -1,0 +1,37 @@
+{% load static %}
+<tr{% if task.status == 'completed' %} class="is-done"{% endif %}>
+    <td>
+        <div class="care-task-cell">
+            <span class="care-task-title">{{ task.title }}</span>
+            {% if task.notes %}
+            <span class="care-task-note"><img src="{% static 'img/gardens/lock.svg' %}" alt="Private note:">{{ task.notes|truncatechars:90 }}</span>
+            {% endif %}
+        </div>
+    </td>
+    <td class="care-target" data-label="Completion target">
+        <time datetime="{{ task.target_date|date:'Y-m-d' }}{% if task.target_time %}T{{ task.target_time|time:'H:i' }}{% endif %}">
+            {% if task.target_date == today %}Today, {{ task.target_date|date:'j M' }}{% else %}{{ task.target_date|date:'D, j M' }}{% endif %}{% if task.target_time %} &middot; {{ task.target_time|time:'H:i' }}{% endif %}
+        </time>
+    </td>
+    <td class="care-plant" data-label="Plant">{{ task.planting.display_name }}, {{ task.planting.garden.name }}</td>
+    <td data-label="Status">
+        <span class="care-status" data-status="{{ task.status }}">{% if task.status == 'completed' %}{% include 'svg/icons/check.svg' %}{% endif %}{{ task.get_status_display }}</span>
+    </td>
+    <td class="care-actions">
+        <details class="garden-more">
+            <summary aria-label="More actions for {{ task.title }}"><img src="{% static 'img/gardens/more.svg' %}" alt=""></summary>
+            <div class="garden-more-menu">
+                <a href="{% url 'care:edit' task.pk %}">Edit</a>
+                {% for value, label in status_choices %}{% if value != task.status %}
+                <form method="post" action="{% url 'care:status' task.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="status" value="{{ value }}">
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button type="submit">Mark {{ label|lower }}</button>
+                </form>
+                {% endif %}{% endfor %}
+                <a class="garden-more-delete" href="{% url 'care:delete' task.pk %}">Delete</a>
+            </div>
+        </details>
+    </td>
+</tr>

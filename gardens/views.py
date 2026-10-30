@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q, Value
 from django.db.models.functions import Coalesce, Lower, NullIf
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import NoReverseMatch, reverse
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
@@ -325,6 +326,14 @@ def planting_detail(request, garden_pk, planting_pk):
         pk=planting_pk,
         garden_id=garden_pk,
     )
+    # A clicked plant opens its Plant journal page (Module 3) once that app is installed;
+    # the journal view checks who may see it. Until then the gardens plant page shows.
+    try:
+        journal_url = reverse('journal:plant_detail', args=[planting.pk])
+    except NoReverseMatch:
+        journal_url = None
+    if journal_url:
+        return redirect(f'{journal_url}?from=garden')
     garden = planting.garden
     is_owner = garden.owner_id == request.user.pk
     if not is_owner and not (garden.is_public and garden.owner.is_active):

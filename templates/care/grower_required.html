@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Grower access required · UrFunFarming{% endblock %}
+{% block content %}
+<section class="gardens-page" aria-labelledby="grower-required-heading">
+    <div class="garden-delete-panel">
+        <p class="eyebrow">PLANT CARE</p>
+        <h1 id="grower-required-heading">Add the grower role to plan plant care</h1>
+        <p>Your account can be both a grower and a buyer. Update your roles to keep care tasks for your plantings.</p>
+        <div class="gardens-actions">
+            <a class="pill-button" href="{% url 'accounts:profile' %}#roles">Update my roles</a>
+            <a class="outline-button" href="{% url 'main:home' %}">Return home</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

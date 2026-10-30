@@ -274,5 +274,5 @@ def pickup_weather(request, pk):
             return _json_error('Invalid pickup filters.', 400, errors=form_errors(form))
         if context.get('weather_error'):
             return _json_error(context['weather_error'], 503)
-        return JsonResponse({'source': 'Open-Meteo', 'city': listing.city, 'timezone': 'Asia/Jakarta', 'fetched_at': context['weather_fetched_at'], 'results': [{**s, 'time': s['time'].isoformat()} for s in context['weather_slots']]})
+        return JsonResponse({'source': 'BMKG', 'city': listing.city, 'timezone': 'Asia/Jakarta', 'fetched_at': context['weather_fetched_at'].isoformat(), 'results': [{**s, 'time': s['time'].isoformat()} for s in context['weather_slots']]})
     return render(request, 'marketplace/_weather.html' if _ajax(request) else 'marketplace/detail.html', context, status=status)

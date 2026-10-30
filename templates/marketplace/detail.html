@@ -24,5 +24,5 @@
         <a class="market-text-link" href="{% url 'marketplace:index' %}?grower={{ listing.owner.username|urlencode }}">More harvests from this grower →</a>
     </aside>
 </div>
-<section class="market-panel market-weather-panel"><div><p class="market-eyebrow">PLAN YOUR PICKUP</p><h2>Find a good time to collect</h2><p>Filter hourly forecasts for {{ listing.city }} by time, rain and temperature. Times are in WIB; forecasts use the approximate city location.</p></div><div id="pickup-weather-results" aria-live="polite">{% include 'marketplace/_weather.html' %}</div></section>
+<section class="market-panel market-weather-panel"><div><p class="market-eyebrow">PLAN YOUR PICKUP</p><h2>Find a good time to collect</h2><p>Filter 3-hourly forecasts for the next 3 days in {{ listing.city }} by time, rain and temperature. Times are in WIB; forecasts use the approximate city location.</p></div><div id="pickup-weather-results" aria-live="polite">{% include 'marketplace/_weather.html' %}</div></section>
 {% endblock %}

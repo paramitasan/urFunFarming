@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Plant care · UrFunFarming{% endblock %}
+{% block head %}{% include 'care/_assets.html' %}{% endblock head %}
+{% block content %}
+{% include 'partials/grower_subnav.html' %}
+<section class="gardens-page care-page" aria-labelledby="care-heading"{% if delete_task %} inert{% endif %}>
+    {% include 'care/_messages.html' %}
+    <header class="gardens-page-heading">
+        <div>
+            <p class="eyebrow">CHECK THE WEATHER, PLAN YOUR CARE</p>
+            <h1 id="care-heading">Plant care</h1>
+            <p class="gardens-subtitle">Keep a to-do list for each planting and pick times the weather agrees with.</p>
+        </div>
+        <a class="pill-button" href="{% url 'care:create' %}"><img src="{% static 'marketplace/img/imgIconPlus.svg' %}" alt="">Add task</a>
+    </header>
+
+    {% include 'weather/_hourly_card.html' with weather=weather slots=card.slots later=card.later summary=card.summary summary_rain=card.rain legend='Green hours: suggested time to do plant care tasks based on your preferred weather threshold' %}
+
+    {% include 'care/_threshold_panel.html' %}
+
+    <section class="care-tasks" aria-labelledby="care-tasks-heading">
+        <div class="care-tasks-heading">
+            <div>
+                <h2 id="care-tasks-heading">Plant care tasks</h2>
+                <p>Only you can see your tasks and notes.</p>
+            </div>
+            <form method="get" action="{% url 'care:index' %}" data-autosubmit>
+                <input type="hidden" name="status" value="{{ status }}">
+                <label class="list-sort">
+                <span class="visually-hidden">Sort tasks</span>
+                <select name="sort">
+                    {% for value, label in filter_form.fields.sort.choices %}
+                    <option value="{{ value }}"{% if value == sort %} selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                </label>
+                <button class="outline-button garden-apply" type="submit">Sort</button>
+            </form>
+        </div>
+
+        <nav class="care-chips" aria-label="Filter tasks by status">
+            {% for value, label, count in status_filters %}
+            <a class="chip care-chip" href="?status={{ value }}&amp;sort={{ sort }}"{% if value == status %} aria-current="true"{% endif %}>{{ label }} <span>{{ count }}</span></a>
+            {% endfor %}
+        </nav>
+
+        {% if tasks %}
+        <div class="care-table-wrap">
+            <table class="care-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Task</th>
+                        <th scope="col">Completion target</th>
+                        <th scope="col">Plant</th>
+                        <th scope="col">Status</th>
+                        <th scope="col"><span class="garden-visually-hidden">Actions</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in tasks %}
+                    {% include 'care/_task_row.html' %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% elif total_tasks %}
+        {% url 'care:index' as all_url %}
+        {% include 'gardens/_empty_state.html' with heading_id='care-empty-heading' title='No tasks with this status' text='Pick another filter to see the rest of your tasks.' button_url=all_url|add:'?status=all' button_label='Show all tasks' reset=True %}
+        {% else %}
+        {% url 'care:create' as create_url %}
+        {% include 'gardens/_empty_state.html' with heading_id='care-empty-heading' title='No tasks yet' text='Add one for each planting. New tasks start as “To do”.' button_url=create_url button_label='Add your first task' %}
+        {% endif %}
+    </section>
+</section>
+{% if delete_task %}{% include 'care/_delete_dialog.html' with task=delete_task %}{% endif %}
+{% endblock %}

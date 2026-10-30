@@ -259,8 +259,7 @@ class ProfilePageTest(AccountTestCase):
             'save_profile': '1',
             'display_name': 'Idris K',
             'bio': 'Balcony grower in Tebet.',
-            'area': 'Tebet',
-            'city': 'Jakarta',
+            'location': '31.74.01.1001',
             'phone': '+62 812 3456 7890',
             'contact_email': 'idris@example.com',
             'is_grower': 'on',
@@ -295,7 +294,8 @@ class ProfilePageTest(AccountTestCase):
         self.assertContains(response, 'Profile saved.')
         self.profile.refresh_from_db()
         self.assertEqual(self.profile.display_name, 'Idris K')
-        self.assertEqual(self.profile.city, 'Jakarta')
+        self.assertEqual((self.profile.area, self.profile.city), ('Tebet', 'Jakarta Selatan'))
+        self.assertEqual(self.profile.adm4_code, '31.74.01.1001')
         self.assertTrue(self.profile.is_buyer)
 
     def test_profile_update_with_fetch(self):
@@ -304,6 +304,28 @@ class ProfilePageTest(AccountTestCase):
         data = response.json()
         self.assertEqual(data['status'], 'success')
         self.assertEqual(data['profile']['initials'], 'IK')
+
+    def test_location_is_picked_from_the_list(self):
+        response = self.client.get(reverse('accounts:profile'))
+        # Grouped by "District, City" so it works without JavaScript too
+        self.assertContains(response, '<optgroup label="Tebet, Jakarta Selatan">', html=False)
+        self.assertContains(response, '<option value="31.74.01.1001">Tebet Timur</option>')
+
+    def test_unknown_location_code_is_rejected(self):
+        self.data['location'] = '99.99.99.9999'
+        response = self.client.post(reverse('accounts:profile'), self.data, HTTP_X_REQUESTED_WITH='fetch')
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('location', response.json()['errors'])
+        self.profile.refresh_from_db()
+        self.assertEqual(self.profile.adm4_code, '')
+
+    def test_saved_location_is_preselected_and_can_be_cleared(self):
+        self.client.post(reverse('accounts:profile'), self.data)
+        response = self.client.get(reverse('accounts:profile'))
+        self.assertContains(response, '<option value="31.74.01.1001" selected>Tebet Timur</option>')
+        self.client.post(reverse('accounts:profile'), {**self.data, 'location': ''})
+        self.profile.refresh_from_db()
+        self.assertEqual((self.profile.adm4_code, self.profile.area, self.profile.city), ('', '', ''))
 
     def test_bio_over_300_characters(self):
         self.data['bio'] = 'a' * 301

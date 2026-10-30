@@ -372,12 +372,366 @@ select:disabled {
     }
 }
 
+/* Keyboard focus: the same forest ring on every link and button, instead of the browser's black one */
+:focus-visible {
+    outline: 2px solid var(--color-forest);
+    outline-offset: 3px;
+}
+
+/* Typing fields light up their own box with a green ring instead (see .list-search and the form fields) */
+input:not([type="checkbox"], [type="radio"], [type="file"]):focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: none;
+}
+
 .outline-button:focus-visible,
 .pill-button:focus-visible,
 .role-chip-add:focus-visible,
 .subnav a:focus-visible {
-    outline: 2px solid var(--color-forest);
     outline-offset: 2px;
+}
+
+/* Shared list pages (Gardens, Marketplace, Forum, Plant care): search row, results with sort, filters beside */
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.list-toolbar,
+.list-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 16px 32px;
+}
+
+.list-toolbar {
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.list-layout {
+    align-items: start;
+    gap: 32px;
+}
+
+/* The filter panel (or grower card) sits in the right column whatever its order in the HTML */
+.list-layout > aside {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+.list-results {
+    min-width: 0;
+}
+
+.list-search,
+.list-toolbar-select,
+.list-sort {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    height: 56px;
+    padding: 0 18px;
+    border: 1.5px solid var(--color-field);
+    border-radius: 14px;
+    background-color: #FFFFFF;
+}
+
+.list-search:focus-within,
+.list-toolbar-select:focus-within,
+.list-sort:focus-within {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(33, 195, 126, 0.2);
+}
+
+.list-search img,
+.list-search svg,
+.list-toolbar-select img {
+    flex-shrink: 0;
+    color: var(--color-deep);
+}
+
+.list-search input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    -webkit-appearance: none;
+    appearance: none;
+    font: 400 16px/normal 'Poppins', sans-serif;
+    color: var(--color-ink);
+}
+
+.list-search input::-webkit-search-decoration {
+    -webkit-appearance: none;
+}
+
+.list-search input::placeholder {
+    color: var(--color-sage);
+    opacity: 1;
+}
+
+.list-toolbar-select select,
+.list-sort select {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    padding-right: 36px;
+    border: 0;
+    outline: none;
+    background-color: transparent;
+    background-position: right center;
+    font: 500 15px/1.2 'Poppins', sans-serif;
+    color: var(--color-forest);
+    cursor: pointer;
+}
+
+.list-results-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 56px;
+    margin-bottom: 20px;
+}
+
+.list-results-heading h2,
+.list-results-heading > p {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.list-results-heading small {
+    display: block;
+    margin-top: 2px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-deep);
+}
+
+.list-sort {
+    flex-shrink: 0;
+    width: 200px;
+}
+
+/* Tablets and phones: one column, filters first */
+@media (max-width: 1023px) {
+    .list-toolbar,
+    .list-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .list-toolbar {
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .list-layout {
+        gap: 20px;
+    }
+
+    .list-layout > aside {
+        grid-column: auto;
+        grid-row: auto;
+        order: -1;
+    }
+}
+
+@media (max-width: 639px) {
+    .list-results-heading {
+        flex-wrap: wrap;
+    }
+
+    .list-sort {
+        width: 100%;
+    }
+}
+
+/* Touch screens: iPhone zooms into any field under 16px */
+@media (hover: none) and (pointer: coarse) {
+    .list-toolbar-select select,
+    .list-sort select {
+        font-size: 16px;
+    }
+}
+
+/* Shared filter panel: Gardens, Marketplace and Forum all use this one look */
+
+.filter-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+    padding: 24px;
+    border: 1px solid var(--color-band);
+    border-radius: 20px;
+    background-color: #FFFFFF;
+    box-shadow: 0 10px 30px rgba(18, 81, 51, 0.06);
+}
+
+/* Follows the scroll next to long result lists */
+@media (min-width: 1024px) {
+    .filter-panel {
+        position: sticky;
+        top: 108px;
+    }
+}
+
+.filter-panel-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.filter-panel-heading h2 {
+    font-size: 20px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.filter-panel-heading a {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-deep);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.filter-panel-heading a:hover {
+    color: var(--color-forest);
+}
+
+.filter-panel-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+/* A fieldset draws its legend on top of its own border, so the divider is a separate element */
+.filter-panel-group + .filter-panel-group::before {
+    content: '';
+    display: block;
+    height: 1px;
+    margin-bottom: 14px;
+    background-color: var(--color-band);
+}
+
+.filter-panel-label,
+.filter-panel-group legend {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.filter-panel-group legend {
+    float: left;
+    width: 100%;
+    margin-bottom: 8px;
+    padding: 0;
+}
+
+.filter-panel-label + .garden-field,
+.filter-panel-label + .market-input {
+    margin-top: 4px;
+}
+
+/* The browser's own radio in the brand green, as in the marketplace design */
+.filter-radio {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 32px;
+    font-size: 14px;
+    line-height: normal;
+    color: var(--color-deep);
+    cursor: pointer;
+}
+
+.filter-radio input {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: var(--color-forest);
+    cursor: pointer;
+}
+
+.filter-radio span {
+    flex: 1;
+    min-width: 0;
+}
+
+.filter-radio input:checked + span {
+    font-weight: 600;
+    color: var(--color-forest);
+}
+
+.filter-radio small {
+    flex-shrink: 0;
+    min-width: 24px;
+    font-size: 12px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-sage);
+    text-align: right;
+}
+
+.filter-panel .outline-button,
+.filter-panel .pill-button {
+    align-self: flex-start;
+}
+
+/* "Show filters" fold on phones and tablets (static/js/filter-panel.js adds the button) */
+.filter-panel-toggle {
+    display: none;
+    margin-left: auto;
+    padding: 6px 12px;
+    border: 1px solid var(--color-band);
+    border-radius: 999px;
+    background-color: var(--color-surface);
+    font: 500 12px/normal 'Poppins', sans-serif;
+    color: var(--color-forest);
+    cursor: pointer;
+}
+
+@media (max-width: 1023px) {
+    .filter-panel {
+        gap: 16px;
+    }
+
+    .js .filter-panel-toggle {
+        display: inline-flex;
+    }
+
+    /* Folded: only the heading shows until the button opens the panel */
+    .js .filter-panel:not(.is-open) > :not(.filter-panel-heading) {
+        display: none;
+    }
+}
+
+@media (max-width: 639px) {
+    .filter-panel {
+        padding: 18px;
+    }
 }
 
 /* Grower sub-nav under the navbar */
@@ -884,7 +1238,6 @@ select:disabled {
 }
 
 .step:focus-visible {
-    outline: 2px solid var(--color-accent);
     outline-offset: 2px;
 }
 
@@ -1338,6 +1691,11 @@ select:disabled {
     color: var(--color-light);
 }
 
+/* The tiles sit on dark green, so their focus ring is light */
+.tile:focus-visible {
+    outline-color: var(--color-light);
+}
+
 .tile-cta {
     align-self: flex-start;
     display: inline-flex;
@@ -1407,6 +1765,346 @@ select:disabled {
 .footer-note {
     font-size: 14px;
     line-height: 1.5;
+}
+
+/* Shared weather line (templates/weather/_line.html) */
+.weather-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 12px;
+    font-size: 14px;
+    color: var(--color-deep);
+}
+
+.weather-line strong {
+    color: var(--color-forest);
+}
+
+.weather-source {
+    font-size: 12px;
+    color: var(--color-deep);
+}
+
+.weather-source a,
+.weather-set-area {
+    font-weight: 600;
+    color: var(--color-forest);
+}
+
+.weather-set-area {
+    font-size: 13px;
+}
+
+/* Shared hourly weather card (templates/weather/_hourly_card.html) */
+.weather-card {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 20px 24px;
+    border: 1px solid var(--color-band);
+    border-radius: 20px;
+    background-color: var(--color-surface);
+    box-shadow: 0 10px 30px rgba(18, 81, 51, 0.06);
+}
+
+.weather-card-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 24px;
+}
+
+.weather-card-top h2 {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.weather-card-top p,
+.weather-card-legend {
+    font-size: 13px;
+    line-height: normal;
+    color: var(--color-deep);
+}
+
+.weather-card-legend a,
+.weather-days summary {
+    font-weight: 600;
+    color: var(--color-forest);
+    cursor: pointer;
+}
+
+.weather-hours {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+    gap: 10px;
+}
+
+.weather-hour {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 12px;
+    border: 1.5px solid var(--color-field);
+    border-radius: 14px;
+    background-color: #FFFFFF;
+    /* Lifts the hour off the card so it doesn't blend into the background */
+    box-shadow: 0 2px 8px rgba(18, 81, 51, 0.06);
+    color: var(--color-deep);
+    text-align: center;
+}
+
+.weather-hour.is-good {
+    border: 1.5px solid var(--color-accent);
+    background-color: var(--color-mist);
+    color: var(--color-forest);
+}
+
+.weather-hour time {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.weather-hour .icon {
+    width: 28px;
+    height: 28px;
+}
+
+.weather-hour strong {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.weather-hour span {
+    font-size: 12px;
+    color: var(--color-sage);
+}
+
+.weather-hour.is-good span {
+    color: var(--color-deep);
+}
+
+.weather-card-note {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px 24px;
+}
+
+.weather-card-note > p {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-deep);
+}
+
+.weather-card-note > p .icon {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    color: var(--color-amber);
+}
+
+.weather-card-note > p.is-rain .icon {
+    color: #8A5A12;
+}
+
+.weather-good-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+}
+
+.weather-days {
+    margin-left: auto;
+    font-size: 13px;
+}
+
+.weather-days summary {
+    text-align: right;
+    list-style: none;
+}
+
+.weather-days summary::-webkit-details-marker {
+    display: none;
+}
+
+.weather-days[open] {
+    flex-basis: 100%;
+    /* Lets each day's row scroll on phones instead of widening the page */
+    min-width: 0;
+}
+
+/* Next 3 days: one block per day, one small tile per hour */
+.weather-days summary::after {
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin: 0 2px 3px 8px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg);
+}
+
+.weather-days[open] summary::after {
+    margin-bottom: 0;
+    transform: rotate(-135deg);
+}
+
+.weather-day {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--color-hairline);
+}
+
+.weather-day h3 {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.weather-day ol {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+    gap: 10px;
+}
+
+.weather-day li {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 10px;
+    border: 1.5px solid var(--color-field);
+    border-radius: 14px;
+    background-color: #FFFFFF;
+    box-shadow: 0 2px 8px rgba(18, 81, 51, 0.06);
+    color: var(--color-deep);
+    text-align: center;
+}
+
+/* Same green as today's hours when the hour is within the grower's limits */
+.weather-day li.is-good {
+    border-color: var(--color-accent);
+    background-color: var(--color-mist);
+}
+
+.weather-day time {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-forest);
+}
+
+.weather-day .icon {
+    width: 22px;
+    height: 22px;
+}
+
+.weather-day strong {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-forest);
+}
+
+.weather-day-description {
+    min-height: 2.6em;
+    font-size: 12px;
+    line-height: 1.3;
+    color: var(--color-sage);
+}
+
+/* Rain and wind rows (templates/weather/_readings.html), on today's hours and the next days */
+.weather-readings {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 100%;
+    max-width: 170px;
+    padding-top: 8px;
+    border-top: 1px solid var(--color-band);
+    font-size: 12px;
+}
+
+.weather-hour.is-good .weather-readings,
+.weather-day li.is-good .weather-readings {
+    border-top-color: var(--color-mint);
+}
+
+.weather-readings div {
+    display: flex;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.weather-readings dt {
+    color: var(--color-sage);
+}
+
+.weather-readings dd {
+    font-weight: 600;
+    color: var(--color-deep);
+    white-space: nowrap;
+}
+
+.weather-card-unavailable {
+    padding: 14px 16px;
+    border-radius: 14px;
+    background-color: var(--color-mist);
+    font-size: 14px;
+    color: var(--color-deep);
+}
+
+@media (max-width: 767px) {
+    .weather-card {
+        padding: 18px 16px;
+    }
+
+    /* Hours scroll sideways on phones instead of squeezing */
+    .weather-hours {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+    }
+
+    /* Same width as the next days' hours, so the rain and wind fit on one line */
+    .weather-hour {
+        flex: 0 0 112px;
+        scroll-snap-align: start;
+    }
+
+    .weather-days {
+        margin-left: 0;
+    }
+
+    /* Each day's hours scroll sideways, like today's */
+    .weather-day ol {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        padding-bottom: 4px;
+    }
+
+    .weather-day li {
+        flex: 0 0 112px;
+        scroll-snap-align: start;
+    }
 }
 
 /* Smaller screens */

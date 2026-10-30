@@ -202,6 +202,68 @@
     color: var(--color-deep);
 }
 
+/* Location: City, District and Village dropdowns */
+
+.location-field {
+    /* No flex on the fieldset itself: Safari and older Chrome ignore it there */
+    min-width: 0;
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.location-field > * + * {
+    margin-top: 8px;
+}
+
+.location-field legend {
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-forest);
+}
+
+.location-pickers {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+}
+
+.location-pickers .field[hidden] {
+    display: none;
+}
+
+.location-pickers .field label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-deep);
+}
+
+.input-wrap select {
+    width: 100%;
+    height: 52px;
+    padding-left: 18px;
+    border: 1.5px solid var(--color-field);
+    border-radius: 14px;
+    font-size: 16px;
+}
+
+.input-wrap select:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(33, 195, 126, 0.2);
+}
+
+.input-wrap select:disabled {
+    background-color: #EEF5E8;
+    color: var(--color-sage);
+}
+
+.has-error .input-wrap select {
+    border: 2px solid var(--color-error);
+}
+
 .input-wrap .readonly-input {
     background-color: #EEF5E8;
     border-color: #EEF5E8;

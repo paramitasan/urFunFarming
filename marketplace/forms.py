@@ -75,7 +75,7 @@ class PickupWeatherForm(forms.Form):
     start_time = forms.TimeField(initial=time(8), widget=forms.TimeInput(attrs={'type': 'time'}))
     end_time = forms.TimeField(initial=time(18), widget=forms.TimeInput(attrs={'type': 'time'}))
     max_rain = forms.DecimalField(
-        label='Maximum rain (mm/h)', min_value=0, max_value=100, decimal_places=2, initial=Decimal('1'),
+        label='Maximum rain (mm)', min_value=0, max_value=100, decimal_places=2, initial=Decimal('1'),
         widget=forms.NumberInput(attrs={'step': '0.1'}),
     )
     max_temperature = forms.DecimalField(
@@ -88,12 +88,13 @@ class PickupWeatherForm(forms.Form):
         for name, field in self.fields.items():
             field.widget.attrs['class'] = 'market-input'
             field.widget.attrs['id'] = f'weather_{name}'
-        self.fields['date'].widget.attrs.update(min=jakarta_today().isoformat(), max=(jakarta_today() + timedelta(days=6)).isoformat())
+        self.fields['date'].widget.attrs.update(min=jakarta_today().isoformat(), max=(jakarta_today() + timedelta(days=2)).isoformat())
 
     def clean_date(self):
         value = self.cleaned_data['date']
-        if not jakarta_today() <= value <= jakarta_today() + timedelta(days=6):
-            raise forms.ValidationError('Choose a date within the next seven days.')
+        # BMKG forecasts cover today and the next two days
+        if not jakarta_today() <= value <= jakarta_today() + timedelta(days=2):
+            raise forms.ValidationError('Choose a date within the next 3 days.')
         return value
 
     def clean(self):

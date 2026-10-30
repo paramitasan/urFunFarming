@@ -1111,27 +1111,6 @@ class GardenHookTest(JournalTestCase):
     def plant_page(self):
         return reverse('gardens:planting_detail', args=[self.garden.pk, self.tomato.pk])
 
-    def test_owner_sees_the_journal_on_the_garden_plant_page(self):
-        self.client.force_login(self.grower)
-        response = self.client.get(self.plant_page())
-        self.assertContains(response, 'Open full timeline')
-        self.assertContains(response, reverse('journal:plant_detail', args=[self.tomato.pk]) + '?from=garden')
-
-    def test_owner_of_a_plant_without_entries_gets_the_new_entry_link(self):
-        self.client.force_login(self.grower)
-        response = self.client.get(reverse('gardens:planting_detail', args=[self.garden.pk, self.chili.pk]))
-        self.assertContains(response, 'Write the first entry')
-        self.assertContains(response, reverse('journal:create_plant_entry', args=[self.chili.pk]))
-
-    def test_visitor_of_a_private_journal_sees_no_entries(self):
-        self.garden.is_public = True
-        self.garden.save()
-        self.client.force_login(self.buyer)
-        response = self.client.get(self.plant_page())
-        self.assertContains(response, 'No journal yet')
-        self.assertNotContains(response, 'Open full timeline')
-        self.assertNotContains(response, 'Write the first entry')
-
     def test_plant_card_shows_the_entry_count_and_journal_link(self):
         self.client.force_login(self.grower)
         response = self.client.get(reverse('gardens:detail', args=[self.garden.pk]))
