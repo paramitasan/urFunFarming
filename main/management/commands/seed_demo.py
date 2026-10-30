@@ -8,6 +8,7 @@ import random
 from collections import Counter
 from datetime import time, timedelta
 from decimal import Decimal
+from uuid import NAMESPACE_URL, uuid5
 
 from django.apps import apps
 from django.conf import settings
@@ -259,6 +260,154 @@ CARE_TASKS = {
 # Five tasks per grower; completed ones are in the past, to-dos in the coming week
 TASK_STATUSES = [('completed', -10, -1), ('completed', -10, -1), ('in_progress', -1, 0), ('todo', 0, 3), ('todo', 1, 7)]
 
+# title, category, unit, (fewest, most) in stock, price in rupiah, per how many units, description
+# A price of 0 is shown as free
+PRODUCTS = [
+    ('Fresh pak choy', 'vegetables', 'bunch', (4, 12), 7000, 1,
+     'Pak choy picked the morning you collect, about 250 g per bunch. Grown without pesticides.'),
+    ('Baby pak choy pack', 'vegetables', 'pack', (3, 8), 12000, 1,
+     'Young pak choy heads, 300 g per pack. Good for stir-fry or soup.'),
+    ('Kangkung bunches', 'vegetables', 'bunch', (5, 15), 5000, 1,
+     'Tender kangkung cut this morning. Perfect for cah kangkung or plecing.'),
+    ('Hydroponic kangkung', 'vegetables', 'g', (500, 2000), 6000, 250,
+     'Clean hydroponic kangkung with no soil on the roots, sold by weight.'),
+    ('Selada keriting', 'vegetables', 'head', (4, 10), 6000, 1,
+     'Crisp curly lettuce from our planters, about 150 g per head.'),
+    ('Hydroponic selada', 'vegetables', 'pack', (3, 8), 15000, 1,
+     'Green and red lettuce, 250 g per pack, roots left on so it stays fresh longer.'),
+    ('Cabai rawit merah', 'vegetables', 'g', (200, 800), 8000, 100,
+     "Very spicy bird's eye chili, picked ripe and red."),
+    ('Cabai rawit hijau', 'vegetables', 'g', (200, 600), 6000, 100,
+     'Green cabai rawit for sambal and pickles, picked this week.'),
+    ('Tomat ceri', 'fruits', 'g', (500, 2000), 12000, 250,
+     'Sweet cherry tomatoes, mixed red and orange. Picked when fully ripe.'),
+    ('Tomat ceri snack box', 'fruits', 'pack', (2, 6), 15000, 1,
+     'A 300 g box of cherry tomatoes, washed and ready to eat.'),
+    ('Sweet basil', 'herbs', 'bunch', (3, 8), 5000, 1,
+     'Fragrant Genovese basil, about 50 g per bunch. Great for pesto.'),
+    ('Kemangi (Thai basil)', 'herbs', 'bunch', (4, 10), 3000, 1,
+     'Kemangi for lalapan and pepes, picked fresh on the day.'),
+    ('Fresh mint', 'herbs', 'bunch', (3, 8), 4000, 1,
+     'Spearmint for tea, drinks or salad, about 40 g per bunch.'),
+    ('Free mint cuttings', 'herbs', 'piece', (5, 15), 0, 1,
+     'Rooted mint cuttings to start your own pot. Free, just bring a small container.'),
+    ('Free basil seedlings', 'herbs', 'piece', (4, 10), 0, 1,
+     'Extra basil seedlings from my tray, about 5 cm tall. Free to a good home.'),
+    ('Kangkung cuttings for regrowing', 'vegetables', 'bunch', (2, 6), 0, 1,
+     'Stems with roots that regrow in water or soil. Free for neighbours.'),
+    ('Cabai rawit seedlings', 'vegetables', 'piece', (4, 12), 2500, 1,
+     'Healthy chili seedlings in small polybags, ready to transplant.'),
+    ('Mixed salad greens', 'vegetables', 'pack', (3, 8), 18000, 1,
+     'Selada, pak choy and basil in one 400 g pack. Enough for a family salad.'),
+    ('Extra pak choy, free', 'vegetables', 'bunch', (2, 5), 0, 1,
+     'Harvested too much this week. Free, first come first served.'),
+    ('Mint and basil bundle', 'herbs', 'pack', (2, 6), 10000, 1,
+     'One bunch of mint and one bunch of basil together.'),
+]
+LISTINGS_PER_GROWER = 9
+
+# author, topic, days ago, marked answered, title, question, [answers from other demo users]
+FORUM = [
+    ('demo_sekar', 'plant_care', 18, True, 'Why are my pak choy leaves full of tiny holes?',
+     'I bought a pak choy seedling at the market two weeks ago and planted it in a pot on my terrace. '
+     'Now the leaves are full of tiny round holes, but I never see any bugs during the day. '
+     'Is it still safe to eat, and how do I stop it?',
+     ['Tiny round holes with no visible bugs is usually flea beetles or caterpillars that feed at night. '
+      'Go out with a torch around 8 pm and check under the leaves.',
+      'It is safe to eat, just wash it well. I cover my pak choy with a cheap insect net and the holes stopped completely.',
+      'Could also be snails if the holes are bigger and there is a shiny trail. A saucer of beer next to the pot works for me.',
+      'Following this, the same thing happened to my selada last month.']),
+    ('demo_bima', 'hydroponics', 25, True, 'What EC should I run for kangkung in NFT?',
+     'My NFT rack has kangkung, pak choy and selada sharing one reservoir. I am running AB mix at about EC 1.4 '
+     'but the kangkung looks pale while the selada is fine. Should I raise it, or split the crops into separate pipes?',
+     ['Kangkung is happy anywhere from 1.2 to 1.8. Pale leaves are more often a pH problem, so check that first.',
+      'Sharing one reservoir is normal for leafy greens. I run 1.6 for mixed greens and top up with plain water when it is hot.',
+      'Check the water temperature too. If the reservoir sits in the sun it can pass 30 °C in the afternoon '
+      'and the roots stop taking up nutrients.',
+      'I wrap my reservoir in an old rice sack and keep it shaded, the difference was big.',
+      'Same thing happened to me and my pH was above 7. Bringing it down to 6.2 fixed it within a week.']),
+    ('demo_rina', 'balcony', 15, False, 'Basil keeps flowering on my west-facing balcony',
+     'My basil gets strong afternoon sun from about 1 pm until sunset. It keeps trying to flower even though '
+     'I pinch the tops every few days, and the leaves are getting smaller. Is it the heat, or am I doing something wrong?',
+     ['Afternoon sun in Jakarta is brutal for basil. A piece of shade net from 1 to 3 pm helps a lot.',
+      'Pinch just above a pair of leaves, not only the flower tip, and harvest more often.',
+      'Kemangi handles the heat better than Genovese in my experience. Maybe try both side by side.']),
+    ('demo_fajar', 'other', 21, True, 'Where can I buy good seeds around Depok?',
+     'I run a small warung near campus and want to start growing some of my own herbs. '
+     'Is there a shop in Depok that sells good seeds, or is online the only option?',
+     ['There is a farm supply shop near Pasar Depok Lama that sells local seed brands, plus polybags and cocopeat.',
+      'I buy online from local seed sellers, but check the packing date. Old seeds germinate badly.',
+      'You can also ask growers here. I have extra basil and kemangi seeds and can drop some off at the warung.',
+      'The city agriculture office sometimes hands out free seeds at Car Free Day on Sunday mornings.']),
+    ('demo_dimas', 'plant_care', 12, True, 'Tomat ceri leaves curling and turning yellow from the bottom',
+     'My cherry tomatoes in the raised bed are about knee high and just starting to flower. The lowest leaves '
+     'are curling and turning yellow, and it is slowly moving upward. We had a lot of rain last week. '
+     'Is this a disease or just the weather?',
+     ['Yellowing from the bottom after heavy rain is often early blight or waterlogged roots. Look for brown rings on the leaves.',
+      'Remove the yellow leaves and throw them away, not in the compost. Mulch with straw so soil does not splash up.',
+      'If the bed drains badly, poke some deep holes with a bamboo stick to let the water out.',
+      'Mine did the same and it was a magnesium deficiency. A spoon of Epsom salt in a watering can fixed it.',
+      'Water only at the base, never the leaves, and preferably in the morning.',
+      'I had this on my rooftop. Spraying diluted baking soda once a week slowed it down a lot.']),
+    ('demo_ayu', 'weather', 9, True, 'How do you protect rooftop plants from heavy afternoon rain?',
+     'Our rooftop in Tebet gets sudden storms around 3 pm almost every day now. The rain flattens my selada '
+     'and splashes soil everywhere. What do you use to cover the plants without blocking all the sun?',
+     ['A clear UV plastic roof on a simple bamboo frame works well. It still lets the light through.',
+      'I check the forecast in the morning and move the pots under the stairs when rain is likely.',
+      'Shade net at 50 percent breaks up the heavy drops and also helps in the midday heat.',
+      'Raise the grow bags off the floor so they do not sit in standing water after the storm.',
+      'Mulch on top of the soil stops most of the splashing.']),
+    ('demo_nadia', 'seedlings', 16, False, 'Selada seeds will not germinate in this heat',
+     'I sowed lettuce seeds three times this month and fewer than a third came up. The trays are on my terrace '
+     'and get warm during the day. Do lettuce seeds need cooler temperatures?',
+     ['Yes, lettuce germinates badly above about 28 °C. Sow in the evening and keep the tray indoors for the first two days.',
+      'Do not bury lettuce seeds, they need light to germinate. Just press them onto the surface.',
+      'Soak the seeds for a few hours, then keep them in a damp tissue in the fridge overnight before sowing.',
+      'I use rockwool and keep it in the shade under the stairs. Germination went from half to almost all.']),
+    ('demo_yoga', 'aeroponics', 11, False, 'Has anyone tried a DIY aeroponic tower with a pond pump?',
+     'I want to build a small aeroponic tower for the community plot using a 20 litre bucket and a cheap pond pump. '
+     'Is a normal pump strong enough for misting, or do I need a high-pressure one?',
+     ['A pond pump will not make a real mist, it is more of a spray. That is still fine for a low-pressure tower, '
+      'it is how most DIY ones work.',
+      'Use a timer, 1 minute on and 5 minutes off. The roots dry out very fast if the pump stops, so watch out for power cuts.']),
+    ('demo_sekar', 'balcony', 7, True, 'Easiest herbs for a beginner with only morning sun?',
+     'I have a small balcony that only gets sun until about 11. I mostly cook Indonesian food. '
+     'Which herbs would actually survive and be useful in the kitchen?',
+     ['Mint is almost impossible to kill and loves morning sun. Keep it in its own pot.',
+      'Kemangi, daun bawang and seledri all do fine with half a day of sun.',
+      'Serai wants more sun but still grows slowly in your conditions. Start from market stalks with the base intact.',
+      'I would skip cabai, it needs full sun to fruit well.',
+      'Pandan in a big pot also works in partial shade and smells great in rice.']),
+    ('demo_bima', 'weather', 5, False, 'Is it worth watering when the forecast says rain in the afternoon?',
+     'Most days the forecast says rain after 2 pm, but sometimes it never comes. '
+     'Do you still water in the morning, or wait and risk it?',
+     ['I always water in the morning anyway. Plants in pots dry out by noon even if it rains later.',
+      'For in-ground beds I skip it if the soil is still damp a finger deep.',
+      'The Plant care page shows the hourly forecast. I only skip watering when it says more than 5 mm of rain.']),
+    ('demo_rina', 'plant_care', 20, True, 'Mint taking over the whole planter, how do I control it?',
+     'I planted mint in a long planter together with basil and selada. Two months later the mint has runners '
+     'everywhere and is choking the others. How do I keep it in check?',
+     ['Mint should always get its own pot. Dig it out and replant it in a separate container.',
+      'If you want it in the planter, sink a bottomless pot or a cut bucket into the soil to hold the roots in.',
+      'Cut it back hard every couple of weeks and use it for tea. It grows back very quickly.']),
+    ('demo_dimas', 'hydroponics', 8, False, 'Algae growing in my wick system reservoir',
+     'The reservoirs of my wick pots have turned green and slimy. The plants still look okay. '
+     'Is the algae harmful, and how do I stop it coming back?',
+     ['Algae grows wherever light reaches the nutrient water. Cover the reservoirs or paint them black.',
+      'It competes for nutrients and oxygen, so clean it out. I scrub mine with diluted hydrogen peroxide '
+      'whenever I change the solution.']),
+    ('demo_fajar', 'other', 3, False, 'How long do kangkung bunches stay fresh after harvest?',
+     'I buy kangkung from growers nearby for the warung. It wilts within a day in the heat. '
+     'Any tips to keep it fresh longer?',
+     ['Stand the stems in a bucket of water like flowers and keep it in the shade. It stays crisp for two days that way.']),
+    ('demo_yoga', 'seedlings', 1, False, 'When should I move cabai seedlings from the tray to polybags?',
+     'My cabai rawit seedlings are about three weeks old with four true leaves. '
+     'Is that the right time to transplant, or should I wait until they are bigger?', []),
+    ('demo_nadia', 'aeroponics', 0, False, 'What mist timer settings work for a small aeroponic box?',
+     'I am setting up a small aeroponic box for selada. How long should the misting cycle be in our hot weather, '
+     'and should it run at night too?', []),
+]
+
 
 class Command(BaseCommand):
     help = 'Create demo users, gardens, journals, care tasks, listings and forum posts. Safe to run more than once.'
@@ -285,6 +434,8 @@ class Command(BaseCommand):
             self.seed_gardens()
             self.seed_journals()
             self.seed_care_tasks()
+            self.seed_listings()
+            self.seed_forum()
 
         self.print_summary()
 
@@ -459,6 +610,71 @@ class Command(BaseCommand):
                     },
                 )
                 self.tally('care tasks', created)
+
+    def seed_listings(self):
+        Listing = self.model('marketplace', 'HarvestListing', 'market listings')
+        if not Listing:
+            return
+
+        for user in self.growers:
+            profile = user.profile
+            rng = self.rng('listings', user.username)
+            for slot, index in enumerate(rng.sample(range(len(PRODUCTS)), LISTINGS_PER_GROWER)):
+                title, category, unit, (fewest, most), price, per, description = PRODUCTS[index]
+                quantity = rng.randrange(fewest, most + 1, 100 if unit == 'g' else 1)
+                # Each grower prices a little differently, rounded to Rp500
+                price = round(price * rng.choice([0.8, 0.9, 1, 1.1, 1.25]) / 500) * 500
+
+                # Most are on offer now, a few start in the next days; some have no end date
+                if rng.random() < 0.15:
+                    available_from = self.today + timedelta(days=rng.randint(1, 5))
+                else:
+                    available_from = self.today - timedelta(days=rng.randint(0, 10))
+                until = None if rng.random() < 0.3 else max(available_from, self.today) + timedelta(days=rng.randint(3, 14))
+
+                # The same id for the same grower and slot on every run
+                pk = uuid5(NAMESPACE_URL, f'urfunfarming/seed_demo/{user.username}/{slot}')
+                _, created = Listing.objects.get_or_create(pk=pk, defaults={
+                    'owner': user, 'title': title, 'category': category, 'unit': unit,
+                    'quantity': Decimal(quantity), 'price': Decimal(price), 'price_quantity': Decimal(per),
+                    'description': f'{description} Collect in {profile.area}.',
+                    'area': profile.area, 'city': 'Depok' if profile.city == 'Depok' else 'Jakarta',
+                    'available_from': available_from, 'available_until': until,
+                    'is_available': rng.random() >= 0.07, 'is_demo': True,
+                })
+                self.tally('market listings', created)
+
+    def seed_forum(self):
+        Question = self.model('forum', 'Forum', 'forum questions')
+        if not Question:
+            return
+        Answer = self.model('forum', 'Reply', 'forum answers')
+        now = timezone.now()
+        usernames = [row[0] for row in USERS]
+
+        for username, topic, days_ago, answered, title, description, answers in FORUM:
+            rng = self.rng('forum', title)
+            asked = now - timedelta(days=days_ago, hours=rng.randint(1, 10))
+            question, created = Question.objects.get_or_create(author=self.users[username], title=title, defaults={
+                'topic': topic, 'description': description, 'is_answered': answered,
+            })
+            self.tally('forum questions', created)
+            if created:
+                # created_at is filled in automatically, so move it back afterwards.
+                # Giving updated_at the same time keeps the "edited" label off.
+                Question.objects.filter(pk=question.pk).update(created_at=asked, updated_at=asked)
+            if not Answer:
+                continue
+
+            # Each answer comes from a different demo user, never the one who asked
+            others = [name for name in usernames if name != username]
+            replied = asked
+            for author, body in zip(rng.sample(others, len(answers)), answers):
+                replied = min(replied + timedelta(hours=rng.randint(1, 6), minutes=rng.randint(0, 59)), now)
+                reply, created = Answer.objects.get_or_create(forum=question, author=self.users[author], body=body)
+                self.tally('forum answers', created)
+                if created:
+                    Answer.objects.filter(pk=reply.pk).update(created_at=replied, updated_at=replied)
 
     def print_summary(self):
         if self.removed:
