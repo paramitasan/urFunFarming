@@ -14,7 +14,7 @@ Faculty of Computer Science, Universitas Indonesia, Odd Semester 2026/2027
 | Repository | https://github.com/paramitasan/urFunFarming/ |
 | Deployed app (PWS) | https://paramita-santoso-urfunfarming.pws.cs.ui.ac.id/ |
 | Figma design | https://www.figma.com/design/rDovEM0bwhNE0xkgKZhwV4/Farmerzz?node-id=0-1&t=uf8tBdtybxcNt5PB-1 |
-| External API | [Open-Meteo Weather Forecast API](https://open-meteo.com/en/docs) |
+| External API | [BMKG public weather forecast API](https://data.bmkg.go.id/prakiraan-cuaca/) |
 
 ## Table of Contents
 
@@ -51,14 +51,16 @@ The marketplace is post based. Growers post a harvest, and signed-in buyers see 
 
 ## Group Members and Modules
 
-| Full name | NPM | Module |
+| Full name | NPM | Assigned module |
 | --- | --- | --- |
-| Muhamad Idris Kamal | 2506637073 | 1. Landing Page, Authentication and User Profiles |
-| Azkal Azkiya Arifi Putra | 2506636991 | 2. Gardens and Plantings |
-| Angin Putih Ranulaksmi Tsurayya Hapsoro | 2506557936 | 3. Plant Progress Journal |
-| Marcel Mikula | 2606816592 | 4. Harvest Marketplace |
-| Tahir Ahmad | 2606816466 | 5. Care Planning and Weather |
-| Paramita Santoso | 2506554171 | 6. Community Questions and Answers (Forum) |
+| Angin Putih Ranulaksmi Tsurayya Hapsoro | 2506557936 | 3 |
+| Azkal Azkiya Arifi Putra | 2506636991 | 2 |
+| Marcel Mikula | 2606816592 | 4 |
+| Muhamad Idris Kamal | 2506637073 | 1 |
+| Paramita Santoso | 2506554171 | 6 |
+| Tahir Ahmad | 2606816466 | 5 |
+
+Module names: 1. Landing Page, Authentication and User Profiles; 2. Gardens and Plantings; 3. Plant Progress Journal; 4. Harvest Marketplace; 5. Care Planning and Weather; 6. Community Questions and Answers (Forum).
 
 Each member owns one module with its own models, forms, views, URLs, templates, permissions, filters, interactivity and tests. Shared parts (base template, navbar, footer, settings, URLs, CI and deployment) were integrated together through pull requests.
 
@@ -103,14 +105,16 @@ One account can be both a grower and a buyer (`accounts.Profile` has `is_grower`
 - Full CRUD for harvest listings: title, description, crop category, quantity and unit, price (zero shows as Free), availability dates, pickup area and city, optional photo link.
 - Live search, combined filters, sorting and pagination with `fetch`; the normal form still works without JavaScript (`/marketplace/`, `/marketplace/mine/`).
 - Grower contact details are only shown to signed-in users, in both HTML and JSON.
-- Pickup weather filter using Open-Meteo (see [External API](#external-api)).
+- Pickup weather filter using BMKG forecasts (see [External API](#external-api)).
 - JSON API: `/marketplace/api/listings/` and `/marketplace/api/listings/<id>/`.
 - More detail in [docs/marketplace.md](docs/marketplace.md).
 
 ### Module 5: Care Planning and Weather (Tahir)
 
-- Care tasks linked to a planting (activity, planned date, notes, done or not), private to the owner, with weather conditions to help pick a time.
-- Status: in progress on the `feat/plant-care` and `feat/care-planning` branches, not merged into `main` yet.
+- Full CRUD for care tasks linked to the grower's own plantings: activity (for example watering), title, target date and optional time, notes and status (`/care/`).
+- Change a task's status from the list, and filter the task list.
+- Each grower sets their own weather limits (maximum rain, temperature and wind) in care settings, and the app suggests good times for a task from the BMKG forecast.
+- Care tasks are private to their owner.
 
 ### Module 6: Community Questions and Answers (Paramita)
 
@@ -121,15 +125,16 @@ One account can be both a grower and a buyer (`accounts.Profile` has `is_grower`
 
 ## External API
 
-We use the **[Open-Meteo Weather Forecast API](https://open-meteo.com/en/docs)**. It is free and needs no API key.
+We use the **[BMKG public weather forecast API](https://data.bmkg.go.id/prakiraan-cuaca/)** (Badan Meteorologi, Klimatologi, dan Geofisika). It is free, needs no API key, and gives forecasts for Indonesian villages by their area code (kode wilayah tingkat IV), which fits our Jabodetabek users.
 
-How it is used on `main` (in `marketplace/weather.py`):
+How it is used:
 
-- On a listing, a buyer can filter pickup hours by date, time window, maximum rain and maximum temperature. The app fetches hourly weather for the listing's city from Open-Meteo and only shows hours that match the filter and fall inside the listing's availability dates.
-- Responses are cached for 15 minutes and requests time out after 5 seconds, so the page still works (with a friendly message) if Open-Meteo is slow or down.
-- Tests mock the API, so CI never calls the real service.
-
-Module 5 will use the same API for care planning once it is merged.
+- **Shared weather service** (`weather/services.py`): every page that shows weather goes through this one file. The server calls BMKG, never the browser, and turns the response into simple hourly slots (temperature, rain, wind, humidity).
+- **Care planning (Module 5):** the forecast for the grower's area is compared with their own limits to suggest good times for a care task.
+- **Marketplace (Module 4):** a buyer can filter pickup hours on a listing by date, time window, maximum rain and maximum temperature. Only hours inside the listing's availability are shown. The forecast is taken for the collection city's centre, never the grower's address.
+- **Profile locations (Module 1):** the city, district and village dropdowns come from a local file (`accounts/data/jabodetabek.json`) with the same area codes BMKG uses.
+- **Failure handling:** results are cached for an hour (BMKG updates twice a day and limits requests per IP), requests time out after 5 seconds, and after a failure the app waits a few minutes before asking again. Pages then show "Weather is unavailable right now" instead of breaking.
+- Tests mock BMKG, so CI never calls the real service.
 
 ## Design System
 
@@ -145,7 +150,7 @@ Module 5 will use the same API for care planning once it is merged.
 - Python 3.12, Django 5.2 (MVT, function views, ModelForms)
 - SQLite locally, PostgreSQL on PWS
 - HTML templates, plain CSS, vanilla JavaScript, HTMX, Bootstrap grid (marketplace)
-- WhiteNoise for static files, Pillow for image uploads
+- WhiteNoise for static files, Pillow for image uploads, Requests for the BMKG API
 - `coverage` and Django `TestCase`, GitHub Actions for CI
 
 ## Run It Locally
