@@ -33,9 +33,11 @@ summary: optional note under the hours (summary_rain=True shows the rain icon). 
     </ol>
     <div class="weather-card-note">
         {% if summary %}<p{% if summary_rain %} class="is-rain"{% endif %}>{% if summary_rain %}{% include 'svg/icons/weather-rain.svg' %}{% else %}{% include 'svg/icons/weather-sun.svg' %}{% endif %}{{ summary }}</p>{% endif %}
+        {% regroup weather.later by time.date as days %}
+        {% if days %}
+        {# Today's hours are already in the row above, so this only lists the days after #}
         <details class="weather-days">
-            <summary>Next 3 days</summary>
-            {% regroup weather.slots by time.date as days %}
+            <summary>Next {{ days|length }} day{{ days|length|pluralize }}</summary>
             {% for day in days %}
             <section class="weather-day">
                 <h3>{{ day.grouper|date:'l, j M' }}</h3>
@@ -56,6 +58,7 @@ summary: optional note under the hours (summary_rain=True shows the rain icon). 
             </section>
             {% endfor %}
         </details>
+        {% endif %}
     </div>
     {% else %}
     <p class="weather-card-unavailable" role="status">{{ weather.error|default:"Weather is unavailable right now" }}. Your tasks still work as usual.</p>
