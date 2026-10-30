@@ -1175,3 +1175,49 @@ class SeedJournalTest(TestCase):
         self.client.force_login(User.objects.get(username='demo_grower'))
         response = self.client.get(reverse('journal:index'))
         self.assertContains(response, 'Showing 12 plants')
+
+
+class QueryCountTest(JournalTestCase):
+    """Pages cost the same number of queries however many plants, entries or photos there are."""
+
+    def count_queries(self, url):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        with CaptureQueriesContext(connection) as queries:
+            self.assertEqual(self.client.get(url).status_code, 200)
+        return len(queries)
+
+    def add_plants(self, count):
+        for n in range(count):
+            planting = Planting.objects.create(crop=f'Okra {n}', garden=self.garden, planting_date=date(2026, 9, 1))
+            for day in (2, 3):
+                JournalEntry.objects.create(
+                    planting=planting, date=date(2026, 10, day), time=time(8, 0), height_cm=10 + n, observation='Growing.',
+                )
+
+    def test_journal_list(self):
+        self.client.force_login(self.grower)
+        url = reverse('journal:index') + '?sort=tallest&stage=fruiting'
+        before = self.count_queries(url)
+        self.add_plants(6)
+        self.assertEqual(self.count_queries(url), before)
+        self.assertEqual(self.count_queries(reverse('journal:index')), self.count_queries(reverse('journal:index') + '?q=Growing'))
+
+    def test_garden_page_plant_cards(self):
+        self.client.force_login(self.grower)
+        url = reverse('gardens:detail', args=[self.garden.pk])
+        before = self.count_queries(url)
+        self.add_plants(6)
+        self.assertEqual(self.count_queries(url), before)
+        # The count on the card still matches the entries
+        self.assertContains(self.client.get(url), '3 entries')
+
+    def test_timeline_photos(self):
+        self.client.force_login(self.grower)
+        url = reverse('journal:plant_detail', args=[self.tomato.pk])
+        EntryPhoto.objects.create(entry=self.latest, url='https://example.com/a.jpg')
+        before = self.count_queries(url)
+        for entry in (self.first, self.second):
+            for n in range(3):
+                EntryPhoto.objects.create(entry=entry, url=f'https://example.com/{entry.pk}-{n}.jpg')
+        self.assertEqual(self.count_queries(url), before)

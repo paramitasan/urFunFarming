@@ -2,7 +2,8 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Count, Exists, OuterRef, Q, Subquery, Value
+from django.db.models.functions import Coalesce, Lower, NullIf
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -61,38 +62,48 @@ def index(request):
     filters = form.cleaned_data if form.is_valid() else {}
 
     my_plants = Planting.objects.filter(garden__owner=request.user)
-    plants = my_plants.filter(journal_entries__isnull=False).distinct()
+
+    # One row per plant with its latest entry. The database works out the latest entry and the count,
+    # so filtering, sorting and paging happen there and only this page's entries are loaded
+    entries = JournalEntry.objects.filter(planting=OuterRef('pk')).order_by('-date', '-time', '-id')
+    entry_count = JournalEntry.objects.filter(planting=OuterRef('pk')).values('planting').annotate(n=Count('pk')).values('n')
+    plants = my_plants.annotate(
+        latest_id=Subquery(entries.values('pk')[:1]),
+        latest_stage=Subquery(entries.values('stage')[:1]),
+        latest_health=Subquery(entries.values('health')[:1]),
+        latest_date=Subquery(entries.values('date')[:1]),
+        latest_time=Subquery(entries.values('time')[:1]),
+        latest_height=Subquery(entries.values('height_cm')[:1]),
+        entry_count=Subquery(entry_count),
+    ).filter(latest_id__isnull=False)
     if filters.get('plant'):
         plants = plants.filter(pk=filters['plant'].pk)
     if filters.get('q'):
         query = filters['q']
-        plants = plants.filter(
-            Q(name__icontains=query) | Q(crop__icontains=query) | Q(journal_entries__observation__icontains=query)
-        ).distinct()
-
-    # One row per plant with its latest entry, so stage and health are checked on that entry
-    rows = []
-    for planting in plants.select_related('garden').prefetch_related('journal_entries'):
-        entries = list(planting.journal_entries.all())
-        latest = entries[0]
-        if filters.get('stage') and latest.stage != filters['stage']:
-            continue
-        if filters.get('health') and latest.health != filters['health']:
-            continue
-        rows.append({'planting': planting, 'latest': latest, 'entry_count': len(entries)})
+        notes = JournalEntry.objects.filter(planting=OuterRef('pk'), observation__icontains=query)
+        plants = plants.filter(Q(name__icontains=query) | Q(crop__icontains=query) | Exists(notes))
+    # Stage and health are checked on each plant's latest entry
+    if filters.get('stage'):
+        plants = plants.filter(latest_stage=filters['stage'])
+    if filters.get('health'):
+        plants = plants.filter(latest_health=filters['health'])
 
     sort = filters.get('sort') or 'recent'
-    if sort == 'name':
-        rows.sort(key=lambda row: row['planting'].display_name.lower())
-    elif sort == 'tallest':
-        rows.sort(key=lambda row: row['latest'].height_cm, reverse=True)
-    elif sort == 'oldest':
-        rows.sort(key=lambda row: (row['latest'].date, row['latest'].time))
-    else:
-        rows.sort(key=lambda row: (row['latest'].date, row['latest'].time), reverse=True)
+    order = {
+        # Same fallback as Planting.display_name
+        'name': (Lower(Coalesce(NullIf('name', Value('')), 'crop')), 'pk'),
+        'tallest': ('-latest_height', 'pk'),
+        'oldest': ('latest_date', 'latest_time', 'latest_id'),
+    }.get(sort, ('-latest_date', '-latest_time', '-latest_id'))
+    plants = plants.select_related('garden').order_by(*order)
 
-    paginator = Paginator(rows, 10)
+    paginator = Paginator(plants, 10)
     page_obj = paginator.get_page(request.GET.get('page'))
+    latest_entries = JournalEntry.objects.in_bulk([planting.latest_id for planting in page_obj])
+    page_obj.object_list = [
+        {'planting': planting, 'latest': latest_entries[planting.latest_id], 'entry_count': planting.entry_count}
+        for planting in page_obj
+    ]
     count_label = f'Showing {paginator.count} plant{"" if paginator.count == 1 else "s"}'
 
     # The page links keep the current filters, only the page number changes
@@ -128,8 +139,9 @@ def plant_detail(request, planting_id):
     else:
         garden_url = reverse('gardens:public_detail', args=[garden.pk])
 
-    # Newest first, so the entry after each one in the list is the one before it in time
-    entries = list(planting.journal_entries.all())
+    # Newest first, so the entry after each one in the list is the one before it in time.
+    # The photos come in one query for the whole timeline instead of one per entry
+    entries = list(planting.journal_entries.prefetch_related('photos'))
     for i, entry in enumerate(entries):
         if i + 1 < len(entries):
             entry.height_change = entry.height_cm - entries[i + 1].height_cm

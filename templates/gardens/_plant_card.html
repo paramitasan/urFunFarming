@@ -30,7 +30,7 @@
         </p>
         <div class="garden-card-footer">
             <a class="gardens-text-link" href="{{ journal.url }}">Open journal {% include 'svg/icons/arrow.svg' %}</a>
-            <span class="garden-added">{% if journal.entries %}{{ journal.entries|length }} entr{{ journal.entries|length|pluralize:"y,ies" }}{% else %}No journal yet{% endif %}</span>
+            <span class="garden-added">{% if journal.entry_count %}{{ journal.entry_count }} entr{{ journal.entry_count|pluralize:"y,ies" }}{% else %}No journal yet{% endif %}</span>
         </div>
     </div>
 </article>
