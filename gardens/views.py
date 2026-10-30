@@ -109,7 +109,7 @@ def explore(request):
     order = {'oldest': ('created_at', 'id'), 'name': (Lower('name'), 'id')}.get(sort, ('-created_at', '-id'))
     gardens = gardens.order_by(*order).values(
         'id', 'name', 'location', 'growing_method', 'public_summary', 'planting_count', 'created_at',
-        'owner__username', 'owner__date_joined', 'owner__profile__display_name',
+        'photo', 'photo_url', 'owner__username', 'owner__date_joined', 'owner__profile__display_name',
     )
     return render(
         request,
@@ -215,7 +215,7 @@ def create(request):
     denied = _require_grower(request)
     if denied is not None:
         return denied
-    form = GardenForm(request.POST if request.method == 'POST' else None)
+    form = GardenForm(request.POST if request.method == 'POST' else None, request.FILES if request.method == 'POST' else None)
     if request.method == 'POST' and form.is_valid():
         garden = form.save(commit=False)
         garden.owner = request.user
@@ -256,7 +256,11 @@ def detail(request, pk):
 @require_http_methods(['GET', 'POST'])
 def edit(request, pk):
     garden = _owned_garden(request, pk)
-    form = GardenForm(request.POST if request.method == 'POST' else None, instance=garden)
+    form = GardenForm(
+        request.POST if request.method == 'POST' else None,
+        request.FILES if request.method == 'POST' else None,
+        instance=garden,
+    )
     if request.method == 'POST' and form.is_valid():
         form.save()
         messages.success(request, 'Garden updated.')

@@ -12,7 +12,7 @@
         </div>
     </header>
 
-    <form class="garden-form" method="post">
+    <form class="garden-form" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {% if form.non_field_errors %}<div class="garden-form-errors" role="alert">{{ form.non_field_errors }}</div>{% endif %}
         {% for field in form %}
