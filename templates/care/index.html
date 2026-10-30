@@ -15,13 +15,9 @@
         <a class="pill-button" href="{% url 'care:create' %}"><img src="{% static 'marketplace/img/imgIconPlus.svg' %}" alt="">Add task</a>
     </header>
 
-    {# "Change" goes to the thresholds card on the Add task page #}
-    {% url 'care:create' as create_url %}
-    {% with rain=care_settings.max_rain_mm|floatformat:"-1" temp=care_settings.max_temp_c|floatformat:"-1" wind=care_settings.max_wind_kmh|floatformat:"-1" %}
-    {% with legend="Green hours: rain up to "|add:rain|add:" mm, up to "|add:temp|add:" °C, wind up to "|add:wind|add:" km/h." %}
-    {% include 'weather/_hourly_card.html' with weather=weather slots=card.slots summary=card.summary summary_rain=card.rain legend=legend legend_url=create_url|add:'#thresholds-heading' %}
-    {% endwith %}
-    {% endwith %}
+    {% include 'weather/_hourly_card.html' with weather=weather slots=card.slots summary=card.summary summary_rain=card.rain legend='Green hours: suggested time to do plant care tasks based on your preferred weather threshold' %}
+
+    {% include 'care/_threshold_panel.html' %}
 
     <section class="care-tasks" aria-labelledby="care-tasks-heading">
         <div class="care-tasks-heading">

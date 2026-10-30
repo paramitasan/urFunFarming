@@ -1,0 +1,47 @@
+{% load l10n %}
+{# Thresholds card under the weather card on the Plant care list. care.js adds Hide / Show, −/+, Reset and the live preview #}
+{% with rain=care_settings.max_rain_mm|floatformat:"-1" temp=care_settings.max_temp_c|floatformat:"-1" wind=care_settings.max_wind_kmh|floatformat:"-1" %}
+<section class="care-threshold-panel" id="care-thresholds" aria-labelledby="care-thresholds-heading" data-threshold-panel>
+    <div class="care-threshold-head">
+        <div>
+            <h2 id="care-thresholds-heading">Preferred weather threshold</h2>
+            <p class="care-threshold-intro">Hours that stay under all three limits are marked green in the forecast above.</p>
+            <p class="care-threshold-summary">Green hours: rain up to {{ rain }} mm, up to {{ temp }} °C, wind up to {{ wind }} km/h.</p>
+        </div>
+        <button class="outline-button care-threshold-toggle" type="button" aria-expanded="true" aria-controls="care-threshold-body" hidden data-threshold-toggle><span>Hide thresholds</span></button>
+    </div>
+
+    <form class="care-threshold-body" id="care-threshold-body" method="post" action="{% url 'care:settings' %}" data-threshold-body>
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <div class="care-limits">
+            {% include 'care/_limit.html' with field=settings_form.max_rain_mm unit='mm' icon='svg/icons/care.svg' help="Rain above this amount per hour won't be marked green. Heavy rain can wash away soil and fertilizer." guide_label='How rain affects your plants' guide_url='https://www.rhs.org.uk/soil-composts-mulches/waterlogging-flooding' %}
+            {% include 'care/_limit.html' with field=settings_form.max_temp_c unit='°C' icon='svg/icons/thermometer.svg' help="Hours hotter than this won't be marked green. High heat stresses leaves and dries out the soil quickly." guide_label='How heat affects your plants' guide_url='https://www.udel.edu/academics/colleges/canr/cooperative-extension/trending/protecting-garden-veg-from-heat-stress/' %}
+            {% include 'care/_limit.html' with field=settings_form.max_wind_kmh unit='km/h' icon='svg/icons/wind.svg' help="Wind faster than this won't be marked green. Strong wind can snap young stems and dry out leaves." guide_label='How wind affects your plants' guide_url='https://sites.udel.edu/weeklycropupdate/?p=14674' %}
+        </div>
+
+        <div class="care-threshold-foot">
+            {% if card.slots %}
+            <div class="care-preview">
+                <span id="care-preview-label">Preview for today</span>
+                <ul aria-labelledby="care-preview-label" data-threshold-preview>
+                    {% for slot in card.slots %}
+                    {% localize off %}
+                    <li class="care-preview-chip{% if slot.good %} is-good{% endif %}" data-rain="{{ slot.rain_mm }}" data-temp="{{ slot.temp }}" data-wind="{{ slot.wind_kmh }}">
+                        <time datetime="{{ slot.time|date:'c' }}">{{ slot.time|date:'H:i' }}</time>
+                        <span class="visually-hidden">{% if slot.good %}within{% else %}outside{% endif %} your limits</span>
+                    </li>
+                    {% endlocalize %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            <div class="care-threshold-actions">
+                <button class="care-threshold-reset" type="button" data-threshold-reset>Reset to defaults</button>
+                <button class="pill-button" type="submit">Save thresholds</button>
+            </div>
+        </div>
+        <p class="care-threshold-note">&ldquo;How it affects your plants&rdquo; links open an outside guide in a new tab.</p>
+    </form>
+</section>
+{% endwith %}

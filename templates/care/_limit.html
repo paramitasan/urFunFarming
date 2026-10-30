@@ -1,0 +1,14 @@
+{# One weather limit in the thresholds card: label, −/+ stepper, what it means and a guide link #}
+<div class="care-limit">
+    <label class="care-limit-label" for="{{ field.id_for_label }}">
+        <span class="care-limit-icon">{% include icon %}</span>
+        {{ field.label }}
+    </label>
+    <div class="care-stepper">
+        <button class="care-step" type="button" data-step="-1" aria-controls="{{ field.id_for_label }}" aria-label="Lower {{ field.label|lower }}">&minus;</button>
+        <span class="care-limit-input">{{ field }}<small>{{ unit }}</small></span>
+        <button class="care-step" type="button" data-step="1" aria-controls="{{ field.id_for_label }}" aria-label="Raise {{ field.label|lower }}">+</button>
+    </div>
+    <p class="care-limit-help">{{ help }}</p>
+    <a class="care-limit-link" href="{{ guide_url }}" target="_blank" rel="noopener noreferrer">{{ guide_label }}{% include 'svg/icons/external.svg' %}<span class="visually-hidden"> (opens in a new tab)</span></a>
+</div>

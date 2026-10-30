@@ -1,3 +1,72 @@
+// List page: the thresholds card. Hide / Show is remembered on this device, −/+ change a value
+// by its step, Reset fills the defaults, and the preview chips follow the numbers before saving.
+const thresholdPanel = document.querySelector('[data-threshold-panel]');
+if (thresholdPanel) {
+    document.documentElement.classList.add('js');
+    const toggle = thresholdPanel.querySelector('[data-threshold-toggle]');
+    const body = thresholdPanel.querySelector('[data-threshold-body]');
+    const inputs = [...body.querySelectorAll('input[type="number"]')];
+    const HIDDEN_KEY = 'care-thresholds-hidden';
+
+    function setOpen(open) {
+        thresholdPanel.classList.toggle('is-collapsed', !open);
+        body.hidden = !open;
+        toggle.setAttribute('aria-expanded', String(open));
+        toggle.querySelector('span').textContent = open ? 'Hide thresholds' : 'Show thresholds';
+    }
+
+    let startHidden = false;
+    try {
+        startHidden = localStorage.getItem(HIDDEN_KEY) === 'yes';
+    } catch (e) {
+        // Storage blocked (private window): the card simply starts open
+    }
+    toggle.hidden = false;
+    setOpen(!startHidden);
+
+    toggle.addEventListener('click', () => {
+        const open = body.hidden;
+        setOpen(open);
+        try {
+            localStorage.setItem(HIDDEN_KEY, open ? 'no' : 'yes');
+        } catch (e) {
+            // Nothing to remember it in; it still works for this visit
+        }
+    });
+
+    function updatePreview() {
+        const [rain, temp, wind] = inputs.map((input) => Number(input.value));
+        thresholdPanel.querySelectorAll('.care-preview-chip').forEach((chip) => {
+            // Same rule as meets_thresholds in weather/services.py
+            const good = Number(chip.dataset.rain) <= rain && Number(chip.dataset.temp) <= temp && Number(chip.dataset.wind) <= wind;
+            chip.classList.toggle('is-good', good);
+            chip.querySelector('.visually-hidden').textContent = good ? 'within your limits' : 'outside your limits';
+        });
+    }
+
+    thresholdPanel.querySelectorAll('[data-step]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const input = document.getElementById(button.getAttribute('aria-controls'));
+            const step = Number(input.step) || 1;
+            const max = input.max === '' ? Infinity : Number(input.max);
+            const next = (Number(input.value) || 0) + step * Number(button.dataset.step);
+            // Round to one decimal so 0.5 steps never show as 2.4999
+            input.value = String(Math.min(max, Math.max(0, Math.round(next * 10) / 10)));
+            updatePreview();
+        });
+    });
+
+    thresholdPanel.querySelector('[data-threshold-reset]').addEventListener('click', () => {
+        inputs.forEach((input) => {
+            input.value = input.dataset.default;
+        });
+        updatePreview();
+        inputs[0].focus();
+    });
+
+    inputs.forEach((input) => input.addEventListener('input', updatePreview));
+}
+
 // Delete dialog: Escape does the same as "Keep it"
 const keepLink = document.querySelector('[data-dialog-cancel]');
 if (keepLink) {

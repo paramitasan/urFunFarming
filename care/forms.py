@@ -97,9 +97,9 @@ class CareSettingsForm(forms.ModelForm):
             'max_wind_kmh': 'Max wind',
         }
         widgets = {
-            'max_rain_mm': forms.NumberInput(attrs={'step': '0.5', 'min': '0'}),
-            'max_temp_c': forms.NumberInput(attrs={'step': '0.5', 'min': '0'}),
-            'max_wind_kmh': forms.NumberInput(attrs={'step': '1', 'min': '0'}),
+            'max_rain_mm': forms.NumberInput(attrs={'step': '0.5', 'min': '0', 'max': '100'}),
+            'max_temp_c': forms.NumberInput(attrs={'step': '0.5', 'min': '0', 'max': '50'}),
+            'max_wind_kmh': forms.NumberInput(attrs={'step': '1', 'min': '0', 'max': '150'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -109,3 +109,6 @@ class CareSettingsForm(forms.ModelForm):
             value = self.initial.get(name)
             if value is not None:
                 self.initial[name] = format(value.normalize(), 'f')
+            # "Reset to defaults" on the list page reads these
+            default = CareSettings._meta.get_field(name).default
+            self.fields[name].widget.attrs['data-default'] = format(default.normalize(), 'f')
