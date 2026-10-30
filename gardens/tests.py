@@ -1068,7 +1068,7 @@ class GardenLinkTests(TestCase):
         Profile.objects.create(user=cls.buyer, display_name='Link Buyer', is_buyer=True)
 
     def test_footer_gardens_link_opens_explore_for_everyone(self):
-        footer_link = f'<a href="{reverse("gardens:explore")}">Gardens</a>'
+        footer_link = f'<a href="{reverse("gardens:explore")}">Explore gardens</a>'
 
         self.assertContains(self.client.get(reverse('main:show_main')), footer_link, html=True)
         self.client.force_login(self.buyer)

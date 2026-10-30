@@ -134,8 +134,10 @@
     color: var(--color-light);
 }
 
-.gardens-danger:hover {
-    background-color: var(--color-danger-text);
+@media (hover: hover) {
+    .gardens-danger:hover {
+        background-color: var(--color-danger-text);
+    }
 }
 
 /* Search row */
@@ -165,8 +167,14 @@
     border: 0;
     outline: none;
     background: transparent;
+    -webkit-appearance: none;
+    appearance: none;
     font: 400 16px/normal 'Poppins', sans-serif;
     color: var(--color-ink);
+}
+
+.garden-search-field input::-webkit-search-decoration {
+    -webkit-appearance: none;
 }
 
 .garden-search-field input::placeholder {
@@ -176,7 +184,7 @@
 
 .garden-toolbar .garden-sort {
     flex-shrink: 0;
-    width: 240px;
+    width: 280px;
 }
 
 /* Fields */
@@ -185,12 +193,17 @@
     width: 100%;
     min-width: 0;
     min-height: 56px;
+    -webkit-appearance: none;
     padding: 0 18px;
     border: 1.5px solid var(--color-field);
     border-radius: 14px;
     background-color: #FFFFFF;
     font: 500 15px/1.2 'Poppins', sans-serif;
     color: var(--color-forest);
+}
+
+.garden-field::-webkit-date-and-time-value {
+    text-align: left;
 }
 
 textarea.garden-field {
@@ -201,6 +214,7 @@ textarea.garden-field {
 }
 
 .garden-select {
+    -webkit-appearance: none;
     appearance: none;
     padding-right: 48px;
     background-image: url('../marketplace/img/imgIconChevron.svg');
@@ -209,13 +223,18 @@ textarea.garden-field {
     cursor: pointer;
 }
 
-/* Body: filters on the left, results on the right */
+/* Body: results on the left, filters on the right under the sort select */
 
 .garden-body {
     display: grid;
-    grid-template-columns: 280px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) 280px;
     align-items: start;
     gap: 32px;
+}
+
+.garden-body > aside {
+    grid-row: 1;
+    grid-column: 2;
 }
 
 /* Filters */
@@ -301,6 +320,7 @@ legend.garden-filter-label {
     border: 1.5px solid var(--color-field);
     border-radius: 50%;
     background-color: #FFFFFF;
+    -webkit-appearance: none;
     appearance: none;
     cursor: pointer;
 }
@@ -529,9 +549,14 @@ legend.garden-filter-label {
     display: block;
 }
 
-.garden-more summary:hover,
 .garden-more[open] summary {
     background-color: var(--color-band);
+}
+
+@media (hover: hover) {
+    .garden-more summary:hover {
+        background-color: var(--color-band);
+    }
 }
 
 .garden-more-menu {
@@ -557,8 +582,10 @@ legend.garden-filter-label {
     color: var(--color-forest);
 }
 
-.garden-more-menu a:hover {
-    background-color: var(--color-band);
+@media (hover: hover) {
+    .garden-more-menu a:hover {
+        background-color: var(--color-band);
+    }
 }
 
 .garden-more-menu .garden-more-delete {
@@ -795,8 +822,12 @@ legend.garden-filter-label {
         padding-inline: 40px;
     }
 
+    .garden-toolbar .garden-sort {
+        width: 240px;
+    }
+
     .garden-body {
-        grid-template-columns: 240px minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr) 240px;
         gap: 24px;
     }
 
@@ -832,16 +863,27 @@ legend.garden-filter-label {
     }
 
     .garden-toolbar {
+        flex-direction: column;
+        gap: 10px;
         margin-bottom: 20px;
     }
 
     .garden-toolbar .garden-sort {
-        width: 170px;
+        width: 100%;
+    }
+
+    .garden-search-field {
+        flex: none;
     }
 
     .garden-body {
         grid-template-columns: minmax(0, 1fr);
         gap: 20px;
+    }
+
+    .garden-body > aside {
+        grid-row: auto;
+        grid-column: auto;
     }
 
     .garden-item,
@@ -858,15 +900,6 @@ legend.garden-filter-label {
 }
 
 @media (max-width: 479px) {
-    .garden-toolbar {
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .garden-toolbar .garden-sort {
-        width: 100%;
-    }
-
     .garden-item,
     .planting-card {
         flex-direction: column;
@@ -885,5 +918,22 @@ legend.garden-filter-label {
 
     .garden-results-count span {
         text-align: left;
+    }
+}
+
+/* Touch screens: iPhone zooms into any field under 16px */
+
+@media (hover: none) and (pointer: coarse) {
+    .garden-field {
+        font-size: 16px;
+    }
+}
+
+/* Windows High Contrast: native radios, so the selected filter still shows */
+
+@media (forced-colors: active) {
+    .garden-radio input {
+        -webkit-appearance: auto;
+        appearance: auto;
     }
 }

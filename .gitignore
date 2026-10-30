@@ -22,3 +22,6 @@ media/
 .coverage.*
 htmlcov/
 coverage.json
+
+# Uploaded files
+media/

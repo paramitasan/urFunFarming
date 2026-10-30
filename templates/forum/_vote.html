@@ -1,0 +1,18 @@
+{# Upvote button #}
+{% if user.is_authenticated %}
+<form class="vote" method="post" action="{{ url }}{{ qs }}" data-vote>
+    {% csrf_token %}
+    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+    <button type="submit" class="vote-button{% if voted %} is-voted{% endif %}"
+            aria-pressed="{% if voted %}true{% else %}false{% endif %}" aria-label="Upvote" title="Upvote">
+        {% include "forum/_vote_icon.html" %}<span class="vote-count">{{ count }}</span>
+    </button>
+</form>
+{% else %}
+<span class="vote">
+    <a class="vote-button" href="{% url 'accounts:login' %}?next={{ request.get_full_path|urlencode }}"
+       aria-label="Log in to upvote" title="Log in to upvote">
+        {% include "forum/_vote_icon.html" %}<span class="vote-count">{{ count }}</span>
+    </a>
+</span>
+{% endif %}

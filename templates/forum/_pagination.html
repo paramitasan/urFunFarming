@@ -1,0 +1,33 @@
+<nav class="forum-pagination" aria-label="Pagination">
+    {% if page_obj.has_previous %}
+    <a class="page-link" rel="prev" aria-label="Previous page"
+       href="?{% if query %}{{ query }}&{% endif %}page={{ page_obj.previous_page_number }}#forum-count">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    {% else %}
+    <span class="page-link is-disabled" aria-disabled="true" aria-label="Previous page">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </span>
+    {% endif %}
+
+    {% for p in page_range %}
+        {% if p == page_obj.paginator.ELLIPSIS %}
+        <span class="page-gap">…</span>
+        {% elif p == page_obj.number %}
+        <span class="page-link is-current" aria-current="page">{{ p }}</span>
+        {% else %}
+        <a class="page-link" href="?{% if query %}{{ query }}&{% endif %}page={{ p }}#forum-count">{{ p }}</a>
+        {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+    <a class="page-link" rel="next" aria-label="Next page"
+       href="?{% if query %}{{ query }}&{% endif %}page={{ page_obj.next_page_number }}#forum-count">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    {% else %}
+    <span class="page-link is-disabled" aria-disabled="true" aria-label="Next page">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </span>
+    {% endif %}
+</nav>

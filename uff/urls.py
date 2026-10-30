@@ -18,6 +18,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,8 +27,9 @@ urlpatterns = [
     path('', include('accounts.urls')),
     path('journal/', include('journal.urls')),
     path('marketplace/', include('marketplace.urls')),
+    path('forum/', include('forum.urls')),
     path('gardens/', include('gardens.urls')),
 ]
 
-# Serves uploaded photos while DEBUG is on
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
