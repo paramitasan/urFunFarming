@@ -1,14 +1,31 @@
+import io
+import shutil
+import tempfile
 from datetime import date, timedelta
+from unittest import mock
 
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
+from PIL import Image
 
 from accounts.models import Profile
 
-from gardens.forms import PlantingForm
+from gardens.forms import GARDEN_PHOTO_ERROR, GardenForm, PlantingForm
 from gardens.models import Garden, Planting
+
+# Garden photos uploaded during tests go here, never into the real media/ folder
+TEST_MEDIA = tempfile.mkdtemp()
+
+
+def make_image(name='photo.png', image_format='PNG'):
+    # A tiny real image file, made in memory
+    buffer = io.BytesIO()
+    Image.new('RGB', (4, 4), 'green').save(buffer, image_format)
+    return SimpleUploadedFile(name, buffer.getvalue())
+
 
 
 class GardenModelTests(TestCase):
@@ -1086,3 +1103,129 @@ class GardenLinkTests(TestCase):
             status_code=403,
         )
         self.assertContains(response, f'href="{reverse("accounts:profile")}#roles"', status_code=403)
+
+
+@override_settings(MEDIA_ROOT=TEST_MEDIA)
+class GardenPhotoTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.owner = User.objects.create_user(username='photo_owner', password='test-password')
+        Profile.objects.create(user=cls.owner, display_name='Photo Owner', is_grower=True)
+        cls.visitor = User.objects.create_user(username='photo_visitor', password='test-password')
+        Profile.objects.create(user=cls.visitor, display_name='Photo Visitor', is_buyer=True)
+        cls.garden = Garden.objects.create(
+            owner=cls.owner, name='Balcony garden', location='Depok',
+            growing_method='Container pots', is_public=True,
+        )
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(TEST_MEDIA, ignore_errors=True)
+
+    def garden_data(self, **changes):
+        data = {'name': 'Balcony garden', 'location': 'Depok', 'growing_method': 'Container pots', 'is_public': 'on'}
+        data.update(changes)
+        return data
+
+    def make_form(self, files=None, instance=None, **changes):
+        return GardenForm(self.garden_data(**changes), files or {}, instance=instance)
+
+    def test_create_with_an_upload(self):
+        self.client.force_login(self.owner)
+        data = self.garden_data(name='Courtyard', photo=make_image('courtyard.png'))
+        response = self.client.post(reverse('gardens:create'), data)
+        self.assertRedirects(response, reverse('gardens:mine'))
+        garden = Garden.objects.get(name='Courtyard')
+        self.assertTrue(garden.photo.name.startswith('gardens/courtyard'))
+        self.assertEqual(garden.photo_url, '')
+
+    def test_create_with_a_link(self):
+        self.client.force_login(self.owner)
+        data = self.garden_data(name='Courtyard', photo_url='https://example.com/courtyard.jpg')
+        self.client.post(reverse('gardens:create'), data)
+        garden = Garden.objects.get(name='Courtyard')
+        self.assertEqual(garden.photo_url, 'https://example.com/courtyard.jpg')
+        self.assertFalse(garden.photo)
+
+    def test_file_that_is_not_an_image_is_rejected(self):
+        form = self.make_form(files={'photo': SimpleUploadedFile('notes.jpg', b'not an image')})
+        self.assertFalse(form.is_valid())
+        self.assertEqual(form.errors['photo'], [GARDEN_PHOTO_ERROR])
+
+    def test_gif_is_rejected(self):
+        # A real image, but not one of the three allowed formats
+        form = self.make_form(files={'photo': make_image('leaf.gif', 'GIF')})
+        self.assertFalse(form.is_valid())
+        self.assertEqual(form.errors['photo'], [GARDEN_PHOTO_ERROR])
+
+    def test_photo_over_the_size_limit_is_rejected(self):
+        # Lower the limit for this test instead of building a real 5 MB file
+        with mock.patch('gardens.forms.GARDEN_PHOTO_MAX_SIZE', 10):
+            form = self.make_form(files={'photo': make_image()})
+            self.assertFalse(form.is_valid())
+        self.assertEqual(form.errors['photo'], [GARDEN_PHOTO_ERROR])
+
+    def test_upload_and_link_together_is_rejected(self):
+        form = self.make_form(files={'photo': make_image()}, photo_url='https://example.com/balcony.jpg')
+        self.assertFalse(form.is_valid())
+        self.assertIn('Choose one photo', form.non_field_errors()[0])
+
+    def test_new_link_replaces_a_saved_upload(self):
+        self.garden.photo = make_image('old.png')
+        self.garden.save()
+        form = self.make_form(instance=self.garden, photo_url='https://example.com/new.jpg')
+        self.assertTrue(form.is_valid())
+        garden = form.save()
+        self.assertFalse(garden.photo)
+        self.assertEqual(garden.photo_url, 'https://example.com/new.jpg')
+
+    def test_new_upload_replaces_a_saved_link(self):
+        self.garden.photo_url = 'https://example.com/old.jpg'
+        self.garden.save()
+        # The old link is still in the form, but it wasn't typed just now, so the upload wins
+        form = self.make_form(
+            files={'photo': make_image('new.png')}, instance=self.garden, photo_url='https://example.com/old.jpg',
+        )
+        self.assertTrue(form.is_valid())
+        garden = form.save()
+        self.assertTrue(garden.photo.name.startswith('gardens/new'))
+        self.assertEqual(garden.photo_url, '')
+
+    def test_clear_removes_a_saved_upload(self):
+        self.garden.photo = make_image('old.png')
+        self.garden.save()
+        # The hidden checkbox the trash button ticks
+        form = self.make_form(instance=self.garden, **{'photo-clear': 'on'})
+        self.assertTrue(form.is_valid())
+        self.assertFalse(form.save().photo)
+
+    def test_cards_show_an_uploaded_photo(self):
+        self.garden.photo = make_image('card.png')
+        self.garden.save()
+        photo_src = f'src="{self.garden.photo.url}"'
+        self.client.force_login(self.owner)
+        self.assertContains(self.client.get(reverse('gardens:mine')), photo_src)
+        # Explore builds its cards from .values(), so this checks the media prefix there too
+        self.client.force_login(self.visitor)
+        self.assertContains(self.client.get(reverse('gardens:explore')), photo_src)
+
+    def test_cards_show_a_linked_photo(self):
+        self.garden.photo_url = 'https://example.com/balcony.jpg'
+        self.garden.save()
+        self.client.force_login(self.visitor)
+        self.assertContains(self.client.get(reverse('gardens:explore')), 'src="https://example.com/balcony.jpg"')
+
+    def test_cards_without_a_photo_keep_the_green_box(self):
+        self.client.force_login(self.owner)
+        response = self.client.get(reverse('gardens:mine'))
+        self.assertContains(response, '<div class="garden-photo" aria-hidden="true"></div>', html=True)
+        self.assertNotContains(response, '<img class="garden-photo"')
+
+    def test_edit_form_shows_the_saved_photo(self):
+        self.garden.photo_url = 'https://example.com/balcony.jpg'
+        self.garden.save()
+        self.client.force_login(self.owner)
+        response = self.client.get(reverse('gardens:edit', args=[self.garden.pk]))
+        self.assertContains(response, 'src="https://example.com/balcony.jpg"')
+        self.assertContains(response, 'enctype="multipart/form-data"')
