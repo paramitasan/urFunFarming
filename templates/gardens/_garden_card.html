@@ -22,7 +22,7 @@
                     <summary aria-label="More actions for {{ garden.name }}"><img src="{% static 'img/gardens/more.svg' %}" alt=""></summary>
                     <div class="garden-more-menu">
                         <a href="{% url 'gardens:edit' garden.id %}">Edit</a>
-                        <a class="garden-more-delete" href="{% url 'gardens:delete' garden.id %}">Delete</a>
+                        <a class="garden-more-delete" href="{% url 'gardens:delete' garden.id %}" data-delete-name="{{ garden.name }}">Delete</a>
                     </div>
                 </details>
             {% endif %}
