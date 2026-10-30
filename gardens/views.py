@@ -299,7 +299,7 @@ def planting_create(request, garden_pk):
         planting.garden = garden
         planting.save()
         messages.success(request, 'Planting added.')
-        return redirect('gardens:planting_detail', garden_pk=garden.pk, planting_pk=planting.pk)
+        return redirect('gardens:detail', pk=garden.pk)
     return render(
         request,
         'gardens/planting_form.html',
@@ -352,7 +352,7 @@ def planting_edit(request, garden_pk, planting_pk):
     if request.method == 'POST' and form.is_valid():
         form.save()
         messages.success(request, 'Planting updated.')
-        return redirect('gardens:planting_detail', garden_pk=garden_pk, planting_pk=planting.pk)
+        return redirect('gardens:detail', pk=garden_pk)
     return render(
         request,
         'gardens/planting_form.html',

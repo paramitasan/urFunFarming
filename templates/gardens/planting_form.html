@@ -7,7 +7,7 @@
 <section class="gardens-page" aria-labelledby="planting-form-heading">
     <header class="gardens-page-heading">
         <div>
-            <a class="gardens-back-link" href="{% if planting %}{% url 'gardens:planting_detail' garden.pk planting.pk %}{% else %}{% url 'gardens:detail' garden.pk %}{% endif %}"><img src="{% static 'img/gardens/back.svg' %}" alt="">{% if planting %}Back to {{ planting.display_name }}{% else %}Back to {{ garden.name }}{% endif %}</a>
+            <a class="gardens-back-link" href="{% url 'gardens:detail' garden.pk %}"><img src="{% static 'img/gardens/back.svg' %}" alt="">Back to {{ garden.name }}</a>
             <h1 id="planting-form-heading">{% if planting %}Edit plant{% else %}Add plant{% endif %}</h1>
             <p class="gardens-subtitle">{{ garden.name }} · {{ garden.growing_method }}</p>
         </div>
@@ -30,7 +30,7 @@
         {% endfor %}
         <div class="gardens-actions">
             <button class="pill-button" type="submit">{% if planting %}Save changes{% else %}Add plant{% endif %}</button>
-            <a class="outline-button" href="{% if planting %}{% url 'gardens:planting_detail' garden.pk planting.pk %}{% else %}{% url 'gardens:detail' garden.pk %}{% endif %}">Cancel</a>
+            <a class="outline-button" href="{% url 'gardens:detail' garden.pk %}">Cancel</a>
         </div>
     </form>
 </section>

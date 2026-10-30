@@ -313,10 +313,7 @@ class PlantingOwnerViewTests(TestCase):
 
         planting = Planting.objects.get(crop='Lettuce')
         self.assertEqual(planting.garden, self.garden)
-        self.assertRedirects(
-            response,
-            reverse('gardens:planting_detail', args=[self.garden.pk, planting.pk]),
-        )
+        self.assertRedirects(response, self.garden_url)
 
     def test_planting_form_requires_name_crop_and_date(self):
         self.client.force_login(self.owner)
@@ -336,7 +333,7 @@ class PlantingOwnerViewTests(TestCase):
 
         response = self.client.post(self.edit_url, self.planting_data(crop='Cherry tomatoes'))
 
-        self.assertRedirects(response, self.detail_url)
+        self.assertRedirects(response, self.garden_url)
         self.planting.refresh_from_db()
         self.assertEqual(self.planting.crop, 'Cherry tomatoes')
 

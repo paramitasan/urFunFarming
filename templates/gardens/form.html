@@ -7,7 +7,7 @@
 <section class="gardens-page" aria-labelledby="garden-form-heading">
     <header class="gardens-page-heading">
         <div>
-            <a class="gardens-back-link" href="{% if garden %}{% url 'gardens:detail' garden.pk %}{% else %}{% url 'gardens:mine' %}{% endif %}"><img src="{% static 'img/gardens/back.svg' %}" alt="">{% if garden %}Back to {{ garden.name }}{% else %}Back to My gardens{% endif %}</a>
+            <a class="gardens-back-link" href="{% url 'gardens:mine' %}"><img src="{% static 'img/gardens/back.svg' %}" alt="">Back to My gardens</a>
             <h1 id="garden-form-heading">{% if garden %}Edit garden{% else %}Add garden{% endif %}</h1>
             <p class="gardens-subtitle">Describe the place where you grow.</p>
         </div>
