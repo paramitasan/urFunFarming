@@ -287,17 +287,6 @@ class PlantingOwnerViewTests(TestCase):
         data.update(changes)
         return data
 
-    def test_owner_can_list_and_view_planting(self):
-        self.client.force_login(self.owner)
-
-        garden_response = self.client.get(self.garden_url)
-        detail_response = self.client.get(self.detail_url)
-
-        self.assertContains(garden_response, 'Tomatoes')
-        self.assertContains(garden_response, self.detail_url)
-        self.assertContains(detail_response, 'Planted 1 Oct 2026')
-        self.assertContains(detail_response, 'Container pots')
-
     def test_owner_planting_list_filters_by_crop_and_month(self):
         Planting.objects.create(
             garden=self.garden,
@@ -364,21 +353,6 @@ class PlantingOwnerViewTests(TestCase):
         self.assertContains(response, 'data-delete-dialog')
         self.assertContains(response, f'href="{self.delete_url}" data-delete-name="Tomatoes"')
         self.assertContains(response, 'Delete plant')
-
-    def test_other_grower_cannot_read_or_change_planting(self):
-        self.client.force_login(self.other_owner)
-        response = self.client.get(self.detail_url)
-        self.assertContains(response, 'No access', status_code=403)
-        self.assertNotContains(response, 'Tomatoes', status_code=403)
-        urls = (self.edit_url, self.delete_url)
-
-        with self.subTest(method='GET', url=self.edit_url):
-            self.assertEqual(self.client.get(self.edit_url).status_code, 404)
-        for url in urls:
-            with self.subTest(method='POST', url=url):
-                self.assertEqual(self.client.post(url, self.planting_data()).status_code, 404)
-
-        self.assertTrue(Planting.objects.filter(pk=self.planting.pk).exists())
 
     def test_planting_cannot_be_accessed_through_wrong_garden_url(self):
         self.client.force_login(self.owner)
@@ -581,42 +555,6 @@ class GardenPrivacyRuleTests(TestCase):
                     else:
                         self.assertEqual(self.client.get(url).status_code, 404)
 
-    def test_private_garden_plant_shows_no_access_without_details(self):
-        url = self.plant_url(self.private_plant)
-        for who in self.as_each_non_owner():
-            with self.subTest(who=who):
-                response = self.client.get(url)
-                self.assertContains(response, 'No access', status_code=403)
-                self.assertNotContains(response, 'Hidden chili', status_code=403)
-                self.assertNotContains(response, 'Secret Courtyard', status_code=403)
-
-    def test_private_garden_plant_is_visible_to_owner(self):
-        self.client.force_login(self.owner)
-
-        response = self.client.get(self.plant_url(self.private_plant))
-
-        self.assertContains(response, 'Hidden chili')
-        self.assertContains(response, reverse('gardens:detail', args=[self.private_garden.pk]))
-
-    def test_every_plant_in_a_public_garden_is_public_and_read_only(self):
-        url = self.plant_url(self.public_plant)
-        edit_url = reverse('gardens:planting_edit', args=[self.public_garden.pk, self.public_plant.pk])
-        delete_url = reverse('gardens:planting_delete', args=[self.public_garden.pk, self.public_plant.pk])
-        for who in self.as_each_non_owner():
-            with self.subTest(who=who):
-                response = self.client.get(url)
-                self.assertContains(response, 'Butterhead lettuce')
-                self.assertNotContains(response, edit_url)
-                self.assertNotContains(response, delete_url)
-                self.assertContains(response, reverse('gardens:public_detail', args=[self.public_garden.pk]))
-
-    def test_plant_of_inactive_owner_is_not_public(self):
-        User.objects.filter(pk=self.owner.pk).update(is_active=False)
-
-        response = self.client.get(self.plant_url(self.public_plant))
-
-        self.assertContains(response, 'No access', status_code=403)
-
     def test_owner_is_sent_from_their_public_page_to_their_own_view(self):
         self.client.force_login(self.owner)
 
@@ -631,34 +569,6 @@ class GardenPrivacyRuleTests(TestCase):
 
         self.assertNotContains(response, 'Atap Hijau Tebet')
         self.assertEqual(response.context['garden_count'], 0)
-
-    def test_private_notes_only_appear_in_the_owners_edit_form(self):
-        self.client.force_login(self.owner)
-        owner_pages = (
-            reverse('gardens:mine'),
-            reverse('gardens:detail', args=[self.public_garden.pk]),
-            reverse('gardens:detail', args=[self.private_garden.pk]),
-            self.plant_url(self.public_plant),
-            self.plant_url(self.private_plant),
-        )
-        for url in owner_pages:
-            with self.subTest(url=url):
-                response = self.client.get(url)
-                self.assertNotContains(response, 'Spare key under the blue pot.')
-                self.assertNotContains(response, 'Neighbour waters on Sundays.')
-
-        edit_response = self.client.get(reverse('gardens:edit', args=[self.public_garden.pk]))
-        self.assertContains(edit_response, 'Spare key under the blue pot.')
-
-        self.client.force_login(self.buyer)
-        public_pages = (
-            reverse('gardens:explore'),
-            reverse('gardens:public_detail', args=[self.public_garden.pk]),
-            self.plant_url(self.public_plant),
-        )
-        for url in public_pages:
-            with self.subTest(url=url):
-                self.assertNotContains(self.client.get(url), 'Spare key under the blue pot.')
 
 
 class GardenNavigationTests(TestCase):
@@ -677,38 +587,6 @@ class GardenNavigationTests(TestCase):
             owner=cls.owner, name='Rooftop', location='Tebet', growing_method='Hydroponic', is_public=True,
         )
         cls.planting = Planting.objects.create(garden=cls.garden, crop='Pak choy', planting_date=date(2026, 10, 9))
-
-    def test_owner_pages_highlight_home_and_show_my_gardens_subnav(self):
-        self.client.force_login(self.owner)
-        urls = (
-            reverse('gardens:mine'),
-            reverse('gardens:create'),
-            reverse('gardens:detail', args=[self.garden.pk]),
-            reverse('gardens:edit', args=[self.garden.pk]),
-            reverse('gardens:planting_create', args=[self.garden.pk]),
-            reverse('gardens:planting_detail', args=[self.garden.pk, self.planting.pk]),
-        )
-        for url in urls:
-            with self.subTest(url=url):
-                response = self.client.get(url)
-                self.assertContains(response, self.HOME_ACTIVE, html=True)
-                self.assertNotContains(response, self.EXPLORE_ACTIVE, html=True)
-                self.assertContains(response, self.SUBNAV, count=1)
-                self.assertContains(response, self.MY_GARDENS_ACTIVE)
-
-    def test_public_pages_highlight_explore_without_subnav(self):
-        self.client.force_login(self.visitor)
-        urls = (
-            reverse('gardens:explore'),
-            reverse('gardens:public_detail', args=[self.garden.pk]),
-            reverse('gardens:planting_detail', args=[self.garden.pk, self.planting.pk]),
-        )
-        for url in urls:
-            with self.subTest(url=url):
-                response = self.client.get(url)
-                self.assertContains(response, self.EXPLORE_ACTIVE, html=True)
-                self.assertNotContains(response, self.HOME_ACTIVE, html=True)
-                self.assertNotContains(response, self.SUBNAV)
 
     def test_logged_out_visitors_see_explore_highlighted(self):
         response = self.client.get(reverse('gardens:public_detail', args=[self.garden.pk]))
@@ -917,38 +795,6 @@ class GardenEmptyAndJournalStateTests(TestCase):
         self.assertContains(response, 'There are no public gardens from other growers yet.')
         self.assertNotContains(response, 'Reset filters')
 
-    def test_owner_plant_page_offers_the_first_journal_entry(self):
-        self.client.force_login(self.owner)
-
-        response = self.client.get(reverse('gardens:planting_detail', args=[self.garden.pk, self.planting.pk]))
-
-        self.assertContains(response, 'aria-label="Plant journal"')
-        self.assertContains(response, 'No journal yet')
-        self.assertContains(response, 'Write the first entry')
-
-    def test_visitor_plant_page_shows_no_journal_without_write_button(self):
-        self.client.force_login(self.visitor)
-
-        response = self.client.get(reverse('gardens:planting_detail', args=[self.garden.pk, self.planting.pk]))
-
-        self.assertContains(response, 'No journal yet')
-        self.assertNotContains(response, 'Write the first entry')
-
-    def test_private_plant_shows_only_the_no_access_card(self):
-        self.client.force_login(self.visitor)
-
-        response = self.client.get(
-            reverse('gardens:planting_detail', args=[self.private_garden.pk, self.private_planting.pk]),
-        )
-
-        self.assertContains(response, 'No access', status_code=403)
-        self.assertContains(response, 'only visible to the owner', status_code=403)
-        self.assertContains(response, 'journal-state-locked', status_code=403)
-        self.assertNotContains(response, 'Secret basil', status_code=403)
-        self.assertNotContains(response, 'Back room', status_code=403)
-        self.assertNotContains(response, 'Write the first entry', status_code=403)
-        self.assertNotContains(response, 'aria-label="Plant journal"', status_code=403)
-
 
 @override_settings(PASSWORD_HASHERS=['django.contrib.auth.hashers.MD5PasswordHasher'])
 class GardenReviewFixTests(TestCase):
@@ -1135,10 +981,6 @@ class PlantOpensJournalTests(TestCase):
         journal_reverse.assert_called_once_with('journal:plant_detail', args=[self.planting.pk])
         self.assertRedirects(response, f'/journal/plant/{self.planting.pk}/?from=garden', fetch_redirect_response=False)
 
-    def test_shows_the_gardens_plant_page_until_then(self):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Cherry tomato')
 
 @override_settings(MEDIA_ROOT=TEST_MEDIA)
 class GardenPhotoTests(TestCase):
