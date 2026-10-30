@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{% if task %}Edit task{% else %}Plan a task{% endif %} · UrFunFarming{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'css/care.css' %}">{% endblock %}
+
+{% block content %}
+{% include 'partials/grower_subnav.html' %}
+
+<section class="care-page" aria-labelledby="care-form-heading">
+    <header class="care-page-heading">
+        <div>
+            <p class="eyebrow">PLANT CARE</p>
+            <h1 id="care-form-heading">{% if task %}Edit task{% else %}Plan a task{% endif %}</h1>
+            <p class="care-subtitle">Pick a plant and a time. The forecast tells you whether that time suits your limits.</p>
+        </div>
+    </header>
+
+    {% if not has_plantings %}
+        <div class="care-empty">
+            <h2>Add a plant first</h2>
+            <p>A care task belongs to one of your plants, so there has to be one to point at.</p>
+            <a class="pill-button" href="{% url 'gardens:mine' %}">Go to my gardens</a>
+        </div>
+    {% else %}
+        <div class="care-form-layout">
+            <form method="post" class="care-form" data-task-form>
+                {% csrf_token %}
+                {% for field in form %}
+                    <label class="care-field">
+                        <span>{{ field.label }}</span>
+                        {{ field }}
+                        {% for error in field.errors %}<span class="care-field-error">{{ error }}</span>{% endfor %}
+                        <span class="care-field-error" data-error-for="{{ field.name }}"></span>
+                    </label>
+                {% endfor %}
+
+                <p class="care-verdict" data-verdict-state="{{ verdict.state }}" data-verdict>{{ verdict.text }}</p>
+
+                <div class="care-actions">
+                    <button type="submit" class="pill-button">{% if task %}Save changes{% else %}Add task{% endif %}</button>
+                    <a class="outline-button" href="{% url 'care:index' %}">Cancel</a>
+                </div>
+            </form>
+
+            <aside class="care-suggestions" aria-labelledby="care-suggestions-heading">
+                <h2 id="care-suggestions-heading">Good times in {{ preference.city }}</h2>
+                {% if suggestions %}
+                    <p class="care-suggestions-hint">Hours that stay inside your limits. Pick one to fill the fields.</p>
+                    <ul class="care-suggestion-list">
+                        {% for slot in suggestions %}
+                            <li>
+                                <button type="button"
+                                        class="care-suggestion"
+                                        data-date="{{ slot.time|date:'Y-m-d' }}"
+                                        data-time="{{ slot.time|date:'H:i' }}">
+                                    <strong>{{ slot.time|date:'D j M, H:i' }}</strong>
+                                    <small>{{ slot.temperature|floatformat:0 }} degrees, {{ slot.rain|floatformat:1 }} mm rain</small>
+                                </button>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="care-suggestions-hint">No upcoming hour stays inside your limits, or the forecast is unavailable. You can still pick any time.</p>
+                {% endif %}
+            </aside>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}
+
+{% block motion %}<script defer src="{% static 'js/care.js' %}"></script>{% endblock %}

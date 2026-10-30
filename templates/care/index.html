@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Plant care · UrFunFarming{% endblock %}
+{% block head %}<link rel="stylesheet" href="{% static 'css/care.css' %}">{% endblock %}
+
+{% block content %}
+{% include 'partials/grower_subnav.html' %}
+
+<section class="care-page" aria-labelledby="care-heading">
+    {% include 'care/_messages.html' %}
+
+    <header class="care-page-heading">
+        <div>
+            <p class="eyebrow">YOUR PLANTS, PLANNED</p>
+            <h1 id="care-heading">Plant care</h1>
+            <p class="care-subtitle">Tasks for your own plants, with the forecast for your city. Only you can see them.</p>
+        </div>
+        <a class="pill-button" href="{% url 'care:create' %}">Plan a task</a>
+    </header>
+
+    <div class="care-weather" data-weather-card>
+        <div class="care-weather-text">
+            <h2>Weather for {{ preference.city }}</h2>
+            <p class="care-outlook" data-outlook-state="{{ outlook.state }}" data-outlook>{{ outlook.text }}</p>
+        </div>
+        <details class="care-limits">
+            <summary>Your limits</summary>
+            <form method="post" action="{% url 'care:limits' %}" class="care-limits-form" data-limits-form>
+                {% csrf_token %}
+                {% for field in preference_form %}
+                    <label class="care-field">
+                        <span>{{ field.label }}</span>
+                        {{ field }}
+                        <span class="care-field-error" data-error-for="{{ field.name }}"></span>
+                    </label>
+                {% endfor %}
+                <button type="submit" class="pill-button care-small">Save limits</button>
+            </form>
+        </details>
+    </div>
+
+    <form class="care-filters" method="get" action="{% url 'care:index' %}" data-filter-form>
+        <fieldset class="care-filter-group">
+            <legend class="care-visually-hidden">Which tasks</legend>
+            {% for value, label in filter_form.fields.show.choices %}
+                <label class="care-chip">
+                    <input type="radio" name="show" value="{{ value }}"{% if filter_form.show.value == value %} checked{% endif %}>
+                    <span>{{ label }}</span>
+                    <small>{% if value == 'all' %}{{ counts.all }}{% elif value == 'open' %}{{ counts.open }}{% elif value == 'done' %}{{ counts.done }}{% else %}{{ counts.overdue }}{% endif %}</small>
+                </label>
+            {% endfor %}
+        </fieldset>
+
+        <label class="care-visually-hidden" for="care-activity">Activity</label>
+        <select class="care-select" id="care-activity" name="activity">
+            {% for value, label in filter_form.fields.activity.choices %}
+                <option value="{{ value }}"{% if filter_form.activity.value == value %} selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+
+        <label class="care-visually-hidden" for="care-plant">Plant</label>
+        <select class="care-select" id="care-plant" name="planting">
+            <option value="">Any plant</option>
+            {% for planting in filter_form.fields.planting.queryset %}
+                <option value="{{ planting.pk }}"{% if filter_form.planting.value|stringformat:'s' == planting.pk|stringformat:'s' %} selected{% endif %}>{{ planting.display_name }}</option>
+            {% endfor %}
+        </select>
+
+        <label class="care-visually-hidden" for="care-sort">Sort</label>
+        <select class="care-select" id="care-sort" name="sort">
+            {% for value, label in filter_form.fields.sort.choices %}
+                <option value="{{ value }}"{% if filter_form.sort.value == value %} selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+
+        {# Without JavaScript this button submits the form the ordinary way. #}
+        <button type="submit" class="outline-button care-small care-filter-submit">Apply</button>
+    </form>
+
+    <div data-task-area>
+        {% include 'care/_task_list.html' %}
+    </div>
+</section>
+
+{% if delete_task %}
+<div class="care-dialog-backdrop">
+    <div class="care-dialog" role="dialog" aria-modal="true" aria-labelledby="care-delete-heading">
+        <h2 id="care-delete-heading">Delete this task?</h2>
+        <p>{{ delete_task.get_activity_display }} for {{ delete_task.planting.display_name }} on {{ delete_task.planned_for|date:'j M Y' }}.</p>
+        <div class="care-actions">
+            <a class="outline-button" href="{% url 'care:index' %}">Keep it</a>
+            <form method="post" action="{% url 'care:delete' delete_task.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="pill-button care-danger-button">Delete</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block motion %}<script defer src="{% static 'js/care.js' %}"></script>{% endblock %}

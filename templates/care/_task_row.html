@@ -1,0 +1,28 @@
+<article class="care-task{% if task.is_done %} is-done{% elif task.is_overdue %} is-overdue{% endif %}" data-task="{{ task.pk }}">
+    <form method="post" action="{% url 'care:toggle_done' task.pk %}" class="care-done-form" data-toggle-done>
+        {% csrf_token %}
+        <button type="submit"
+                class="care-done-button"
+                aria-pressed="{% if task.is_done %}true{% else %}false{% endif %}"
+                title="{% if task.is_done %}Mark as still open{% else %}Mark as done{% endif %}">
+            <span class="care-done-mark" aria-hidden="true">{% if task.is_done %}&#10003;{% endif %}</span>
+            <span class="care-visually-hidden">{% if task.is_done %}Mark as still open{% else %}Mark as done{% endif %}</span>
+        </button>
+    </form>
+
+    <div class="care-task-body">
+        <h3 class="care-task-title">{{ task.get_activity_display }}</h3>
+        <p class="care-task-plant">{{ task.planting.display_name }} in {{ task.planting.garden.name }}</p>
+        <p class="care-task-when">
+            {{ task.planned_for|date:'D j M Y' }}{% if task.planned_time %} at {{ task.planned_time|time:'H:i' }}{% endif %}
+            {% if task.is_overdue %}<span class="care-tag care-tag-overdue">Overdue</span>{% endif %}
+            {% if task.is_done %}<span class="care-tag care-tag-done">Done</span>{% endif %}
+        </p>
+        {% if task.notes %}<p class="care-task-notes">{{ task.notes }}</p>{% endif %}
+    </div>
+
+    <div class="care-task-actions">
+        <a class="outline-button care-small" href="{% url 'care:edit' task.pk %}">Edit</a>
+        <a class="outline-button care-small care-danger" href="{% url 'care:delete' task.pk %}">Delete</a>
+    </div>
+</article>

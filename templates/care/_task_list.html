@@ -1,0 +1,25 @@
+{% comment %}
+Rendered on its own for fetch requests, so the list can be replaced without
+reloading the whole page. index.html includes the same file.
+{% endcomment %}
+<p class="care-count" role="status" data-care-count>
+    {{ tasks|length }} task{{ tasks|length|pluralize }} shown
+</p>
+
+{% if tasks %}
+    <div class="care-task-list">
+        {% for task in tasks %}{% include 'care/_task_row.html' %}{% endfor %}
+    </div>
+{% else %}
+    <div class="care-empty">
+        {% if counts.all %}
+            <h2>No tasks match these filters</h2>
+            <p>Try another filter or clear them.</p>
+            <a class="outline-button" href="{% url 'care:index' %}">Clear filters</a>
+        {% else %}
+            <h2>No care tasks yet</h2>
+            <p>Plan the first one: watering, pruning or a pest check for one of your plants.</p>
+            <a class="pill-button" href="{% url 'care:create' %}">Plan a task</a>
+        {% endif %}
+    </div>
+{% endif %}
