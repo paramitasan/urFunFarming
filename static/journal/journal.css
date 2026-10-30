@@ -911,6 +911,11 @@
     display: none;
 }
 
+/* New Entry before the first photo: the row only holds the hidden "Add photo" tile, so it takes no space */
+.photo-list:has(> .photo-add[hidden]:only-child) {
+    display: none;
+}
+
 .photo-slot {
     position: relative;
     width: 132px;
@@ -974,6 +979,11 @@
     background-color: var(--color-band);
 }
 
+.photo-add.is-dragging {
+    background-color: var(--color-band);
+    border-color: var(--color-accent);
+}
+
 .photo-add:focus-within {
     outline: 2px solid var(--color-forest);
     outline-offset: 2px;
@@ -1024,15 +1034,17 @@
     color: var(--color-deep);
 }
 
-/* The real file input stays for keyboards and screen readers, the "Choose files" label opens it */
-.dropzone input[type="file"] {
+/* The real file input stays for keyboards and screen readers, "Choose files" and "Add photo" open it */
+.dropzone input[type="file"],
+[data-photo-box] > input[type="file"] {
     position: absolute;
     width: 1px;
     height: 1px;
     opacity: 0;
 }
 
-.dropzone input[type="file"]:focus-visible + .small-button {
+/* Tabbing to the hidden input outlines whichever button is showing */
+[data-photo-box]:has(> input[type="file"]:focus-visible) :is(.dropzone .small-button, .photo-add) {
     outline: 2px solid var(--color-forest);
     outline-offset: 2px;
 }

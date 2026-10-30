@@ -563,7 +563,9 @@ class EditPhotosTest(JournalTestCase):
     def test_edit_page_without_photos_uses_the_dropzone(self):
         response = self.client.get(reverse('journal:edit_entry', args=[self.second.pk]))
         self.assertContains(response, 'Drag photos here')
-        self.assertNotContains(response, 'Add photo')
+        # The "Add photo" tile is there for later, but hidden until the first photo is chosen
+        self.assertContains(response, 'data-add-tile hidden')
+        self.assertNotContains(response, 'name="remove_photos"')
 
     def test_only_this_entrys_photos_can_be_removed(self):
         form = JournalEntryForm(self.grower, instance=self.latest)

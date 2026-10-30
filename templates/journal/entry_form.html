@@ -176,16 +176,24 @@
             <p class="field-hint" data-photo-hint>Up to 5 photos. JPG, PNG or WEBP, up to 5 MB each. Use the trash button to remove one.</p>
             {% include 'journal/field_errors.html' with field=form.remove_photos %}
             {% else %}
-            <div class="photo-list" data-photo-list></div>
+            {# The file input stays outside the dropzone, so it still works after the dropzone hides #}
+            {{ form.photos }}
+            <div class="photo-list" data-photo-list>
+                <label class="photo-add" for="{{ form.photos.id_for_label }}" data-add-tile hidden>
+                    <img src="{% static 'journal/icons/plus.svg' %}" alt="" width="22" height="22">
+                    Add photo
+                </label>
+            </div>
+            <p class="field-hint" data-photo-hint hidden>Up to 5 photos. JPG, PNG or WEBP, up to 5 MB each. Use the trash button to remove one.</p>
 
             <div class="dropzone" data-dropzone>
                 <img src="{% static 'journal/icons/camera.svg' %}" alt="" width="32" height="32">
                 <p class="dropzone-title">Drag photos here</p>
                 <p class="dropzone-or">or</p>
-                {{ form.photos }}
                 <label class="small-button" for="{{ form.photos.id_for_label }}">Choose files</label>
                 <p class="dropzone-hint">Up to 5 photos. JPG, PNG or WEBP, up to 5 MB each. A photo from the same angle each time makes growth easier to compare.</p>
             </div>
+
             {% endif %}
             {% include 'journal/field_errors.html' with field=form.photos %}
             <p class="field-error" data-upload-error hidden>

@@ -11,7 +11,7 @@ if (photoBox) {
     const maxPhotos = Number(photoBox.dataset.maxPhotos);
     const trashIcon = photoBox.dataset.trashIcon;
     const list = photoBox.querySelector('[data-photo-list]');
-    // New Entry has the dropzone, Edit Entry has the "Add photo" tile instead
+    // The big dropzone shows until the first photo, then the photos sit in a row with the "Add photo" tile
     const dropzone = photoBox.querySelector('[data-dropzone]');
     const addTile = photoBox.querySelector('[data-add-tile]');
     const photoHint = photoBox.querySelector('[data-photo-hint]');
@@ -105,7 +105,7 @@ if (photoBox) {
             });
             slot.querySelector('img').dataset.preview = '';
             slot.dataset.newPhoto = '';
-            // Before the "Add photo" tile on the edit page, at the end on the new entry page
+            // Always before the "Add photo" tile, so the tile stays last in the row
             list.insertBefore(slot, addTile);
         });
 
@@ -123,16 +123,18 @@ if (photoBox) {
             list.insertBefore(slot, addTile);
         });
 
-        const full = photoCount() >= maxPhotos;
-        // At 5 photos the ways of adding more are hidden, on both pages
+        const count = photoCount();
+        const full = count >= maxPhotos;
+        // Only a page without saved photos has the dropzone, and only while nothing is chosen yet
+        const showDropzone = Boolean(dropzone) && count === 0;
+        // At 5 photos the ways of adding more are hidden
         fullNote.hidden = !full;
         linkBox.hidden = full;
         if (dropzone) {
-            dropzone.hidden = full;
-        } else {
-            addTile.hidden = full;
-            photoHint.hidden = full;
+            dropzone.hidden = !showDropzone;
         }
+        addTile.hidden = full || showDropzone;
+        photoHint.hidden = addTile.hidden;
     }
 
     function addFiles(files) {
@@ -165,22 +167,23 @@ if (photoBox) {
         addFiles(newFiles);
     });
 
-    if (dropzone) {
-        dropzone.addEventListener('dragover', (event) => {
+    // Photos can be dropped on the big dropzone and on the "Add photo" tile
+    [dropzone, addTile].filter(Boolean).forEach((zone) => {
+        zone.addEventListener('dragover', (event) => {
             event.preventDefault();
-            dropzone.classList.add('is-dragging');
+            zone.classList.add('is-dragging');
         });
 
-        dropzone.addEventListener('dragleave', () => {
-            dropzone.classList.remove('is-dragging');
+        zone.addEventListener('dragleave', () => {
+            zone.classList.remove('is-dragging');
         });
 
-        dropzone.addEventListener('drop', (event) => {
+        zone.addEventListener('drop', (event) => {
             event.preventDefault();
-            dropzone.classList.remove('is-dragging');
+            zone.classList.remove('is-dragging');
             addFiles(event.dataTransfer.files);
         });
-    }
+    });
 
     // Edit page: the trash button on a saved photo ticks its hidden remove box, and CSS hides the photo
     photoBox.querySelectorAll('[data-remove-kept]').forEach((button) => {
