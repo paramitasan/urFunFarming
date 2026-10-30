@@ -358,6 +358,12 @@
 .care-suggestion.is-selected { background: var(--color-accent-soft); border-color: var(--color-accent); }
 .care-suggestion small { color: var(--color-sage); }
 
+/* A button-class display rule would otherwise beat the browser's own
+   display:none for [hidden], so the attribute needs to win here. */
+.care-page [hidden] {
+    display: none !important;
+}
+
 .care-is-loading { opacity: 0.55; transition: opacity 0.15s ease; }
 
 @media (max-width: 860px) {

@@ -57,6 +57,10 @@ def slots_on(data, day):
     return [slot for slot in data['slots'] if slot['time'].date() == day]
 
 
+def _plural(count, word):
+    return f'{count} {word}' if count == 1 else f'{count} {word}s'
+
+
 def _describe(slot):
     return (
         f"{slot['temperature']:.0f} degrees, "
@@ -96,7 +100,7 @@ def verdict(data, preference, planned_for, planned_time=None):
         if not good:
             return {'state': 'poor', 'text': 'No hour that day stays inside your limits.'}
         hours = ', '.join(slot['time'].strftime('%H:%M') for slot in good[:4])
-        return {'state': 'good', 'text': f'{len(good)} of {len(day)} hours work that day, for example {hours}.'}
+        return {'state': 'good', 'text': f'{len(good)} of {_plural(len(day), "hour")} work that day, for example {hours}.'}
 
     moment = datetime.combine(planned_for, planned_time)
     slot = slot_at(data, moment)
@@ -118,4 +122,4 @@ def today_outlook(data, preference):
     if not good:
         return {'state': 'poor', 'text': 'No hour left today stays inside your limits.'}
     first = good[0]['time'].strftime('%H:%M')
-    return {'state': 'good', 'text': f'{len(good)} hours left today work, starting at {first}.'}
+    return {'state': 'good', 'text': f'{_plural(len(good), "hour")} left today work, starting at {first}.'}
