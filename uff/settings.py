@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'marketplace',
     'forum',
     'gardens',
+    'care',
 ]
 
 MIDDLEWARE = [
