@@ -260,6 +260,37 @@ class EntryFormTest(JournalTestCase):
         data = {**self.entry_data(**changes), 'planting': self.tomato.pk, 'visibility': 'private'}
         return NewEntryForm(self.grower, data, MultiValueDict({'photos': files or []}))
 
+    def test_date_in_the_future_is_rejected(self):
+        tomorrow = timezone.localdate() + timedelta(days=1)
+        form = self.make_form(date=tomorrow.isoformat())
+        self.assertFalse(form.is_valid())
+        self.assertEqual(form.errors['date'], ["The date can't be in the future."])
+
+    def test_date_before_planting_is_rejected(self):
+        # The tomato was planted on 5 Sep 2026
+        form = self.make_form(date='2026-09-04')
+        self.assertFalse(form.is_valid())
+        self.assertEqual(form.errors['date'], ["The date can't be before this plant was planted (5 Sep 2026)."])
+
+    def test_planting_day_and_today_are_both_allowed(self):
+        self.assertTrue(self.make_form(date='2026-09-05').is_valid())
+        self.assertTrue(self.make_form(date=timezone.localdate().isoformat()).is_valid())
+
+    def test_plant_and_edit_versions_check_the_date_too(self):
+        # Neither has the plant dropdown, so the plant comes from the entry itself
+        plant_form = JournalEntryForm(self.grower, self.entry_data(date='2026-09-01'), instance=JournalEntry(planting=self.tomato))
+        del plant_form.fields['planting']
+        self.assertFalse(plant_form.is_valid())
+        self.assertIn('date', plant_form.errors)
+        edit_form = JournalEntryForm(self.grower, self.entry_data(date='2026-09-01'), instance=self.latest)
+        del edit_form.fields['planting']
+        self.assertFalse(edit_form.is_valid())
+        self.assertIn('date', edit_form.errors)
+
+    def test_date_picker_stops_at_today(self):
+        widget = NewEntryForm(self.grower).fields['date'].widget
+        self.assertEqual(widget.attrs['max'], timezone.localdate().isoformat())
+
     def test_plant_choices_are_only_your_own(self):
         mine = NewEntryForm(self.grower).fields['planting'].queryset
         self.assertEqual(set(mine), {self.tomato, self.chili})
