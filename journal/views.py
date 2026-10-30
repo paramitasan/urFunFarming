@@ -232,7 +232,6 @@ def create_entry(request, planting_id=None):
         if request.GET.get('from') == 'list':
             return redirect('journal:index')
         return redirect('journal:plant_detail', planting_id=entry.planting.pk)
-        return redirect('journal:plant_detail', planting_id=entry.planting.pk)
 
     # Bad upload: show the "Couldn't upload your photo" toast as well as the field error
     if PHOTO_ERROR in form.errors.get('photos', []):
