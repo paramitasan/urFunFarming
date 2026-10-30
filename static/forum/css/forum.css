@@ -33,6 +33,18 @@
     color: var(--color-deep);
 }
 
+.list-toolbar {
+    display: grid;
+    align-items: center;
+    gap: 28px;
+    margin-bottom: 24px;
+}
+
+.list-sort {
+    flex-shrink: 0;
+    width: 100%;
+}
+
 /* Results */
 
 .forum-notice {

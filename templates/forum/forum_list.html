@@ -42,6 +42,16 @@
             <span class="visually-hidden">Search questions</span>
             <input type="search" name="q" form="forum-filters" value="{{ q }}" placeholder="Search questions..." data-search>
         </label>
+
+        <label class="list-sort">
+            <span class="visually-hidden">Sort questions</span>
+            <select name="sort" form="forum-filters" data-autosubmit>
+                <option value="newest" {% if selected_sort == "newest" or not selected_sort %}selected{% endif %}>Newest first</option>
+                <option value="oldest" {% if selected_sort == "oldest" %}selected{% endif %}>Oldest first</option>
+                <option value="answers" {% if selected_sort == "answers" %}selected{% endif %}>Most answers</option>
+                <option value="asked" {% if selected_sort == "asked" %}selected{% endif %}>Most asked</option>
+            </select>
+        </label>
     </div>
 
     <div class="list-layout">
@@ -49,15 +59,6 @@
         <section class="forum-results list-results" aria-labelledby="forum-count">
             <div class="list-results-heading">
                 <h2 id="forum-count" class="forum-count">{{ total }} question{{ total|pluralize }}</h2>
-                <label class="list-sort">
-                    <span class="visually-hidden">Sort questions</span>
-                    <select name="sort" form="forum-filters" data-autosubmit>
-                        <option value="newest" {% if selected_sort == "newest" or not selected_sort %}selected{% endif %}>Newest first</option>
-                        <option value="oldest" {% if selected_sort == "oldest" %}selected{% endif %}>Oldest first</option>
-                        <option value="answers" {% if selected_sort == "answers" %}selected{% endif %}>Most answers</option>
-                        <option value="asked" {% if selected_sort == "asked" %}selected{% endif %}>Most asked</option>
-                    </select>
-                </label>
             </div>
 
             {% if not user.is_authenticated %}
