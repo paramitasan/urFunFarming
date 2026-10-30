@@ -1,0 +1,21 @@
+{% load static %}
+{# The journal's confirm overlay for card menus. Pass message and confirm_label. delete-dialog.js fills in the name and the address #}
+<div id="garden-delete-dialog" class="garden-delete-dialog" popover role="dialog" aria-modal="true" aria-labelledby="garden-delete-dialog-title" data-delete-dialog>
+    <button class="garden-delete-dialog-backdrop" type="button" popovertarget="garden-delete-dialog" popovertargetaction="hide" aria-label="Cancel"></button>
+    <form class="garden-delete-dialog-card" method="post" data-delete-form>
+        {% csrf_token %}
+        <div class="garden-delete-dialog-content">
+            <span class="garden-delete-dialog-icon">
+                <img src="{% static 'img/gardens/trash-dialog.svg' %}" alt="" width="20" height="20">
+            </span>
+            <div>
+                <h2 id="garden-delete-dialog-title" class="garden-delete-dialog-title">Delete <span data-delete-name></span>?</h2>
+                <p class="garden-delete-dialog-message">{{ message }}</p>
+            </div>
+        </div>
+        <div class="garden-delete-dialog-actions">
+            <button class="outline-button" type="button" popovertarget="garden-delete-dialog" popovertargetaction="hide">Cancel</button>
+            <button class="garden-danger-button" type="submit">{{ confirm_label }}</button>
+        </div>
+    </form>
+</div>

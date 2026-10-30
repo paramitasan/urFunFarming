@@ -928,6 +928,114 @@ img.garden-photo {
     outline-offset: 2px;
 }
 
+/* Delete overlay, the same design as the journal's confirm dialog */
+
+.garden-delete-dialog {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 16px;
+    background: transparent;
+    border: 0;
+    align-items: center;
+    justify-content: center;
+}
+
+.garden-delete-dialog:popover-open {
+    display: flex;
+}
+
+.garden-delete-dialog-backdrop {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    background-color: rgba(11, 46, 29, 0.45);
+    border: 0;
+    cursor: default;
+}
+
+.garden-delete-dialog-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: min(100%, 460px);
+    padding: 28px;
+    background-color: var(--color-surface);
+    border: 1px solid rgba(18, 81, 51, 0.12);
+    border-radius: 16px;
+    box-shadow: 0 16px 20px rgba(11, 46, 29, 0.18);
+}
+
+.garden-delete-dialog-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.garden-delete-dialog-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    background-color: var(--color-danger-bg);
+    border-radius: 50%;
+}
+
+.garden-delete-dialog .garden-delete-dialog-title {
+    margin-bottom: 6px;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.18px;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.garden-delete-dialog .garden-delete-dialog-message {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--color-deep);
+}
+
+.garden-delete-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.garden-danger-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 13px 22px;
+    background-color: var(--color-surface);
+    border: 1.5px solid var(--color-danger);
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-danger);
+    cursor: pointer;
+}
+
+.garden-danger-button:hover {
+    background-color: var(--color-danger-bg);
+}
+
+.garden-danger-button:focus-visible {
+    outline: 2px solid var(--color-danger);
+    outline-offset: 2px;
+}
+
 /* Tablet */
 
 @media (max-width: 1023px) {
