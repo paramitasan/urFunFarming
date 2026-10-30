@@ -65,7 +65,9 @@ def _filtered_tasks(request, form):
 
 
 def _list_context(request):
-    form = CareTaskFilterForm(request.GET or None, user=request.user)
+    # request.GET, never "or None": an unbound form has no cleaned_data at all,
+    # and with empty data the clean_ methods supply the defaults.
+    form = CareTaskFilterForm(request.GET, user=request.user)
     form.is_valid()
     tasks, counts = _filtered_tasks(request, form)
 
