@@ -166,9 +166,40 @@ class PlanningTest(CareBaseTest):
         future = planning.suggestions(self.data, self.preference)
         self.assertEqual([slot['time'].hour for slot in future], [6])
 
+    def test_a_past_day_is_not_called_out_of_range(self):
+        past = planning.verdict(self.data, self.preference, self.today - timedelta(days=5))
+        self.assertEqual(past['state'], 'unknown')
+        self.assertIn('already passed', past['text'])
+
+    def test_today_ignores_hours_that_are_already_over(self):
+        from marketplace.dates import JAKARTA
+        now = timezone.localtime(timezone.now(), JAKARTA)
+        today_local = now.date()
+        past_hour = max(0, now.hour - 2)
+        data = {
+            'slots': [
+                {'time': datetime.combine(today_local, time(past_hour)), 'temperature': 26.0, 'humidity': 70, 'rain': 0.0},
+            ],
+            'fetched_at': 'test',
+        }
+        # The only hour in the forecast is behind us, so there is nothing left to suggest.
+        self.assertEqual(planning.verdict(data, self.preference, today_local)['state'], 'unknown')
+
+    def test_an_outage_is_remembered_so_the_next_request_does_not_wait(self):
+        from django.core.cache import cache
+        cache.delete(f'care:forecast-outage:{self.preference.city}')
+        with patch('care.planning.forecast', side_effect=WeatherUnavailable('down')) as call:
+            self.assertIsNone(planning.load_forecast(self.preference))
+            self.assertIsNone(planning.load_forecast(self.preference))
+        self.assertEqual(call.call_count, 1)
+        cache.delete(f'care:forecast-outage:{self.preference.city}')
+
     def test_load_forecast_returns_none_when_the_service_fails(self):
+        from django.core.cache import cache
+        cache.delete(f'care:forecast-outage:{self.preference.city}')
         with patch('care.planning.forecast', side_effect=WeatherUnavailable('down')):
             self.assertIsNone(planning.load_forecast(self.preference))
+        cache.delete(f'care:forecast-outage:{self.preference.city}')
 
 
 class CareAccessTest(CareBaseTest):
