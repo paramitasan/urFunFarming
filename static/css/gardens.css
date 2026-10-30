@@ -815,6 +815,113 @@ legend.garden-filter-label {
     list-style: disc;
 }
 
+/* Garden photo: one preview, or a dashed box to drop or choose an image */
+
+.garden-photo-preview[hidden],
+.garden-dropzone[hidden] {
+    display: none;
+}
+
+.garden-photo-preview {
+    position: relative;
+    width: 220px;
+    height: 150px;
+}
+
+.garden-photo-preview > img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 1.5px solid var(--color-field);
+    border-radius: 14px;
+}
+
+.garden-photo-remove {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    background-color: var(--color-surface);
+    border: 1px solid #F5CFCA;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.garden-photo-remove:hover {
+    background-color: var(--color-danger-bg);
+}
+
+.garden-dropzone {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 32px 20px;
+    background-color: #FFFFFF;
+    border: 1.5px dashed var(--color-sage);
+    border-radius: 14px;
+    text-align: center;
+    line-height: normal;
+}
+
+.garden-dropzone.is-dragging {
+    background-color: var(--color-band);
+    border-color: var(--color-accent);
+}
+
+.garden-dropzone-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-forest);
+}
+
+.garden-dropzone-or {
+    font-size: 13px;
+    color: var(--color-deep);
+}
+
+.garden-form-field .garden-dropzone small {
+    margin-top: 0;
+}
+
+/* The real file input stays for keyboards and screen readers, the "Choose file" label opens it */
+.garden-dropzone input[type="file"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.garden-form-field .garden-photo-button {
+    display: inline-flex;
+    margin-bottom: 0;
+    padding: 8px 16px;
+    background-color: var(--color-surface);
+    border: 1.5px solid var(--color-forest);
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-forest);
+    cursor: pointer;
+}
+
+.garden-form-field .garden-photo-button:hover {
+    background-color: var(--color-band);
+}
+
+.garden-dropzone input[type="file"]:focus-visible + .garden-photo-button,
+.garden-photo-remove:focus-visible {
+    outline: 2px solid var(--color-forest);
+    outline-offset: 2px;
+}
+
 /* Tablet */
 
 @media (max-width: 1023px) {
