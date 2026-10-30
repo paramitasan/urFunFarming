@@ -2,7 +2,13 @@
 {% if owner_view %}{% url 'gardens:detail' garden.id as garden_url %}{% else %}{% url 'gardens:public_detail' garden.id as garden_url %}{% endif %}
 {% firstof garden.owner__profile__display_name garden.owner__username as grower_name %}
 <article class="garden-item">
-    <div class="garden-photo" aria-hidden="true"></div>
+    {% if garden.photo %}
+        <img class="garden-photo" src="{% get_media_prefix %}{{ garden.photo }}" alt="">
+    {% elif garden.photo_url %}
+        <img class="garden-photo" src="{{ garden.photo_url }}" alt="">
+    {% else %}
+        <div class="garden-photo" aria-hidden="true"></div>
+    {% endif %}
     <div class="garden-item-content">
         <div class="garden-card-top">
             <h2><a href="{{ garden_url }}">{{ garden.name }}</a></h2>
@@ -16,7 +22,7 @@
                     <summary aria-label="More actions for {{ garden.name }}"><img src="{% static 'img/gardens/more.svg' %}" alt=""></summary>
                     <div class="garden-more-menu">
                         <a href="{% url 'gardens:edit' garden.id %}">Edit</a>
-                        <a class="garden-more-delete" href="{% url 'gardens:delete' garden.id %}">Delete</a>
+                        <a class="garden-more-delete" href="{% url 'gardens:delete' garden.id %}" data-delete-name="{{ garden.name }}">Delete</a>
                     </div>
                 </details>
             {% endif %}

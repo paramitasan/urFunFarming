@@ -129,17 +129,6 @@
     gap: 12px;
 }
 
-.gardens-danger {
-    background-color: var(--color-danger);
-    color: var(--color-light);
-}
-
-@media (hover: hover) {
-    .gardens-danger:hover {
-        background-color: var(--color-danger-text);
-    }
-}
-
 /* Search row */
 
 .garden-toolbar {
@@ -417,6 +406,12 @@ legend.garden-filter-label {
     height: 150px;
     border-radius: 14px;
     background-color: var(--color-band);
+}
+
+/* A garden photo fills the same box, cropped instead of stretched */
+img.garden-photo {
+    display: block;
+    object-fit: cover;
 }
 
 .planting-card .garden-photo {
@@ -759,6 +754,13 @@ legend.garden-filter-label {
     gap: 18px;
 }
 
+/* Add and edit pages: the heading and the form card sit together in the middle */
+.gardens-form-page > .gardens-page-heading,
+.gardens-form-page > .garden-form {
+    max-width: 820px;
+    margin-inline: auto;
+}
+
 .garden-form-field label {
     display: block;
     margin-bottom: 10px;
@@ -813,6 +815,221 @@ legend.garden-filter-label {
 .garden-form-errors ul {
     padding-left: 18px;
     list-style: disc;
+}
+
+/* Garden photo: one preview, or a dashed box to drop or choose an image */
+
+.garden-photo-preview[hidden],
+.garden-dropzone[hidden] {
+    display: none;
+}
+
+.garden-photo-preview {
+    position: relative;
+    width: 220px;
+    height: 150px;
+}
+
+.garden-photo-preview > img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 1.5px solid var(--color-field);
+    border-radius: 14px;
+}
+
+.garden-photo-remove {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    background-color: var(--color-surface);
+    border: 1px solid #F5CFCA;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.garden-photo-remove:hover {
+    background-color: var(--color-danger-bg);
+}
+
+.garden-dropzone {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 32px 20px;
+    background-color: #FFFFFF;
+    border: 1.5px dashed var(--color-sage);
+    border-radius: 14px;
+    text-align: center;
+    line-height: normal;
+}
+
+.garden-dropzone.is-dragging {
+    background-color: var(--color-band);
+    border-color: var(--color-accent);
+}
+
+.garden-dropzone-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-forest);
+}
+
+.garden-dropzone-or {
+    font-size: 13px;
+    color: var(--color-deep);
+}
+
+.garden-form-field .garden-dropzone small {
+    margin-top: 0;
+}
+
+/* The real file input stays for keyboards and screen readers, the "Choose file" label opens it */
+.garden-dropzone input[type="file"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.garden-form-field .garden-photo-button {
+    display: inline-flex;
+    margin-bottom: 0;
+    padding: 8px 16px;
+    background-color: var(--color-surface);
+    border: 1.5px solid var(--color-forest);
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-forest);
+    cursor: pointer;
+}
+
+.garden-form-field .garden-photo-button:hover {
+    background-color: var(--color-band);
+}
+
+.garden-dropzone input[type="file"]:focus-visible + .garden-photo-button,
+.garden-photo-remove:focus-visible {
+    outline: 2px solid var(--color-forest);
+    outline-offset: 2px;
+}
+
+/* Delete overlay, the same design as the journal's confirm dialog */
+
+.garden-delete-dialog {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 16px;
+    background: transparent;
+    border: 0;
+    align-items: center;
+    justify-content: center;
+}
+
+.garden-delete-dialog:popover-open {
+    display: flex;
+}
+
+.garden-delete-dialog-backdrop {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    background-color: rgba(11, 46, 29, 0.45);
+    border: 0;
+    cursor: default;
+}
+
+.garden-delete-dialog-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: min(100%, 460px);
+    padding: 28px;
+    background-color: var(--color-surface);
+    border: 1px solid rgba(18, 81, 51, 0.12);
+    border-radius: 16px;
+    box-shadow: 0 16px 20px rgba(11, 46, 29, 0.18);
+}
+
+.garden-delete-dialog-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.garden-delete-dialog-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    background-color: var(--color-danger-bg);
+    border-radius: 50%;
+}
+
+.garden-delete-dialog .garden-delete-dialog-title {
+    margin-bottom: 6px;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.18px;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.garden-delete-dialog .garden-delete-dialog-message {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--color-deep);
+}
+
+.garden-delete-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.garden-danger-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 13px 22px;
+    background-color: var(--color-surface);
+    border: 1.5px solid var(--color-danger);
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-danger);
+    cursor: pointer;
+}
+
+.garden-danger-button:hover {
+    background-color: var(--color-danger-bg);
+}
+
+.garden-danger-button:focus-visible {
+    outline: 2px solid var(--color-danger);
+    outline-offset: 2px;
 }
 
 /* Tablet */
