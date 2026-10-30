@@ -116,7 +116,7 @@ class GardenOwnerViewTests(TestCase):
         garden = Garden.objects.get(name='Courtyard garden')
         self.assertEqual(garden.owner, self.owner)
         self.assertTrue(garden.is_public)
-        self.assertRedirects(response, reverse('gardens:detail', args=[garden.pk]))
+        self.assertRedirects(response, reverse('gardens:mine'))
 
     def test_invalid_garden_form_is_rendered_with_errors(self):
         self.client.force_login(self.owner)

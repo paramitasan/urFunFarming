@@ -221,7 +221,7 @@ def create(request):
         garden.owner = request.user
         garden.save()
         messages.success(request, 'Garden created.')
-        return redirect('gardens:detail', pk=garden.pk)
+        return redirect('gardens:mine')
     return render(
         request,
         'gardens/form.html',
