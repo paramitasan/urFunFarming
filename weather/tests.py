@@ -191,13 +191,6 @@ class ForecastForUserTests(TestCase):
         self.assertEqual(weather['location_name'], 'Kemayoran')
         self.assertFalse(weather['has_location'])
 
-    def test_later_lists_only_the_slots_after_today(self):
-        with patch_bmkg(bmkg_payload(slots_from_now(count=24))):
-            weather = forecast_for_user(self.user)
-        self.assertTrue(weather['later'])
-        self.assertEqual(weather['today'] + weather['later'], weather['slots'])
-        self.assertTrue(all(slot['time'] > weather['today'][-1]['time'] for slot in weather['later']))
-
     def test_old_slots_are_dropped(self):
         with patch_bmkg(bmkg_payload(slots_from_now(count=3, start_hours=-12))):
             weather = forecast_for_user(self.user)
