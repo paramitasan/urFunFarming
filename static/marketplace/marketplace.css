@@ -9,7 +9,6 @@
 .market-sr, .market-skip { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
 .market-skip:focus { position: fixed; top: 110px; left: 20px; z-index: 101; width: auto; height: auto; padding: 12px; clip: auto; background: var(--color-surface); border-radius: 8px; }
 .market-shell [hidden] { display: none !important; }
-.market-shell :focus-visible { outline: 3px solid var(--color-forest); outline-offset: 4px; }
 .market-page-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 34px; }
 .market-eyebrow { margin-bottom: 10px; font-size: 13px; font-weight: 600; letter-spacing: 2px; color: var(--color-deep); }
 .market-shell h1 { margin: 0 0 10px; color: var(--color-forest); font-size: 44px; line-height: 1.15; letter-spacing: -.5px; }
@@ -75,6 +74,7 @@
 .market-field label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; }
 .market-input { width: 100%; min-width: 0; background: #fff; padding: 12px 14px; border: 1.5px solid #C9DFCB; border-radius: 10px; color: var(--color-ink); font: 400 14px/1.4 'Poppins',sans-serif; min-height: 46px; }
 textarea.market-input { resize: vertical; }
+.market-input:focus { border-color: var(--color-accent); box-shadow: 0 0 0 3px rgba(33, 195, 126, 0.2); }
 /* Safari draws its own grey control unless the native look is switched off */
 input.market-input:not([type=checkbox]):not([type=radio]), textarea.market-input { -webkit-appearance: none; }
 select.market-input { -webkit-appearance: none; appearance: none; padding-right: 40px; background: #fff url('img/imgIconChevron.svg') no-repeat right 14px center; cursor: pointer; }

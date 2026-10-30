@@ -59,6 +59,11 @@
     background-color: #FFFFFF;
 }
 
+.care-threshold-input:focus-within {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(33, 195, 126, 0.2);
+}
+
 .care-threshold-input input {
     width: 3.5em;
     border: 0;

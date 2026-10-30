@@ -372,11 +372,23 @@ select:disabled {
     }
 }
 
+/* Keyboard focus: the same forest ring on every link and button, instead of the browser's black one */
+:focus-visible {
+    outline: 2px solid var(--color-forest);
+    outline-offset: 3px;
+}
+
+/* Typing fields light up their own box with a green ring instead (see .list-search and the form fields) */
+input:not([type="checkbox"], [type="radio"], [type="file"]):focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: none;
+}
+
 .outline-button:focus-visible,
 .pill-button:focus-visible,
 .role-chip-add:focus-visible,
 .subnav a:focus-visible {
-    outline: 2px solid var(--color-forest);
     outline-offset: 2px;
 }
 
@@ -439,13 +451,6 @@ select:disabled {
 .list-sort:focus-within {
     border-color: var(--color-accent);
     box-shadow: 0 0 0 3px rgba(33, 195, 126, 0.2);
-}
-
-/* The box above already shows focus, so the field inside skips the page's dark outline */
-.list-search input:focus-visible,
-.list-toolbar-select select:focus-visible,
-.list-sort select:focus-visible {
-    outline: none;
 }
 
 .list-search img,
@@ -1233,7 +1238,6 @@ select:disabled {
 }
 
 .step:focus-visible {
-    outline: 2px solid var(--color-accent);
     outline-offset: 2px;
 }
 
@@ -1685,6 +1689,11 @@ select:disabled {
 .tile-buy {
     border-color: var(--color-mint);
     color: var(--color-light);
+}
+
+/* The tiles sit on dark green, so their focus ring is light */
+.tile:focus-visible {
+    outline-color: var(--color-light);
 }
 
 .tile-cta {

@@ -11,11 +11,6 @@
     padding-top: 19px;
 }
 
-.gardens-page :focus-visible {
-    outline: 2px solid var(--color-forest);
-    outline-offset: 3px;
-}
-
 .gardens-page h1,
 .gardens-page h2,
 .gardens-page p {
@@ -156,6 +151,11 @@
 
 .garden-field::-webkit-date-and-time-value {
     text-align: left;
+}
+
+.garden-field:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(33, 195, 126, 0.2);
 }
 
 textarea.garden-field {
