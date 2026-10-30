@@ -108,6 +108,7 @@ def index(request):
         'public_ids': set(PlantJournal.objects.filter(planting__in=my_plants, is_public=True).values_list('planting_id', flat=True)),
         'has_plants': my_plants.exists(),
         'has_entries': JournalEntry.objects.filter(planting__in=my_plants).exists(),
+        'nav_active': 'home',
     }
     return render(request, 'journal/index.html', context)
 
@@ -173,6 +174,8 @@ def plant_detail(request, planting_id):
         'stage_steps': stage_steps,
         # Opened from the garden page: the back link returns there instead of to the journal
         'from_garden': request.GET.get('from') == 'garden',
+        # The owner is in their own space (Home), anyone else came from Explore gardens
+        'nav_active': 'home' if is_owner else 'explore',
     }
     return render(request, 'journal/plant_detail.html', context)
 
@@ -222,6 +225,7 @@ def create_entry(request, planting_id=None):
         'planting': planting,
         'latest': latest,
         'missing_required': has_missing_required(form),
+        'nav_active': 'home',
     }
     return render(request, 'journal/entry_form.html', context)
 
@@ -267,6 +271,7 @@ def edit_entry(request, entry_id):
         'original_date': original_date,
         'original_time': original_time,
         'missing_required': has_missing_required(form),
+        'nav_active': 'home',
     }
     return render(request, 'journal/entry_form.html', context)
 

@@ -936,6 +936,32 @@ class BuyerViewTest(JournalTestCase):
         self.assertNotContains(response, 'Started 5 Sep 2026')
 
 
+class NavbarTest(JournalTestCase):
+    # What the navbar writes on the link of the section you're in
+    HOME_ACTIVE = 'data-label="Home" aria-current="page"'
+    EXPLORE_ACTIVE = 'data-label="Explore gardens" aria-current="page"'
+
+    def test_home_is_highlighted_on_the_growers_journal_pages(self):
+        self.client.force_login(self.grower)
+        pages = (
+            reverse('journal:index'),
+            reverse('journal:plant_detail', args=[self.tomato.pk]),
+            reverse('journal:create_entry'),
+            reverse('journal:edit_entry', args=[self.latest.pk]),
+        )
+        for url in pages:
+            with self.subTest(url=url):
+                self.assertContains(self.client.get(url), self.HOME_ACTIVE)
+
+    def test_explore_is_highlighted_for_visitors_on_a_public_plant(self):
+        self.journal.is_public = True
+        self.journal.save()
+        self.client.force_login(self.buyer)
+        response = self.client.get(reverse('journal:plant_detail', args=[self.tomato.pk]))
+        self.assertContains(response, self.EXPLORE_ACTIVE)
+        self.assertNotContains(response, self.HOME_ACTIVE)
+
+
 class PlantNameTest(JournalTestCase):
     def setUp(self):
         super().setUp()
