@@ -4,7 +4,7 @@ from django.db.models import Count, Q, Value
 from django.db.models.functions import Coalesce, Lower, NullIf
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.cache import never_cache
-from django.views.decorators.http import require_GET, require_http_methods
+from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from gardens.forms import (
     GardenExploreFilterForm,
@@ -275,14 +275,14 @@ def edit(request, pk):
 
 @login_required(login_url='/login')
 @never_cache
-@require_http_methods(['GET', 'POST'])
+@require_POST
 def delete(request, pk):
+    # The confirm overlay on My gardens posts here, so there is no separate delete page
     garden = _owned_garden(request, pk)
-    if request.method == 'POST':
-        garden.delete()
-        messages.success(request, 'Garden deleted.')
-        return redirect('gardens:mine')
-    return render(request, 'gardens/delete.html', {'garden': garden, 'nav_active': 'home'})
+    garden.delete()
+    messages.success(request, 'Garden deleted.')
+    return redirect('gardens:mine')
+
 
 
 @login_required(login_url='/login')
@@ -363,15 +363,11 @@ def planting_edit(request, garden_pk, planting_pk):
 
 @login_required(login_url='/login')
 @never_cache
-@require_http_methods(['GET', 'POST'])
+@require_POST
 def planting_delete(request, garden_pk, planting_pk):
+    # The confirm overlay on the garden page posts here, so there is no separate delete page
     planting = _owned_planting(request, garden_pk, planting_pk)
-    if request.method == 'POST':
-        planting.delete()
-        messages.success(request, 'Planting deleted.')
-        return redirect('gardens:detail', pk=garden_pk)
-    return render(
-        request,
-        'gardens/planting_delete.html',
-        {'garden': planting.garden, 'planting': planting, 'nav_active': 'home'},
-    )
+    planting.delete()
+    messages.success(request, 'Planting deleted.')
+    return redirect('gardens:detail', pk=garden_pk)
+

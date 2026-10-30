@@ -129,17 +129,6 @@
     gap: 12px;
 }
 
-.gardens-danger {
-    background-color: var(--color-danger);
-    color: var(--color-light);
-}
-
-@media (hover: hover) {
-    .gardens-danger:hover {
-        background-color: var(--color-danger-text);
-    }
-}
-
 /* Search row */
 
 .garden-toolbar {

@@ -180,7 +180,6 @@ class GardenOwnerViewTests(TestCase):
         for method, url in (
             (self.client.get, self.detail_url),
             (self.client.get, self.edit_url),
-            (self.client.get, self.delete_url),
             (self.client.post, self.edit_url),
             (self.client.post, self.delete_url),
         ):
@@ -189,17 +188,24 @@ class GardenOwnerViewTests(TestCase):
 
         self.assertTrue(Garden.objects.filter(pk=self.garden.pk).exists())
 
-    def test_delete_requires_confirmation_and_post(self):
+    def test_delete_only_accepts_post_from_the_overlay(self):
         self.client.force_login(self.owner)
 
-        confirm_response = self.client.get(self.delete_url)
-
-        self.assertContains(confirm_response, 'This also deletes the plantings')
+        self.assertEqual(self.client.get(self.delete_url).status_code, 405)
         self.assertTrue(Garden.objects.filter(pk=self.garden.pk).exists())
         response = self.client.post(self.delete_url)
 
         self.assertRedirects(response, self.mine_url)
         self.assertFalse(Garden.objects.filter(pk=self.garden.pk).exists())
+
+    def test_my_gardens_has_the_delete_overlay(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(self.mine_url)
+
+        self.assertContains(response, 'data-delete-dialog')
+        self.assertContains(response, f'href="{self.delete_url}" data-delete-name="Balcony garden"')
+        self.assertContains(response, 'Delete garden')
 
     def test_owner_routes_require_login(self):
         owner_urls = [self.mine_url, self.create_url, self.detail_url, self.edit_url, self.delete_url]
@@ -220,9 +226,11 @@ class GardenOwnerViewTests(TestCase):
     def test_non_owners_get_404_whatever_their_role(self):
         for user in (self.buyer, self.no_profile, self.other_owner):
             self.client.force_login(user)
-            for url in (self.detail_url, self.edit_url, self.delete_url):
+            for url in (self.detail_url, self.edit_url):
                 with self.subTest(user=user.username, url=url):
                     self.assertEqual(self.client.get(url).status_code, 404)
+            with self.subTest(user=user.username, url=self.delete_url):
+                self.assertEqual(self.client.post(self.delete_url).status_code, 404)
 
     def test_owner_without_grower_role_still_manages_own_garden(self):
         Profile.objects.filter(user=self.owner).update(is_grower=False)
@@ -337,17 +345,24 @@ class PlantingOwnerViewTests(TestCase):
         self.planting.refresh_from_db()
         self.assertEqual(self.planting.crop, 'Cherry tomatoes')
 
-    def test_delete_planting_requires_post_confirmation(self):
+    def test_delete_planting_only_accepts_post_from_the_overlay(self):
         self.client.force_login(self.owner)
 
-        response = self.client.get(self.delete_url)
-
-        self.assertContains(response, 'Delete Tomatoes?')
+        self.assertEqual(self.client.get(self.delete_url).status_code, 405)
         self.assertTrue(Planting.objects.filter(pk=self.planting.pk).exists())
         response = self.client.post(self.delete_url)
 
         self.assertRedirects(response, self.garden_url)
         self.assertFalse(Planting.objects.filter(pk=self.planting.pk).exists())
+
+    def test_garden_page_has_the_delete_overlay(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.get(self.garden_url)
+
+        self.assertContains(response, 'data-delete-dialog')
+        self.assertContains(response, f'href="{self.delete_url}" data-delete-name="Tomatoes"')
+        self.assertContains(response, 'Delete plant')
 
     def test_other_grower_cannot_read_or_change_planting(self):
         self.client.force_login(self.other_owner)
@@ -356,9 +371,9 @@ class PlantingOwnerViewTests(TestCase):
         self.assertNotContains(response, 'Tomatoes', status_code=403)
         urls = (self.edit_url, self.delete_url)
 
+        with self.subTest(method='GET', url=self.edit_url):
+            self.assertEqual(self.client.get(self.edit_url).status_code, 404)
         for url in urls:
-            with self.subTest(method='GET', url=url):
-                self.assertEqual(self.client.get(url).status_code, 404)
             with self.subTest(method='POST', url=url):
                 self.assertEqual(self.client.post(url, self.planting_data()).status_code, 404)
 
@@ -385,10 +400,9 @@ class PlantingOwnerViewTests(TestCase):
 
     def test_buyer_cannot_change_someone_elses_planting(self):
         self.client.force_login(self.buyer)
-
+        self.assertEqual(self.client.get(self.edit_url).status_code, 404)
         for url in (self.edit_url, self.delete_url):
             with self.subTest(url=url):
-                self.assertEqual(self.client.get(url).status_code, 404)
                 self.assertEqual(self.client.post(url, self.planting_data()).status_code, 404)
         self.assertTrue(Planting.objects.filter(pk=self.planting.pk).exists())
 
@@ -1065,13 +1079,11 @@ class GardenReviewFixTests(TestCase):
         for text in ('Secret Street', 'Aquaponics', 'My Street', 'Wick'):
             self.assertNotContains(response, text)
 
-    def test_private_notes_stay_off_delete_and_plant_form_pages(self):
+    def test_private_notes_stay_off_plant_form_pages(self):
         self.client.force_login(self.owner)
         pages = (
-            reverse('gardens:delete', args=[self.garden.pk]),
             reverse('gardens:planting_create', args=[self.garden.pk]),
             reverse('gardens:planting_edit', args=[self.garden.pk, self.basil.pk]),
-            reverse('gardens:planting_delete', args=[self.garden.pk, self.basil.pk]),
         )
         for url in pages:
             with self.subTest(url=url):
