@@ -2,36 +2,10 @@
    the weather card comes from style.css. Only what is new for care lives here. */
 
 .care-page > .weather-card {
-    margin-bottom: 12px;
-}
-
-/* Thresholds panel under the weather card */
-
-.care-thresholds {
     margin-bottom: 40px;
-    padding: 0 24px;
-    border-radius: 20px;
 }
 
-.care-thresholds summary {
-    width: max-content;
-    margin-left: auto;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--color-forest);
-    list-style: none;
-    cursor: pointer;
-}
-
-.care-thresholds summary::-webkit-details-marker {
-    display: none;
-}
-
-.care-thresholds[open] {
-    padding: 16px 24px 20px;
-    border: 1px solid var(--color-band);
-    background-color: var(--color-surface);
-}
+/* Thresholds form on the Add / Edit task page */
 
 .care-thresholds-form {
     display: flex;

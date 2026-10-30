@@ -15,7 +15,7 @@ summary: optional note under the hours (summary_rain=True shows the rain icon). 
             </p>
         </div>
         {% if legend %}
-        <p class="weather-card-legend">{{ legend }}{% if legend_url %} <a href="{{ legend_url }}" data-open-target>{{ legend_link|default:'Change' }}</a>{% endif %}</p>
+        <p class="weather-card-legend">{{ legend }}{% if legend_url %} <a href="{{ legend_url }}">{{ legend_link|default:'Change' }}</a>{% endif %}</p>
         {% endif %}
     </div>
 
