@@ -78,6 +78,18 @@ class JournalTestCase(TestCase):
 
 
 class ModelTest(JournalTestCase):
+    def test_same_minute_entries_put_the_last_one_saved_first(self):
+        # Logged twice at 07:30 on the same day: the correction saved second is the latest
+        correction = JournalEntry.objects.create(
+            planting=self.tomato, date=self.latest.date, time=self.latest.time,
+            height_cm=93, stage='fruiting', observation='Measured again, 93 cm.',
+        )
+        self.assertEqual(list(self.tomato.journal_entries.all()[:2]), [correction, self.latest])
+        self.client.force_login(self.grower)
+        response = self.client.get(reverse('journal:plant_detail', args=[self.tomato.pk]))
+        self.assertEqual(response.context['entries'][0], correction)
+        self.assertEqual(response.context['entries'][0].height_change, 1)
+
     def test_str(self):
         self.assertEqual(str(self.journal), 'Journal for Cherry Tomato')
         self.assertEqual(str(self.latest), 'Cherry Tomato on 2026-10-24')
