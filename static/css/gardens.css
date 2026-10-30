@@ -419,6 +419,12 @@ legend.garden-filter-label {
     background-color: var(--color-band);
 }
 
+/* A garden photo fills the same box, cropped instead of stretched */
+img.garden-photo {
+    display: block;
+    object-fit: cover;
+}
+
 .planting-card .garden-photo {
     width: 160px;
     height: 120px;
