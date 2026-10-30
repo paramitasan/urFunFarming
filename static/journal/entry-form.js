@@ -50,6 +50,8 @@ if (photoBox) {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
     const maxSize = 5 * 1024 * 1024;
     let chosenFiles = [];
+    // Links still loading their preview count towards the limit, so two quick adds can't pass it
+    let loadingLinks = 0;
 
     function linkCount() {
         return linkFields.filter((field) => field.value).length;
@@ -175,12 +177,16 @@ if (photoBox) {
             chosenFiles.push(file);
         });
         uploadError.hidden = !rejected;
-        // Say how many photos didn't fit, instead of leaving them out without a word
+        showLimitWarning(skipped);
+        syncFileInput();
+        showPhotos();
+    }
+
+    // Say how many photos didn't fit, instead of leaving them out without a word
+    function showLimitWarning(skipped) {
         limitWarning.hidden = skipped === 0;
         limitWarning.querySelector('[data-photo-limit-text]').textContent =
             `One entry can have up to ${maxPhotos} photos, so ${skipped} ${skipped === 1 ? "wasn't" : "weren't"} added.`;
-        syncFileInput();
-        showPhotos();
     }
 
     fileInput.addEventListener('change', () => {
@@ -219,19 +225,32 @@ if (photoBox) {
 
     function addLink() {
         const url = linkInput.value.trim();
-        if (!url || photoCount() >= maxPhotos) {
+        if (!url) {
             return;
         }
+        if (photoCount() + loadingLinks >= maxPhotos) {
+            showLimitWarning(1);
+            return;
+        }
+        loadingLinks += 1;
         // Load the image off-screen first, so broken links never reach the form
         const test = new Image();
         test.onload = () => {
-            linkFields.find((field) => !field.value).value = url;
+            loadingLinks -= 1;
+            // Checked again: photos may have been added while this one was loading
+            const freeField = linkFields.find((field) => !field.value);
+            if (!freeField || photoCount() >= maxPhotos) {
+                showLimitWarning(1);
+                return;
+            }
+            freeField.value = url;
             linkInput.value = '';
             linkError.hidden = true;
             linkInput.setAttribute('aria-invalid', 'false');
             showPhotos();
         };
         test.onerror = () => {
+            loadingLinks -= 1;
             linkError.hidden = false;
             linkInput.setAttribute('aria-invalid', 'true');
         };
