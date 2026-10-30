@@ -11,6 +11,9 @@ class Garden(models.Model):
     public_summary = models.TextField(blank=True)
     private_notes = models.TextField(blank=True)
     is_public = models.BooleanField(default=False)
+    # One thumbnail for the garden card: an uploaded photo or a link to one
+    photo = models.ImageField(upload_to='gardens/', blank=True)
+    photo_url = models.URLField(max_length=500, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -28,6 +31,9 @@ class Planting(models.Model):
     crop = models.CharField(max_length=100)
     planting_date = models.DateField()
     growing_method = models.CharField(max_length=80, blank=True)
+    # One thumbnail for the plant card: an uploaded photo or a link to one
+    photo = models.ImageField(upload_to='plantings/', blank=True)
+    photo_url = models.URLField(max_length=500, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

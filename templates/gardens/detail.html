@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}{{ garden.name }} · My gardens{% endblock %}
+{% block head %}<script defer src="{% static 'js/delete-dialog.js' %}"></script>{% endblock head %}
 {% block content %}
 {% include 'partials/grower_subnav.html' %}
 <section class="gardens-page" aria-labelledby="garden-heading">
@@ -61,5 +62,6 @@
             </div>
         </div>
     </form>
+    {% include 'gardens/_delete_dialog.html' with message='This planting record will be permanently removed.' confirm_label='Delete plant' %}
 </section>
 {% endblock %}

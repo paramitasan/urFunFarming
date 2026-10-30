@@ -1,0 +1,22 @@
+{% load static %}
+{# Garden photo: a preview with a remove button, or a box to drop or choose one image #}
+{% if form.initial.photo %}{% firstof form.initial.photo.url as current_photo %}{% else %}{% firstof form.photo_url.value as current_photo %}{% endif %}
+<div class="garden-form-field{% if field.errors %} has-error{% endif %}" data-garden-photo>
+    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+    <div class="garden-photo-preview" data-photo-preview{% if not current_photo %} hidden{% endif %}>
+        <img{% if current_photo %} src="{{ current_photo }}"{% endif %} alt="Garden photo preview">
+        <button class="garden-photo-remove" type="button" aria-label="Remove photo" data-photo-remove>
+            <img src="{% static 'img/gardens/trash.svg' %}" alt="" width="14" height="14">
+        </button>
+    </div>
+    <div class="garden-dropzone" data-dropzone>
+        <img src="{% static 'img/gardens/camera.svg' %}" alt="" width="32" height="32">
+        <p class="garden-dropzone-title">Drag a photo here</p>
+        <p class="garden-dropzone-or">or</p>
+        <input type="file" name="{{ field.html_name }}" id="{{ field.id_for_label }}" accept="image/jpeg,image/png,image/webp" aria-describedby="{{ field.auto_id }}_helptext">
+        <label class="garden-photo-button" for="{{ field.id_for_label }}">Choose file</label>
+        <small id="{{ field.auto_id }}_helptext">{{ field.help_text }}</small>
+    </div>
+    {% if form.initial.photo %}<input type="checkbox" name="{{ field.html_name }}-clear" hidden data-photo-clear>{% endif %}
+    <p class="garden-field-errors" data-photo-link-error hidden>Couldn't load this image. Try a different link.</p>
+</div>
