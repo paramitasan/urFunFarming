@@ -325,7 +325,10 @@ class PlantingOwnerViewTests(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertContains(response, 'This field is required.', count=3, status_code=400)
-        self.assertEqual(set(PlantingForm().fields), {'name', 'crop', 'planting_date', 'growing_method'})
+        self.assertEqual(
+            set(PlantingForm().fields),
+            {'name', 'crop', 'planting_date', 'growing_method', 'photo', 'photo_url'},
+        )
         self.assertFalse(PlantingForm().fields['growing_method'].required)
 
     def test_owner_can_edit_planting(self):
