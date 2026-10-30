@@ -214,6 +214,10 @@ def create_entry(request, planting_id=None):
             journal.save()
 
         messages.success(request, 'Entry saved')
+        # Started from the + on the journal list: go back to the list
+        if request.GET.get('from') == 'list':
+            return redirect('journal:index')
+        return redirect('journal:plant_detail', planting_id=entry.planting.pk)
         return redirect('journal:plant_detail', planting_id=entry.planting.pk)
 
     # Bad upload: show the "Couldn't upload your photo" toast as well as the field error
@@ -226,6 +230,7 @@ def create_entry(request, planting_id=None):
         'latest': latest,
         'missing_required': has_missing_required(form),
         'nav_active': 'home',
+        'from_list': request.GET.get('from') == 'list',
     }
     return render(request, 'journal/entry_form.html', context)
 

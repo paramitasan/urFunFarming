@@ -12,7 +12,7 @@
 
 {% block content %}
 {% include 'partials/grower_subnav.html' %}
-{% if planting %}
+{% if planting and not from_list %}
     {% url 'journal:plant_detail' planting.pk as back_url %}
 {% else %}
     {% url 'journal:index' as back_url %}
@@ -22,7 +22,7 @@
     {% include 'journal/toast.html' %}
     <a class="back-link" href="{{ back_url }}">
         <img src="{% static 'journal/icons/arrow-left.svg' %}" alt="" width="18" height="18">
-        {% if planting %}Back{% else %}Back to journal{% endif %}
+        {% if planting and not from_list %}Back{% else %}Back to journal{% endif %}
     </a>
 
     <header class="journal-title-block">
@@ -156,7 +156,7 @@
         <div class="field" data-photo-box data-max-photos="5" data-trash-icon="{% static 'journal/icons/trash.svg' %}">
             <span class="field-label">Photos</span>
 
-            {% if entry %}
+            {% if entry and entry.photos.exists %}
             <div class="photo-list" data-photo-list>
                 {% for checkbox in form.remove_photos %}
                 <div class="photo-slot">

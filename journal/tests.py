@@ -334,6 +334,15 @@ class CreateEntryTest(JournalTestCase):
         self.assertIn('visibility', response.context['form'].fields)
         self.assertContains(response, 'Back to journal')
 
+    def test_plus_on_the_list_returns_to_the_list(self):
+        self.client.force_login(self.grower)
+        url = self.plant_url(self.tomato) + '?from=list'
+        self.assertContains(self.client.get(reverse('journal:index')), url)
+        page = self.client.get(url)
+        self.assertContains(page, 'Back to journal')
+        response = self.client.post(url, self.entry_data())
+        self.assertRedirects(response, reverse('journal:index'))
+
     def test_saving_an_entry_with_photos_and_visibility(self):
         self.client.force_login(self.grower)
         data = self.entry_data(
@@ -550,6 +559,11 @@ class EditPhotosTest(JournalTestCase):
         response = self.client.get(reverse('journal:create_entry'))
         self.assertContains(response, 'Drag photos here')
         self.assertNotContains(response, 'name="remove_photos"')
+
+    def test_edit_page_without_photos_uses_the_dropzone(self):
+        response = self.client.get(reverse('journal:edit_entry', args=[self.second.pk]))
+        self.assertContains(response, 'Drag photos here')
+        self.assertNotContains(response, 'Add photo')
 
     def test_only_this_entrys_photos_can_be_removed(self):
         form = JournalEntryForm(self.grower, instance=self.latest)

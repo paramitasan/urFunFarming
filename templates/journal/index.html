@@ -120,7 +120,7 @@
                                     <a class="icon-button icon-button-view" href="{% url 'journal:plant_detail' row.planting.pk %}" aria-label="View the timeline of {{ row.planting.display_name }}">
                                         <img src="{% static 'journal/icons/maximize.svg' %}" alt="" width="18" height="18">
                                     </a>
-                                    <a class="icon-button" href="{% url 'journal:create_plant_entry' row.planting.pk %}" aria-label="Add an entry for {{ row.planting.display_name }}">
+                                    <a class="icon-button" href="{% url 'journal:create_plant_entry' row.planting.pk %}?from=list" aria-label="Add an entry for {{ row.planting.display_name }}">
                                         <img src="{% static 'journal/icons/plus.svg' %}" alt="" width="18" height="18">
                                     </a>
                                     <button class="icon-button icon-button-delete" type="button" aria-label="Delete all entries for {{ row.planting.display_name }}" data-delete-url="{% url 'journal:delete_plant_entries' row.planting.pk %}">
