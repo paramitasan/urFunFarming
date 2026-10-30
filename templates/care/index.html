@@ -1,7 +1,10 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}Plant care · UrFunFarming{% endblock %}
-{% block head %}<link rel="stylesheet" href="{% static 'css/care.css' %}">{% endblock %}
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/care.css' %}">
+    <script defer src="{% static 'js/care.js' %}"></script>
+{% endblock %}
 
 {% block content %}
 {% include 'partials/grower_subnav.html' %}
@@ -98,5 +101,3 @@
 </div>
 {% endif %}
 {% endblock %}
-
-{% block motion %}<script defer src="{% static 'js/care.js' %}"></script>{% endblock %}

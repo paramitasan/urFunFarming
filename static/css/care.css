@@ -19,12 +19,17 @@
 .care-page-heading h1 {
     margin: 0.2rem 0 0.4rem;
     color: var(--color-forest);
+    font-size: 44px;
+    font-weight: 700;
+    line-height: 1.15;
 }
 
 .care-subtitle {
     margin: 0;
     max-width: 52ch;
     color: var(--color-deep);
+    font-size: 18px;
+    line-height: 1.5;
 }
 
 .care-visually-hidden {
@@ -147,6 +152,12 @@
     color: var(--color-sage);
 }
 
+.care-chip:has(input:focus-visible),
+.care-page :focus-visible {
+    outline: 2px solid var(--color-forest);
+    outline-offset: 2px;
+}
+
 .care-select,
 .care-field input,
 .care-field select,
@@ -245,7 +256,10 @@
 
 .care-small { padding: 0.35rem 0.7rem; font-size: 0.85rem; }
 .care-danger { color: var(--color-danger-text); border-color: var(--color-danger); }
-.care-danger-button { background: var(--color-danger); }
+.care-danger-button {
+    background: var(--color-danger);
+    color: var(--color-light);
+}
 
 /* Empty state, panels and dialog */
 
@@ -366,11 +380,13 @@
 
 .care-is-loading { opacity: 0.55; transition: opacity 0.15s ease; }
 
-@media (max-width: 860px) {
+@media (max-width: 1023px) {
     .care-form-layout { grid-template-columns: minmax(0, 1fr); }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 639px) {
+    .care-page-heading h1 { font-size: 32px; }
+    .care-subtitle { font-size: 16px; }
     .care-task { flex-wrap: wrap; }
     .care-task-actions { flex-direction: row; width: 100%; }
     .care-filters .care-select { flex: 1 1 100%; }
