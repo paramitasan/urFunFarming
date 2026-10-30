@@ -35,17 +35,26 @@ summary: optional note under the hours (summary_rain=True shows the rain icon). 
         {% if summary %}<p{% if summary_rain %} class="is-rain"{% endif %}>{% if summary_rain %}{% include 'svg/icons/weather-rain.svg' %}{% else %}{% include 'svg/icons/weather-sun.svg' %}{% endif %}{{ summary }}</p>{% endif %}
         <details class="weather-days">
             <summary>Next 3 days</summary>
-            <ol>
-                {% for slot in weather.slots %}
-                {% ifchanged slot.time.date %}<li class="weather-day-label">{{ slot.time|date:'l, j M' }}</li>{% endifchanged %}
-                <li>
-                    <time datetime="{{ slot.time|date:'c' }}">{{ slot.time|date:'H:i' }}</time>
-                    {% include 'weather/_icon.html' with kind=slot.kind %}
-                    <span>{{ slot.temp|floatformat:0 }}&deg; {{ slot.description }}</span>
-                    <span>{{ slot.rain_mm|floatformat:1 }} mm &middot; {{ slot.wind_kmh|floatformat:0 }} km/h</span>
-                </li>
-                {% endfor %}
-            </ol>
+            {% regroup weather.slots by time.date as days %}
+            {% for day in days %}
+            <section class="weather-day">
+                <h3>{{ day.grouper|date:'l, j M' }}</h3>
+                <ol>
+                    {% for slot in day.list %}
+                    <li>
+                        <time datetime="{{ slot.time|date:'c' }}">{{ slot.time|date:'H:i' }}</time>
+                        {% include 'weather/_icon.html' with kind=slot.kind %}
+                        <strong>{{ slot.temp|floatformat:0 }}&deg;</strong>
+                        <span class="weather-day-description">{{ slot.description }}</span>
+                        <dl>
+                            <div><dt>Rain</dt><dd>{{ slot.rain_mm|floatformat:1 }} mm</dd></div>
+                            <div><dt>Wind</dt><dd>{{ slot.wind_kmh|floatformat:0 }} km/h</dd></div>
+                        </dl>
+                    </li>
+                    {% endfor %}
+                </ol>
+            </section>
+            {% endfor %}
         </details>
     </div>
     {% else %}

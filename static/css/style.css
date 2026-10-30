@@ -1924,32 +1924,109 @@ select:disabled {
 
 .weather-days[open] {
     flex-basis: 100%;
+    /* Lets each day's row scroll on phones instead of widening the page */
+    min-width: 0;
 }
 
-.weather-days ol {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 6px 16px;
-    margin-top: 12px;
+/* Next 3 days: one block per day, one small tile per hour */
+.weather-days summary::after {
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin: 0 2px 3px 8px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg);
 }
 
-.weather-days li {
+.weather-days[open] summary::after {
+    margin-bottom: 0;
+    transform: rotate(-135deg);
+}
+
+.weather-day {
     display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--color-hairline);
+}
+
+.weather-day h3 {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.weather-day ol {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+    gap: 10px;
+}
+
+.weather-day li {
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    padding: 12px 10px;
+    border: 1px solid var(--color-field);
+    border-radius: 14px;
+    background-color: #FFFFFF;
     color: var(--color-deep);
+    text-align: center;
 }
 
-.weather-days li time {
+.weather-day time {
+    font-size: 13px;
     font-weight: 600;
     color: var(--color-forest);
 }
 
-.weather-days .weather-day-label {
-    grid-column: 1 / -1;
-    margin-top: 6px;
-    font-weight: 600;
+.weather-day .icon {
+    width: 22px;
+    height: 22px;
+}
+
+.weather-day strong {
+    font-size: 16px;
+    font-weight: 700;
     color: var(--color-forest);
+}
+
+.weather-day-description {
+    min-height: 2.6em;
+    font-size: 12px;
+    line-height: 1.3;
+    color: var(--color-sage);
+}
+
+.weather-day dl {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 100%;
+    padding-top: 8px;
+    border-top: 1px solid var(--color-band);
+    font-size: 12px;
+}
+
+.weather-day dl div {
+    display: flex;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.weather-day dt {
+    color: var(--color-sage);
+}
+
+.weather-day dd {
+    font-weight: 600;
+    color: var(--color-deep);
 }
 
 .weather-card-unavailable {
@@ -1979,6 +2056,19 @@ select:disabled {
 
     .weather-days {
         margin-left: 0;
+    }
+
+    /* Each day's hours scroll sideways, like today's */
+    .weather-day ol {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        padding-bottom: 4px;
+    }
+
+    .weather-day li {
+        flex: 0 0 112px;
+        scroll-snap-align: start;
     }
 }
 
