@@ -28,10 +28,11 @@ Faculty of Computer Science, Universitas Indonesia, Odd Semester 2026/2027
 8. [Run It Locally](#run-it-locally)
 9. [Demo Data and Accounts](#demo-data-and-accounts)
 10. [Testing and Coverage](#testing-and-coverage)
-11. [Deployment](#deployment)
-12. [Git Workflow](#git-workflow)
-13. [Screenshots](#screenshots)
-14. [AI Disclosure](#ai-disclosure)
+11. [Security and Quality Notes](#security-and-quality-notes)
+12. [Deployment](#deployment)
+13. [Git Workflow](#git-workflow)
+14. [Screenshots](#screenshots)
+15. [AI Disclosure](#ai-disclosure)
 
 ## About the App
 
@@ -167,7 +168,7 @@ python manage.py seed_journal
 python manage.py runserver
 ```
 
-Open http://127.0.0.1:8000/. Without the `PRODUCTION` environment variable the app uses SQLite, so no `.env` file is needed for local work. To make an admin account, run `python manage.py createsuperuser`.
+Open http://127.0.0.1:8000/. Without the `PRODUCTION` environment variable the app uses SQLite, so no `.env` file is needed for local work. To make an admin account, run `python manage.py createsuperuser`, then log in at http://127.0.0.1:8000/admin/ to manage users and moderate any record.
 
 ## Demo Data and Accounts
 
@@ -197,6 +198,17 @@ coverage report
 Result on `main` on 30 Oct 2026: **430 tests, all passing, 98% total coverage** across the six apps. Tests cover valid and invalid forms, full CRUD, owner checks, login-only data, private records, filters and pagination, JSON endpoints, CSRF, input escaping, weather API failures (mocked) and the seed commands.
 
 GitHub Actions (`.github/workflows/django-tests.yml`) runs on every pull request and on pushes to `main` and feature branches. It runs `manage.py check`, checks that no migrations are missing, runs `collectstatic`, then runs the tests with a minimum coverage of 80% (`.coveragerc`).
+
+## Security and Quality Notes
+
+- **Owner checks on the server:** every edit and delete view checks that the logged-in user owns the record. Hiding the buttons is only for looks; a direct POST from someone else is refused.
+- **Private data never reaches the page:** private gardens, private notes and private plant journals are filtered out in the database query. Grower contact details are left out of both the HTML and the JSON for visitors.
+- **CSRF:** every form uses `{% csrf_token %}`, and every `fetch` call sends the `X-CSRFToken` header.
+- **XSS:** templates use Django's auto-escaping. JavaScript shows user text with `textContent`, and any HTML loaded with `fetch` is rendered and escaped by Django on the server first.
+- **Safe redirects:** login and forum "next" links are checked with `url_has_allowed_host_and_scheme`, so they can't send users to another site.
+- **Upload checks:** journal photos are checked on the server for type (JPG, PNG, WEBP), size (5 MB) and count (5 per entry), not only in JavaScript.
+- **Lighter queries:** list pages use `select_related`, `prefetch_related` and `annotate`, so a page doesn't run one query per card.
+- **Secrets stay out of git:** database details come from environment variables (`.env` locally, PWS environment settings in production), and `.env*` is in `.gitignore`.
 
 ## Deployment
 
