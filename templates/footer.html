@@ -11,7 +11,7 @@
                 {% with page=request.resolver_match.view_name %}
                 <li><a href="{% url 'gardens:mine' %}"{% if request.resolver_match.app_name == 'gardens' %} aria-current="page"{% endif %}>My gardens</a></li>
                 <li><a href="#"{% if page == 'journal:index' %} aria-current="page"{% endif %}>Plant journal</a></li>
-                <li><a href="#"{% if page == 'care:index' %} aria-current="page"{% endif %}>Plant care</a></li>
+                <li><a href="{% url 'care:index' %}"{% if page == 'care:index' %} aria-current="page"{% endif %}>Plant care</a></li>
                 {% endwith %}
                 {% endif %}
                 <li><a href="{% url 'marketplace:index' %}">Market</a></li>

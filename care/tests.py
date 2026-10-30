@@ -208,10 +208,21 @@ class CareAccessTest(CareBaseTest):
         self.assertEqual(response.status_code, 302)
         self.assertIn('/login', response['Location'])
 
-    def test_buyers_without_the_grower_role_get_403(self):
+    def test_only_creating_and_editing_asks_for_the_grower_role(self):
+        """Same rule as gardens: losing the role must not lock you out of your own data."""
         self.client.force_login(self.buyer)
-        self.assertEqual(self.client.get(reverse('care:index')).status_code, 403)
         self.assertEqual(self.client.get(reverse('care:create')).status_code, 403)
+        # reading your own list stays open, it is empty for a buyer anyway
+        self.assertEqual(self.client.get(reverse('care:index')).status_code, 200)
+
+    def test_a_buyer_still_cannot_touch_another_persons_task(self):
+        self.client.force_login(self.buyer)
+        # No role gate here any more, so the ownership check answers: 404, never a peek.
+        self.assertEqual(
+            self.client.post(reverse('care:toggle_done', args=[self.task.pk])).status_code, 404
+        )
+        # edit keeps the role gate, which runs first and also gives nothing away.
+        self.assertEqual(self.client.get(reverse('care:edit', args=[self.task.pk])).status_code, 403)
 
     def test_another_grower_cannot_reach_the_task(self):
         self.client.force_login(self.other)
@@ -440,7 +451,7 @@ class CareAjaxTest(CareBaseTest):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(json.loads(response.content)['verdict']['state'], 'none')
 
-    def test_a_buyer_gets_403_from_the_json_endpoints_too(self):
-        self.client.force_login(self.buyer)
-        self.assertEqual(self.client.get(reverse('care:weather_check'), **AJAX).status_code, 403)
-        self.assertEqual(self.client.post(reverse('care:limits'), **AJAX).status_code, 403)
+    def test_the_json_endpoints_still_need_a_signed_in_account(self):
+        self.client.logout()
+        self.assertEqual(self.client.get(reverse('care:weather_check'), **AJAX).status_code, 302)
+        self.assertEqual(self.client.post(reverse('care:limits'), **AJAX).status_code, 302)

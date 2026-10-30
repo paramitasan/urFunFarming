@@ -21,7 +21,11 @@ def _wants_json(request):
 
 
 def _require_grower(request):
-    """Plant care is a grower tool. Buyers get a short explanation instead of a form."""
+    """Only creating and editing asks for the role, the same rule gardens/views.py follows.
+
+    Someone who drops the grower role keeps managing what they already made, so
+    the list, the toggles and the delete confirmation stay open to them.
+    """
     profile = getattr(request.user, 'profile', None)
     if not getattr(profile, 'is_grower', False):
         return render(request, 'care/grower_required.html', {'nav_active': 'home'}, status=403)
@@ -94,9 +98,6 @@ def _list_context(request):
 @never_cache
 @require_GET
 def index(request):
-    denied = _require_grower(request)
-    if denied is not None:
-        return denied
 
     context = _list_context(request)
     # A fetch request only needs the part of the page that changed.
@@ -184,9 +185,6 @@ def edit(request, pk):
 @never_cache
 @require_POST
 def toggle_done(request, pk):
-    denied = _require_grower(request)
-    if denied is not None:
-        return denied
     task = _own_task(request, pk)
     task.is_done = not task.is_done
     task.save(update_fields=['is_done', 'completed_at', 'updated_at'])
@@ -205,9 +203,6 @@ def toggle_done(request, pk):
 @login_required(login_url='/login')
 @require_http_methods(['GET', 'POST'])
 def delete(request, pk):
-    denied = _require_grower(request)
-    if denied is not None:
-        return denied
     task = _own_task(request, pk)
 
     if request.method == 'POST':
@@ -225,9 +220,6 @@ def delete(request, pk):
 @login_required(login_url='/login')
 @require_POST
 def update_preference(request):
-    denied = _require_grower(request)
-    if denied is not None:
-        return denied
     preference = WeatherPreference.for_user(request.user)
     form = WeatherPreferenceForm(request.POST, instance=preference)
 
@@ -252,9 +244,6 @@ def update_preference(request):
 @require_GET
 def weather_check(request):
     """Judges one date and time. The form calls this while the grower is still choosing."""
-    denied = _require_grower(request)
-    if denied is not None:
-        return denied
 
     form = CareTaskForm(user=request.user)
     try:
