@@ -21,7 +21,8 @@ created it.
 `CareTask` holds the activity, the planned date, an optional time, private
 notes and whether it is done. `completed_at` is set in `save()` from `is_done`,
 so the two can never disagree. `clean()` refuses a planting that belongs to a
-different grower, which is the database-level half of the ownership rule.
+different grower. That is model-level validation on the save path, not a database
+constraint, so the form is what actually enforces it on every request.
 
 `WeatherPreference` holds the city and three limits: rain, temperature and
 humidity. `accepts(slot)` answers whether one forecast hour stays inside all
@@ -48,7 +49,7 @@ Every one of them answers sensibly when the service is unavailable, because
 | Who | May do |
 | --- | --- |
 | Not signed in | redirected to the login page |
-| Signed in, no grower role | 403 with an explanation and a link to the profile |
+| Signed in, no grower role | may read and manage what they already own, but creating and editing answers 403 |
 | Grower | everything, but only with their own tasks and their own plants |
 
 A task belonging to someone else answers **404**, not 403, so the response does
@@ -74,6 +75,6 @@ normally, the filter has an Apply button, and every page still works.
 
 ## Tests
 
-`python manage.py test care` runs 43 tests, 91 percent statement coverage. No
-test touches the network: the forecast is replaced by `fake_forecast()`, and the
-one test for an outage patches `care.planning.forecast` to raise.
+`python manage.py test care` runs 48 tests. No test touches the network: the base
+test case patches `care.planning.forecast` for every case, so the suite also
+passes with outbound connections blocked.
