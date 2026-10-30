@@ -79,7 +79,14 @@ def _filtered_plantings(garden, params):
         plantings = plantings.order_by(*order)
     else:
         plantings = plantings.none()
-    return form, plantings, plantings.count(), methods
+    count = plantings.count()
+    # Each plant card shows "N entries" and checks if the journal is public (journal_for),
+    # so both come with the plantings instead of two queries per card
+    plantings = plantings.annotate(
+        journal_entry_count=Count('journal_entries'),
+        journal_is_public=Coalesce('journal__is_public', Value(False)),
+    )
+    return form, plantings, count, methods
 
 
 @never_cache

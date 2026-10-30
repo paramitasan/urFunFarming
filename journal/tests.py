@@ -1,7 +1,7 @@
 import io
 import shutil
 import tempfile
-from datetime import date, time
+from datetime import date, time, timedelta
 from unittest import mock
 
 from django.contrib.auth.models import User
@@ -44,7 +44,8 @@ class JournalTestCase(TestCase):
         self.buyer = User.objects.create_user('dewi', password='Seedling-Tray-42')
         Profile.objects.create(user=self.buyer, display_name='Dewi', is_buyer=True)
 
-        self.garden = Garden.objects.create(name='Tebet Rooftop Garden', owner=self.grower)
+        # Public, so visitors can reach the plant page; each journal's own switch decides the rest
+        self.garden = Garden.objects.create(name='Tebet Rooftop Garden', owner=self.grower, is_public=True)
         self.tomato = Planting.objects.create(crop='Cherry Tomato', garden=self.garden, planting_date=date(2026, 9, 5))
         self.chili = Planting.objects.create(crop="Bird's eye chili", garden=self.garden, planting_date=date(2026, 10, 1))
         self.journal = PlantJournal.objects.create(planting=self.tomato, is_public=False)
@@ -77,6 +78,18 @@ class JournalTestCase(TestCase):
 
 
 class ModelTest(JournalTestCase):
+    def test_same_minute_entries_put_the_last_one_saved_first(self):
+        # Logged twice at 07:30 on the same day: the correction saved second is the latest
+        correction = JournalEntry.objects.create(
+            planting=self.tomato, date=self.latest.date, time=self.latest.time,
+            height_cm=93, stage='fruiting', observation='Measured again, 93 cm.',
+        )
+        self.assertEqual(list(self.tomato.journal_entries.all()[:2]), [correction, self.latest])
+        self.client.force_login(self.grower)
+        response = self.client.get(reverse('journal:plant_detail', args=[self.tomato.pk]))
+        self.assertEqual(response.context['entries'][0], correction)
+        self.assertEqual(response.context['entries'][0].height_change, 1)
+
     def test_str(self):
         self.assertEqual(str(self.journal), 'Journal for Cherry Tomato')
         self.assertEqual(str(self.latest), 'Cherry Tomato on 2026-10-24')
@@ -133,6 +146,30 @@ class PlantDetailTest(JournalTestCase):
         self.assertNotContains(response, reverse('journal:edit_entry', args=[self.latest.pk]))
         self.assertNotContains(response, reverse('journal:create_plant_entry', args=[self.tomato.pk]))
 
+    def test_private_garden_is_no_access_for_everyone_but_the_owner(self):
+        self.garden.is_public = False
+        self.garden.save()
+        self.journal.is_public = True
+        self.journal.save()
+        for user in (None, self.other_grower, self.buyer):
+            self.client.logout()
+            if user:
+                self.client.force_login(user)
+            response = self.client.get(self.detail_url(self.tomato))
+            self.assertEqual(response.status_code, 403, user)
+            self.assertNotContains(response, 'Tebet Rooftop Garden', status_code=403)
+            self.assertNotContains(response, 'Cherry Tomato', status_code=403)
+        self.client.force_login(self.grower)
+        self.assertContains(self.client.get(self.detail_url(self.tomato)), 'First fruits set on the lower truss.')
+
+    def test_inactive_owner_hides_the_plant(self):
+        self.grower.is_active = False
+        self.grower.save()
+        self.journal.is_public = True
+        self.journal.save()
+        response = self.client.get(self.detail_url(self.tomato))
+        self.assertEqual(response.status_code, 403)
+
     def test_missing_plant_gives_404(self):
         response = self.client.get(reverse('journal:plant_detail', args=[999]))
         self.assertEqual(response.status_code, 404)
@@ -152,6 +189,16 @@ class PlantDetailTest(JournalTestCase):
         self.assertEqual(response.context['started_on'], date(2026, 9, 5))
         expected_days = (timezone.localdate() - date(2026, 9, 5)).days
         self.assertEqual(response.context['days_growing'], expected_days)
+
+    def test_days_growing_is_never_negative(self):
+        # A plant planned for next week hasn't started growing yet
+        self.tomato.planting_date = timezone.localdate() + timedelta(days=5)
+        self.tomato.save()
+        self.client.force_login(self.grower)
+        response = self.client.get(self.detail_url(self.tomato))
+        self.assertEqual(response.context['days_growing'], 0)
+        self.assertContains(response, '0 days')
+        self.assertNotContains(response, '-5 day')
 
     def test_stage_steps(self):
         self.client.force_login(self.grower)
@@ -225,6 +272,37 @@ class EntryFormTest(JournalTestCase):
         data = {**self.entry_data(**changes), 'planting': self.tomato.pk, 'visibility': 'private'}
         return NewEntryForm(self.grower, data, MultiValueDict({'photos': files or []}))
 
+    def test_date_in_the_future_is_rejected(self):
+        tomorrow = timezone.localdate() + timedelta(days=1)
+        form = self.make_form(date=tomorrow.isoformat())
+        self.assertFalse(form.is_valid())
+        self.assertEqual(form.errors['date'], ["The date can't be in the future."])
+
+    def test_date_before_planting_is_rejected(self):
+        # The tomato was planted on 5 Sep 2026
+        form = self.make_form(date='2026-09-04')
+        self.assertFalse(form.is_valid())
+        self.assertEqual(form.errors['date'], ["The date can't be before this plant was planted (5 Sep 2026)."])
+
+    def test_planting_day_and_today_are_both_allowed(self):
+        self.assertTrue(self.make_form(date='2026-09-05').is_valid())
+        self.assertTrue(self.make_form(date=timezone.localdate().isoformat()).is_valid())
+
+    def test_plant_and_edit_versions_check_the_date_too(self):
+        # Neither has the plant dropdown, so the plant comes from the entry itself
+        plant_form = JournalEntryForm(self.grower, self.entry_data(date='2026-09-01'), instance=JournalEntry(planting=self.tomato))
+        del plant_form.fields['planting']
+        self.assertFalse(plant_form.is_valid())
+        self.assertIn('date', plant_form.errors)
+        edit_form = JournalEntryForm(self.grower, self.entry_data(date='2026-09-01'), instance=self.latest)
+        del edit_form.fields['planting']
+        self.assertFalse(edit_form.is_valid())
+        self.assertIn('date', edit_form.errors)
+
+    def test_date_picker_stops_at_today(self):
+        widget = NewEntryForm(self.grower).fields['date'].widget
+        self.assertEqual(widget.attrs['max'], timezone.localdate().isoformat())
+
     def test_plant_choices_are_only_your_own(self):
         mine = NewEntryForm(self.grower).fields['planting'].queryset
         self.assertEqual(set(mine), {self.tomato, self.chili})
@@ -256,8 +334,10 @@ class EntryFormTest(JournalTestCase):
         self.assertFalse(form.is_valid())
         self.assertEqual(form.errors['observation'], ['Please write what you noticed.'])
 
-    def test_visibility_starts_private_and_is_only_on_the_new_form(self):
-        self.assertEqual(NewEntryForm(self.grower).fields['visibility'].initial, 'private')
+    def test_visibility_has_no_preset_and_is_only_on_the_new_form(self):
+        field = NewEntryForm(self.grower).fields['visibility']
+        self.assertIsNone(field.initial)
+        self.assertFalse(field.required)
         self.assertNotIn('visibility', JournalEntryForm(self.grower).fields)
 
     def test_photo_links_are_collected_in_order(self):
@@ -359,6 +439,28 @@ class CreateEntryTest(JournalTestCase):
         self.assertEqual(entry.photos.filter(url='https://example.com/chili.jpg').count(), 1)
         # The chili had no journal yet, so saving made one with the chosen visibility
         self.assertTrue(PlantJournal.objects.get(planting=self.chili).is_public)
+
+    def test_saving_without_a_visibility_keeps_a_public_journal_public(self):
+        self.journal.is_public = True
+        self.journal.save()
+        self.client.force_login(self.grower)
+        self.client.post(self.new_url, self.entry_data(planting=self.tomato.pk))
+        self.journal.refresh_from_db()
+        self.assertTrue(self.journal.is_public)
+        self.assertEqual(self.tomato.journal_entries.count(), 4)
+
+    def test_first_entry_without_a_visibility_starts_private(self):
+        self.client.force_login(self.grower)
+        self.client.post(self.new_url, self.entry_data(planting=self.chili.pk))
+        self.assertFalse(PlantJournal.objects.get(planting=self.chili).is_public)
+
+    def test_new_entry_page_knows_which_plants_are_public(self):
+        self.journal.is_public = True
+        self.journal.save()
+        self.client.force_login(self.grower)
+        response = self.client.get(self.new_url)
+        self.assertContains(response, f'data-public-plants="{self.tomato.pk}"')
+        self.assertNotContains(response, 'value="private" checked')
 
     def test_private_choice_makes_the_journal_private(self):
         self.journal.is_public = True
@@ -922,12 +1024,15 @@ class BuyerViewTest(JournalTestCase):
         self.assertContains(response, 'Grown by Ranu · Started 5 Sep 2026')
         self.assertNotContains(response, 'View in My gardens')
 
-    def test_private_garden_gets_no_garden_links(self):
-        # The garden isn't public, so its page would be a 404 for the buyer
+    def test_private_garden_gets_the_no_access_page(self):
+        # Same rule as the Gardens plant page, even though this journal is public
+        self.garden.is_public = False
+        self.garden.save()
         response = self.client.get(self.detail_url(self.tomato, from_garden=True))
-        self.assertContains(response, 'Back to gardens')
-        self.assertContains(response, reverse('gardens:explore'))
-        self.assertNotContains(response, reverse('gardens:public_detail', args=[self.garden.pk]))
+        self.assertEqual(response.status_code, 403)
+        self.assertNotContains(response, 'Cherry Tomato', status_code=403)
+        self.assertNotContains(response, 'Ranu', status_code=403)
+        self.assertNotContains(response, 'First fruits set on the lower truss.', status_code=403)
 
     def test_public_garden_links_to_its_public_page(self):
         self.garden.is_public = True
@@ -1070,3 +1175,49 @@ class SeedJournalTest(TestCase):
         self.client.force_login(User.objects.get(username='demo_grower'))
         response = self.client.get(reverse('journal:index'))
         self.assertContains(response, 'Showing 12 plants')
+
+
+class QueryCountTest(JournalTestCase):
+    """Pages cost the same number of queries however many plants, entries or photos there are."""
+
+    def count_queries(self, url):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        with CaptureQueriesContext(connection) as queries:
+            self.assertEqual(self.client.get(url).status_code, 200)
+        return len(queries)
+
+    def add_plants(self, count):
+        for n in range(count):
+            planting = Planting.objects.create(crop=f'Okra {n}', garden=self.garden, planting_date=date(2026, 9, 1))
+            for day in (2, 3):
+                JournalEntry.objects.create(
+                    planting=planting, date=date(2026, 10, day), time=time(8, 0), height_cm=10 + n, observation='Growing.',
+                )
+
+    def test_journal_list(self):
+        self.client.force_login(self.grower)
+        url = reverse('journal:index') + '?sort=tallest&stage=fruiting'
+        before = self.count_queries(url)
+        self.add_plants(6)
+        self.assertEqual(self.count_queries(url), before)
+        self.assertEqual(self.count_queries(reverse('journal:index')), self.count_queries(reverse('journal:index') + '?q=Growing'))
+
+    def test_garden_page_plant_cards(self):
+        self.client.force_login(self.grower)
+        url = reverse('gardens:detail', args=[self.garden.pk])
+        before = self.count_queries(url)
+        self.add_plants(6)
+        self.assertEqual(self.count_queries(url), before)
+        # The count on the card still matches the entries
+        self.assertContains(self.client.get(url), '3 entries')
+
+    def test_timeline_photos(self):
+        self.client.force_login(self.grower)
+        url = reverse('journal:plant_detail', args=[self.tomato.pk])
+        EntryPhoto.objects.create(entry=self.latest, url='https://example.com/a.jpg')
+        before = self.count_queries(url)
+        for entry in (self.first, self.second):
+            for n in range(3):
+                EntryPhoto.objects.create(entry=entry, url=f'https://example.com/{entry.pk}-{n}.jpg')
+        self.assertEqual(self.count_queries(url), before)

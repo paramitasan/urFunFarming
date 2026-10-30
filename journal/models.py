@@ -38,7 +38,8 @@ class JournalEntry(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-date', '-time']
+        # Newest first; entries logged at the same minute keep the order they were saved in
+        ordering = ['-date', '-time', '-id']
         verbose_name_plural = 'journal entries'
 
     def __str__(self):

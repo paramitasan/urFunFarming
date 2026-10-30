@@ -1,5 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from django.utils.html import strip_tags
 
 from gardens.models import Planting
@@ -88,6 +89,9 @@ class JournalEntryForm(forms.ModelForm):
             self.fields['remove_photos'].queryset = self.instance.photos.all()
             self.kept_photos = self.instance.photos.count()
 
+        # The date picker stops at today; clean() checks it again along with the planting date
+        self.fields['date'].widget.attrs['max'] = timezone.localdate().isoformat()
+
     def clean_observation(self):
         observation = strip_tags(self.cleaned_data['observation']).strip()
         if not observation:
@@ -104,11 +108,29 @@ class JournalEntryForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        self.check_date(cleaned_data)
         kept = self.kept_photos - len(cleaned_data.get('remove_photos') or [])
         total = kept + len(cleaned_data.get('photos') or []) + len(self.photo_urls())
         if total > MAX_PHOTOS:
             self.add_error('photos', f'You can add up to {MAX_PHOTOS} photos to one entry.')
         return cleaned_data
+
+    def check_date(self, cleaned_data):
+        # An entry can't be from the future or from before the plant was planted, so a typo
+        # like 2027 can't become the "latest" entry and sit at the top of the list for good
+        entry_date = cleaned_data.get('date')
+        if not entry_date:
+            return
+        if entry_date > timezone.localdate():
+            self.add_error('date', "The date can't be in the future.")
+            return
+        # The general form picks the plant; the plant and edit versions already have it
+        planting = cleaned_data.get('planting')
+        if planting is None and self.instance.planting_id:
+            planting = self.instance.planting
+        if planting is not None and entry_date < planting.planting_date:
+            planted = planting.planting_date
+            self.add_error('date', f"The date can't be before this plant was planted ({planted.day} {planted:%b %Y}).")
 
     def photo_urls(self):
         # The photo links that were filled in, in order, skipping empty ones
@@ -123,7 +145,9 @@ class NewEntryForm(JournalEntryForm):
         ('public', 'Public'),
     ]
 
-    visibility = forms.ChoiceField(choices=VISIBILITY_CHOICES, initial='private', widget=forms.RadioSelect)
+    # No preset: the page ticks the chosen plant's current setting, and leaving it empty keeps that
+    # setting, so adding an entry never quietly turns a public journal private
+    visibility = forms.ChoiceField(choices=VISIBILITY_CHOICES, required=False, widget=forms.RadioSelect)
 
 
 class JournalFilterForm(forms.Form):

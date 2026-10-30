@@ -2,11 +2,11 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Count, Exists, OuterRef, Q, Subquery, Value
+from django.db.models.functions import Coalesce, Lower, NullIf
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from accounts.models import Profile
@@ -62,38 +62,48 @@ def index(request):
     filters = form.cleaned_data if form.is_valid() else {}
 
     my_plants = Planting.objects.filter(garden__owner=request.user)
-    plants = my_plants.filter(journal_entries__isnull=False).distinct()
+
+    # One row per plant with its latest entry. The database works out the latest entry and the count,
+    # so filtering, sorting and paging happen there and only this page's entries are loaded
+    entries = JournalEntry.objects.filter(planting=OuterRef('pk')).order_by('-date', '-time', '-id')
+    entry_count = JournalEntry.objects.filter(planting=OuterRef('pk')).values('planting').annotate(n=Count('pk')).values('n')
+    plants = my_plants.annotate(
+        latest_id=Subquery(entries.values('pk')[:1]),
+        latest_stage=Subquery(entries.values('stage')[:1]),
+        latest_health=Subquery(entries.values('health')[:1]),
+        latest_date=Subquery(entries.values('date')[:1]),
+        latest_time=Subquery(entries.values('time')[:1]),
+        latest_height=Subquery(entries.values('height_cm')[:1]),
+        entry_count=Subquery(entry_count),
+    ).filter(latest_id__isnull=False)
     if filters.get('plant'):
         plants = plants.filter(pk=filters['plant'].pk)
     if filters.get('q'):
         query = filters['q']
-        plants = plants.filter(
-            Q(name__icontains=query) | Q(crop__icontains=query) | Q(journal_entries__observation__icontains=query)
-        ).distinct()
-
-    # One row per plant with its latest entry, so stage and health are checked on that entry
-    rows = []
-    for planting in plants.select_related('garden').prefetch_related('journal_entries'):
-        entries = list(planting.journal_entries.all())
-        latest = entries[0]
-        if filters.get('stage') and latest.stage != filters['stage']:
-            continue
-        if filters.get('health') and latest.health != filters['health']:
-            continue
-        rows.append({'planting': planting, 'latest': latest, 'entry_count': len(entries)})
+        notes = JournalEntry.objects.filter(planting=OuterRef('pk'), observation__icontains=query)
+        plants = plants.filter(Q(name__icontains=query) | Q(crop__icontains=query) | Exists(notes))
+    # Stage and health are checked on each plant's latest entry
+    if filters.get('stage'):
+        plants = plants.filter(latest_stage=filters['stage'])
+    if filters.get('health'):
+        plants = plants.filter(latest_health=filters['health'])
 
     sort = filters.get('sort') or 'recent'
-    if sort == 'name':
-        rows.sort(key=lambda row: row['planting'].display_name.lower())
-    elif sort == 'tallest':
-        rows.sort(key=lambda row: row['latest'].height_cm, reverse=True)
-    elif sort == 'oldest':
-        rows.sort(key=lambda row: (row['latest'].date, row['latest'].time))
-    else:
-        rows.sort(key=lambda row: (row['latest'].date, row['latest'].time), reverse=True)
+    order = {
+        # Same fallback as Planting.display_name
+        'name': (Lower(Coalesce(NullIf('name', Value('')), 'crop')), 'pk'),
+        'tallest': ('-latest_height', 'pk'),
+        'oldest': ('latest_date', 'latest_time', 'latest_id'),
+    }.get(sort, ('-latest_date', '-latest_time', '-latest_id'))
+    plants = plants.select_related('garden').order_by(*order)
 
-    paginator = Paginator(rows, 10)
+    paginator = Paginator(plants, 10)
     page_obj = paginator.get_page(request.GET.get('page'))
+    latest_entries = JournalEntry.objects.in_bulk([planting.latest_id for planting in page_obj])
+    page_obj.object_list = [
+        {'planting': planting, 'latest': latest_entries[planting.latest_id], 'entry_count': planting.entry_count}
+        for planting in page_obj
+    ]
     count_label = f'Showing {paginator.count} plant{"" if paginator.count == 1 else "s"}'
 
     # The page links keep the current filters, only the page number changes
@@ -114,21 +124,24 @@ def index(request):
 
 
 def plant_detail(request, planting_id):
-    planting = get_object_or_404(Planting, pk=planting_id)
+    planting = get_object_or_404(Planting.objects.select_related('garden__owner'), pk=planting_id)
     garden = planting.garden
     is_owner = request.user == garden.owner
-    is_public = PlantJournal.objects.filter(planting=planting, is_public=True).exists()
 
-    # Other people can only open the garden page when the garden itself is public
+    # Same rule as the Gardens plant page: other people only see plants of a public garden whose
+    # owner is still active, anyone else gets the shared "No access" page without any details
+    if not is_owner and not (garden.is_public and garden.owner.is_active):
+        return render(request, 'gardens/planting_detail.html', {'no_access': True, 'nav_active': 'explore'}, status=403)
+
+    is_public = PlantJournal.objects.filter(planting=planting, is_public=True).exists()
     if is_owner:
         garden_url = reverse('gardens:detail', args=[garden.pk])
-    elif garden.is_public:
-        garden_url = reverse('gardens:public_detail', args=[garden.pk])
     else:
-        garden_url = None
+        garden_url = reverse('gardens:public_detail', args=[garden.pk])
 
-    # Newest first, so the entry after each one in the list is the one before it in time
-    entries = list(planting.journal_entries.all())
+    # Newest first, so the entry after each one in the list is the one before it in time.
+    # The photos come in one query for the whole timeline instead of one per entry
+    entries = list(planting.journal_entries.prefetch_related('photos'))
     for i, entry in enumerate(entries):
         if i + 1 < len(entries):
             entry.height_change = entry.height_cm - entries[i + 1].height_cm
@@ -136,8 +149,9 @@ def plant_detail(request, planting_id):
             entry.height_change = None
 
     started_on = planting.planting_date
-    days_growing = (timezone.localdate() - started_on).days
-    
+    # Same count as the "Day N" badge in Gardens, so a planned (future) date shows 0, not a negative
+    days_growing = planting.day_number
+
     # First date each stage was reached, going from the oldest entry up
     first_reached = {}
     for entry in reversed(entries):
@@ -208,8 +222,8 @@ def create_entry(request, planting_id=None):
         save_new_photos(entry, form)
 
         journal, _ = PlantJournal.objects.get_or_create(planting=entry.planting)
-        # Only the general form has the Private/Public choice
-        if 'visibility' in form.cleaned_data:
+        # Only the general form has the Private/Public choice, and an empty choice keeps the current one
+        if form.cleaned_data.get('visibility'):
             journal.is_public = form.cleaned_data['visibility'] == 'public'
             journal.save()
 
@@ -217,7 +231,6 @@ def create_entry(request, planting_id=None):
         # Started from the + on the journal list: go back to the list
         if request.GET.get('from') == 'list':
             return redirect('journal:index')
-        return redirect('journal:plant_detail', planting_id=entry.planting.pk)
         return redirect('journal:plant_detail', planting_id=entry.planting.pk)
 
     # Bad upload: show the "Couldn't upload your photo" toast as well as the field error
@@ -231,6 +244,10 @@ def create_entry(request, planting_id=None):
         'missing_required': has_missing_required(form),
         'nav_active': 'home',
         'from_list': request.GET.get('from') == 'list',
+        # entry-form.js ticks Public or Private to match the plant picked in the dropdown
+        'public_plant_ids': list(PlantJournal.objects.filter(
+            planting__garden__owner=request.user, is_public=True,
+        ).values_list('planting_id', flat=True)),
     }
     return render(request, 'journal/entry_form.html', context)
 
