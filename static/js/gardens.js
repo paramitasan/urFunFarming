@@ -1,4 +1,5 @@
-// Filters: a mouse or touch change applies at once. Keyboard users move through the options
+// Filters: a mouse or touch change applies at once. Typing in the search box is handled by
+// the shared static/js/list-search.js (500 ms debounce). Keyboard users move through the options
 // freely (arrow keys also fire "change") and press Apply filters, which shows when it gets focus.
 
 // Safari before 16 has no requestSubmit(), so send the same submit event by hand

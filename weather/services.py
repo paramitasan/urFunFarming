@@ -168,8 +168,8 @@ def forecast_for_user(user):
     """Everything a template needs to show weather for this user. Never raises.
 
     Keys: available, source, error, location_name, has_location, slots (next
-    3 days), today (today's slots, or the next ones late at night), current
-    (the slot for right now) and fetched_at.
+    3 days), today (today's slots, or the next ones late at night), later (the
+    slots after today's), current (the slot for right now) and fetched_at.
     """
     place = location_for_user(user)
     result = {
@@ -180,6 +180,7 @@ def forecast_for_user(user):
         'has_location': place['has_location'],
         'slots': [],
         'today': [],
+        'later': [],
         'current': None,
         'fetched_at': None,
     }
@@ -194,12 +195,14 @@ def forecast_for_user(user):
     # Keep the slot that is still running (each one covers 3 hours)
     upcoming = [slot for slot in data['slots'] if slot['time'] > now - timedelta(hours=3)]
     current = [slot for slot in upcoming if slot['time'] <= now]
+    shown_today = [slot for slot in upcoming if timezone.localtime(slot['time']).date() == today] or upcoming[:8]
     result.update(
         available=bool(upcoming),
         error='' if upcoming else UNAVAILABLE_MESSAGE,
         location_name=place['name'] or data['location']['village'] or data['location']['district'],
         slots=upcoming,
-        today=[slot for slot in upcoming if timezone.localtime(slot['time']).date() == today] or upcoming[:8],
+        today=shown_today,
+        later=[slot for slot in upcoming if slot['time'] > shown_today[-1]['time']] if shown_today else [],
         current=current[-1] if current else (upcoming[0] if upcoming else None),
         fetched_at=data['fetched_at'],
     )

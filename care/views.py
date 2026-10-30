@@ -117,7 +117,6 @@ def _list_context(request):
         'care_settings': care_settings,
         'weather': weather,
         'card': today_card(weather, care_settings),
-        'settings_form': CareSettingsForm(instance=care_settings),
         'today': timezone.localdate(),
         'nav_active': 'home',
     }

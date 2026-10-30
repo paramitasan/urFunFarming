@@ -2,36 +2,10 @@
    the weather card comes from style.css. Only what is new for care lives here. */
 
 .care-page > .weather-card {
-    margin-bottom: 12px;
-}
-
-/* Thresholds panel under the weather card */
-
-.care-thresholds {
     margin-bottom: 40px;
-    padding: 0 24px;
-    border-radius: 20px;
 }
 
-.care-thresholds summary {
-    width: max-content;
-    margin-left: auto;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--color-forest);
-    list-style: none;
-    cursor: pointer;
-}
-
-.care-thresholds summary::-webkit-details-marker {
-    display: none;
-}
-
-.care-thresholds[open] {
-    padding: 16px 24px 20px;
-    border: 1px solid var(--color-band);
-    background-color: var(--color-surface);
-}
+/* Thresholds form on the Add / Edit task page */
 
 .care-thresholds-form {
     display: flex;
@@ -57,6 +31,11 @@
     border: 1.5px solid var(--color-field);
     border-radius: 12px;
     background-color: #FFFFFF;
+}
+
+.care-threshold-input:focus-within {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(33, 195, 126, 0.2);
 }
 
 .care-threshold-input input {
@@ -101,10 +80,6 @@
     margin-top: 2px;
     font-size: 13px;
     color: var(--color-deep);
-}
-
-.care-sort {
-    width: 200px;
 }
 
 .care-chips {
@@ -307,10 +282,6 @@
 /* Phone: each task becomes a small card */
 
 @media (max-width: 767px) {
-    .care-sort {
-        width: 100%;
-    }
-
     .care-tasks-heading form {
         width: 100%;
     }

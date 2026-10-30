@@ -13,9 +13,11 @@
     </header>
 
     <form class="garden-layout" method="get" action="{% url 'gardens:public_detail' garden.id %}" data-autosubmit>
-        {% include 'gardens/_search_row.html' with search_label='Search plants in this garden' placeholder='Search plants in this garden…' sort_label='Sort plants' %}
+        <div class="list-toolbar">
+            {% include 'gardens/_search_row.html' with search_label='Search plants in this garden' placeholder='Search plants in this garden…' %}
+        </div>
 
-        <div class="garden-body">
+        <div class="list-layout">
             <aside class="public-grower-card" aria-label="About the grower">
                 <div class="public-grower">
                     <span class="avatar" aria-hidden="true">{{ grower_name|slice:':1'|upper }}</span>
@@ -25,8 +27,11 @@
                 <a class="gardens-text-link" href="{% url 'marketplace:index' %}?grower={{ garden.owner__username|urlencode }}">See {{ grower_name }}’s listings {% include 'svg/icons/arrow.svg' %}</a>
             </aside>
 
-            <div class="garden-results">
-                <p class="garden-results-count" role="status">{{ planting_count }} plant{{ planting_count|pluralize }} <span>Public journals only</span></p>
+            <div class="list-results">
+                <div class="list-results-heading">
+                    <p role="status">{{ planting_count }} plant{{ planting_count|pluralize }} <small>Public journals only</small></p>
+                    {% include 'gardens/_sort.html' with sort_label='Sort plants' %}
+                </div>
                 {% if plantings %}
                     <div class="planting-cards">
                         {% for planting in plantings %}

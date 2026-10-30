@@ -15,32 +15,36 @@
     </header>
 
     <form class="garden-layout" method="get" action="{% url 'gardens:detail' garden.pk %}" data-autosubmit>
-        {% include 'gardens/_search_row.html' with search_label='Search plants in this garden' placeholder='Search plants in this garden…' sort_label='Sort plants' %}
+        <div class="list-toolbar">
+            {% include 'gardens/_search_row.html' with search_label='Search plants in this garden' placeholder='Search plants in this garden…' %}
+            <label class="list-toolbar-select">
+                <span class="visually-hidden">Planted in</span>
+                <select id="plant-month" name="month">
+                {% for value, label in filter_form.month.field.choices %}
+                    <option value="{{ value }}"{% if filter_form.month.value == value %} selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+                </select>
+            </label>
+        </div>
 
-        <div class="garden-body">
-            <aside class="garden-filters" aria-label="Filter plants">
-                <div class="garden-filter-heading"><h2>Filters</h2><a href="{% url 'gardens:detail' garden.pk %}">Reset</a></div>
-                <div class="garden-filter-group">
-                    <label class="garden-filter-label" for="plant-month">Planted in</label>
-                    <select class="garden-field garden-select" id="plant-month" name="month">
-                        {% for value, label in filter_form.month.field.choices %}
-                            <option value="{{ value }}"{% if filter_form.month.value == value %} selected{% endif %}>{{ label }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <hr>
-                <fieldset class="garden-filter-group">
-                    <legend class="garden-filter-label">Growing method</legend>
-                    <label class="garden-radio"><input type="radio" name="method" value=""{% if not filter_form.method.value %} checked{% endif %}><span>All</span></label>
+        <div class="list-layout">
+            <aside class="filter-panel" aria-label="Filter plants">
+                <div class="filter-panel-heading"><h2>Filters</h2><a href="{% url 'gardens:detail' garden.pk %}">Reset</a></div>
+                <fieldset class="filter-panel-group">
+                    <legend class="filter-panel-label">Growing method</legend>
+                    <label class="filter-radio"><input type="radio" name="method" value=""{% if not filter_form.method.value %} checked{% endif %}><span>All</span></label>
                     {% for method in methods %}
-                        <label class="garden-radio"><input type="radio" name="method" value="{{ method }}"{% if filter_form.method.value == method %} checked{% endif %}><span>{{ method }}</span></label>
+                        <label class="filter-radio"><input type="radio" name="method" value="{{ method }}"{% if filter_form.method.value == method %} checked{% endif %}><span>{{ method }}</span></label>
                     {% endfor %}
                 </fieldset>
                 <button class="outline-button garden-apply" type="submit">Apply filters</button>
             </aside>
 
-            <div class="garden-results">
-                <p class="garden-results-count" role="status">{{ planting_count }} plant{{ planting_count|pluralize }} <span>{% if garden.is_public %}Public garden: all plants are public{% else %}Private garden: only you can see these plants{% endif %}</span></p>
+            <div class="list-results">
+                <div class="list-results-heading">
+                    <p role="status">{{ planting_count }} plant{{ planting_count|pluralize }} <small>{% if garden.is_public %}Public garden: all plants are public{% else %}Private garden: only you can see these plants{% endif %}</small></p>
+                    {% include 'gardens/_sort.html' with sort_label='Sort plants' %}
+                </div>
                 {% if plantings %}
                     <div class="planting-cards">
                         {% for planting in plantings %}

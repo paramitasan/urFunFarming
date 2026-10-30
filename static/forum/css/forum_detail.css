@@ -98,13 +98,9 @@
     gap: 16px;
 }
 
-/* Reuses the list page's .forum-sort select look */
+/* The shared .list-sort box, a little smaller under the answers heading */
 .answers-sort {
-    flex-shrink: 0;
     width: 190px;
-}
-
-.answers-sort select {
     height: 48px;
 }
 

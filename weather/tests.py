@@ -6,6 +6,7 @@ from django.contrib.auth.models import AnonymousUser, User
 from django.core.cache import cache
 from django.template import Context, Template
 from django.test import RequestFactory, TestCase, override_settings
+from django.utils import timezone
 
 from accounts.models import Profile
 from weather.services import (
@@ -190,6 +191,13 @@ class ForecastForUserTests(TestCase):
         self.assertEqual(weather['location_name'], 'Kemayoran')
         self.assertFalse(weather['has_location'])
 
+    def test_later_lists_only_the_slots_after_today(self):
+        with patch_bmkg(bmkg_payload(slots_from_now(count=24))):
+            weather = forecast_for_user(self.user)
+        self.assertTrue(weather['later'])
+        self.assertEqual(weather['today'] + weather['later'], weather['slots'])
+        self.assertTrue(all(slot['time'] > weather['today'][-1]['time'] for slot in weather['later']))
+
     def test_old_slots_are_dropped(self):
         with patch_bmkg(bmkg_payload(slots_from_now(count=3, start_hours=-12))):
             weather = forecast_for_user(self.user)
@@ -227,6 +235,17 @@ class TemplateTagTests(TestCase):
             html = self.render()
         self.assertIn('Weather is unavailable right now', html)
         self.assertIn('Source: <a', html)
+
+    def test_next_days_panel_skips_the_hours_already_shown_today(self):
+        with patch_bmkg(bmkg_payload(slots_from_now(count=24))):
+            weather = forecast_for_user(self.user)
+        html = Template("{% include 'weather/_hourly_card.html' %}").render(Context({'weather': weather}))
+        days = sorted({timezone.localtime(slot['time']).date() for slot in weather['later']})
+        self.assertIn(f'<summary>Next {len(days)} days</summary>', html)
+        for day in days:
+            self.assertIn(f'<h3>{day:%A}, {day.day} {day:%b}</h3>', html)
+        today = timezone.localdate()
+        self.assertNotIn(f'<h3>{today:%A}, {today.day} {today:%b}</h3>', html)
 
     def test_area_link_is_hidden_once_a_location_is_set(self):
         self.user.profile.adm4_code = TEBET

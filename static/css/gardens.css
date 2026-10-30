@@ -11,12 +11,6 @@
     padding-top: 19px;
 }
 
-.gardens-page :focus-visible,
-.garden-search-field:focus-within {
-    outline: 2px solid var(--color-forest);
-    outline-offset: 3px;
-}
-
 .gardens-page h1,
 .gardens-page h2,
 .gardens-page p {
@@ -140,53 +134,6 @@
     }
 }
 
-/* Search row */
-
-.garden-toolbar {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 32px;
-}
-
-.garden-search-field {
-    display: flex;
-    flex: 1;
-    min-width: 0;
-    height: 56px;
-    align-items: center;
-    gap: 12px;
-    padding: 0 18px;
-    border: 1.5px solid var(--color-field);
-    border-radius: 14px;
-    background-color: #FFFFFF;
-}
-
-.garden-search-field input {
-    flex: 1;
-    min-width: 0;
-    border: 0;
-    outline: none;
-    background: transparent;
-    -webkit-appearance: none;
-    appearance: none;
-    font: 400 16px/normal 'Poppins', sans-serif;
-    color: var(--color-ink);
-}
-
-.garden-search-field input::-webkit-search-decoration {
-    -webkit-appearance: none;
-}
-
-.garden-search-field input::placeholder {
-    color: var(--color-sage);
-    opacity: 1;
-}
-
-.garden-toolbar .garden-sort {
-    flex-shrink: 0;
-    width: 280px;
-}
-
 /* Fields */
 
 .garden-field {
@@ -206,6 +153,11 @@
     text-align: left;
 }
 
+.garden-field:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(33, 195, 126, 0.2);
+}
+
 textarea.garden-field {
     min-height: 120px;
     padding: 14px 18px;
@@ -223,129 +175,6 @@ textarea.garden-field {
     cursor: pointer;
 }
 
-/* Body: results on the left, filters on the right under the sort select */
-
-.garden-body {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 280px;
-    align-items: start;
-    gap: 32px;
-}
-
-.garden-body > aside {
-    grid-row: 1;
-    grid-column: 2;
-}
-
-/* Filters */
-
-.garden-filters {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    padding: 24px;
-    border: 1px solid var(--color-band);
-    border-radius: 24px;
-    background-color: var(--color-surface);
-    box-shadow: 0 10px 30px rgba(18, 81, 51, 0.06);
-}
-
-.garden-filter-heading {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-.garden-filter-heading h2 {
-    font-size: 22px;
-    font-weight: 600;
-    line-height: normal;
-    color: var(--color-forest);
-}
-
-.garden-filter-heading a {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--color-deep);
-}
-
-.garden-filter-heading a:hover {
-    color: var(--color-forest);
-}
-
-.garden-filter-group {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    min-width: 0;
-    margin: 0;
-    padding: 0;
-    border: 0;
-}
-
-.garden-filter-label {
-    font-size: 14px;
-    font-weight: 600;
-    line-height: normal;
-    color: var(--color-forest);
-}
-
-legend.garden-filter-label {
-    margin-bottom: 10px;
-    padding: 0;
-}
-
-.garden-filters hr {
-    margin: 0;
-    border: 0;
-    border-top: 1px solid var(--color-band);
-}
-
-.garden-radio {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 15px;
-    line-height: normal;
-    color: var(--color-deep);
-    cursor: pointer;
-}
-
-.garden-radio input {
-    flex-shrink: 0;
-    width: 18px;
-    height: 18px;
-    margin: 0;
-    border: 1.5px solid var(--color-field);
-    border-radius: 50%;
-    background-color: #FFFFFF;
-    -webkit-appearance: none;
-    appearance: none;
-    cursor: pointer;
-}
-
-.garden-radio input:checked {
-    border-color: var(--color-accent);
-    background-color: var(--color-accent);
-}
-
-.garden-radio span {
-    flex: 1;
-    min-width: 0;
-}
-
-.garden-radio input:checked + span {
-    font-weight: 600;
-    color: var(--color-forest);
-}
-
-.garden-radio small {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--color-sage);
-}
-
 /* Apply filters: always shown without JavaScript, otherwise only when it has keyboard focus */
 .is-live .garden-apply:not(:focus-visible) {
     position: absolute;
@@ -359,31 +188,6 @@ legend.garden-filter-label {
 }
 
 /* Results */
-
-.garden-results {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    min-width: 0;
-}
-
-.garden-results-count {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    font-size: 18px;
-    font-weight: 600;
-    line-height: normal;
-    color: var(--color-forest);
-}
-
-.garden-results-count span {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--color-deep);
-    text-align: right;
-}
 
 .gardens-list,
 .planting-cards {
@@ -822,15 +626,6 @@ legend.garden-filter-label {
         padding-inline: 40px;
     }
 
-    .garden-toolbar .garden-sort {
-        width: 240px;
-    }
-
-    .garden-body {
-        grid-template-columns: minmax(0, 1fr) 240px;
-        gap: 24px;
-    }
-
     .garden-photo {
         width: 160px;
         height: 120px;
@@ -862,30 +657,6 @@ legend.garden-filter-label {
         align-items: flex-start;
     }
 
-    .garden-toolbar {
-        flex-direction: column;
-        gap: 10px;
-        margin-bottom: 20px;
-    }
-
-    .garden-toolbar .garden-sort {
-        width: 100%;
-    }
-
-    .garden-search-field {
-        flex: none;
-    }
-
-    .garden-body {
-        grid-template-columns: minmax(0, 1fr);
-        gap: 20px;
-    }
-
-    .garden-body > aside {
-        grid-row: auto;
-        grid-column: auto;
-    }
-
     .garden-item,
     .planting-card {
         gap: 14px;
@@ -911,14 +682,6 @@ legend.garden-filter-label {
         height: 140px;
     }
 
-    .garden-results-count {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .garden-results-count span {
-        text-align: left;
-    }
 }
 
 /* Touch screens: iPhone zooms into any field under 16px */
@@ -926,14 +689,5 @@ legend.garden-filter-label {
 @media (hover: none) and (pointer: coarse) {
     .garden-field {
         font-size: 16px;
-    }
-}
-
-/* Windows High Contrast: native radios, so the selected filter still shows */
-
-@media (forced-colors: active) {
-    .garden-radio input {
-        -webkit-appearance: auto;
-        appearance: auto;
     }
 }

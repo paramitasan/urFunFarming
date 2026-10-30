@@ -1,0 +1,8 @@
+<label class="list-sort">
+    <span class="visually-hidden">{{ sort_label }}</span>
+    <select name="sort">
+        {% for value, label in filter_form.sort.field.choices %}
+            <option value="{{ value }}"{% if filter_form.sort.value == value %} selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+</label>
