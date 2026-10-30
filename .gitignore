@@ -9,6 +9,7 @@ db.sqlite3
 __pycache__/
 *.pyc
 staticfiles/
+media/
 
 # OS & IDE Files
 .DS_Store

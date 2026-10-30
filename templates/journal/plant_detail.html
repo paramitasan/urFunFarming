@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ planting.display_name }} · Plant Journal{% endblock title %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'journal/journal.css' %}">
+<script defer src="{% static 'journal/journal.js' %}"></script>
+<script defer src="{% static 'journal/delete-entry.js' %}"></script>
+<script defer src="{% static 'journal/timeline-order.js' %}"></script>
+{% endblock head %}
+
+{% block content %}
+{% include 'partials/grower_subnav.html' %}
+<div class="journal">
+    {% include 'journal/toast.html' %}
+    {% if is_owner and not from_garden %}
+        <a class="back-link" href="{% url 'journal:index' %}">
+            <img src="{% static 'journal/icons/arrow-left.svg' %}" alt="" width="18" height="18">
+            Back to journal
+        </a>
+    {% elif garden_url %}
+        <a class="back-link" href="{{ garden_url }}">
+            <img src="{% static 'journal/icons/arrow-left.svg' %}" alt="" width="18" height="18">
+            Back to {{ planting.garden.name }}
+        </a>
+    {% else %}
+        <a class="back-link" href="{% url 'gardens:explore' %}">
+            <img src="{% static 'journal/icons/arrow-left.svg' %}" alt="" width="18" height="18">
+            Back to gardens
+        </a>
+    {% endif %}
+
+    <header class="journal-header" data-journal-header>
+        <div class="journal-title-block">
+            <p class="journal-eyebrow">Plant journal · Timeline</p>
+            <div class="journal-title-row">
+                <h1 class="journal-title">{{ planting.display_name }}</h1>
+                {% if can_view and entries %}
+                    <span class="stage-tag" data-stage="{{ entries.0.stage }}">{{ entries.0.get_stage_display }}</span>
+                {% endif %}
+            </div>
+            {% if can_view %}
+                <p class="journal-subtitle">{% if not is_owner %}Grown by {{ grower_name }} · {% endif %}Started {{ started_on|date:"j M Y" }}</p>
+            {% else %}
+                <p class="journal-subtitle">Grown by {{ grower_name }}</p>
+            {% endif %}
+        </div>
+
+        {% if is_owner and entries %}
+            <a class="pill-button" href="{% url 'journal:create_plant_entry' planting.pk %}">
+                <img src="{% static 'journal/icons/plus.svg' %}" alt="" width="18" height="18">
+                New Entry
+            </a>
+        {% endif %}
+    </header>
+
+    {% if can_view %}
+    <div class="journal-body" data-journal-body>
+        <section class="timeline" id="timeline">
+            <div class="section-heading">
+                <h2>Timeline</h2>
+                {% if entries %}
+                <a class="order-toggle" href="?order={% if oldest_first %}newest{% else %}oldest{% endif %}{% if from_garden %}&amp;from=garden{% endif %}" data-order-toggle>
+                    {% if oldest_first %}Oldest first{% else %}Newest first{% endif %}
+                    <img class="order-arrow{% if oldest_first %} is-down{% endif %}" src="{% static 'journal/icons/arrow-left.svg' %}" alt="" width="14" height="14">
+                </a>
+                {% endif %}
+            </div>
+
+            {% if entries %}
+            <ol>
+                {% for entry in timeline %}
+                <li class="timeline-entry">
+                    <div class="timeline-rail" aria-hidden="true">
+                        <span class="timeline-dot" data-stage="{{ entry.stage }}"></span>
+                        <span class="timeline-line"></span>
+                    </div>
+
+                    <article class="entry-card">
+                        <div class="entry-head">
+                            <div class="entry-when">
+                                <span class="entry-date">{{ entry.date|date:"j M Y" }}</span>
+                                <span class="entry-time">{{ entry.time|time:"H.i" }}</span>
+                            </div>
+                            <div class="entry-tags">
+                                <span class="stage-tag" data-stage="{{ entry.stage }}">{{ entry.get_stage_display }}</span>
+                                <span class="health-tag" data-health="{{ entry.health }}">{{ entry.get_health_display }}</span>
+                                {% if is_owner %}
+                                    <a class="icon-button" href="{% url 'journal:edit_entry' entry.pk %}" aria-label="Edit entry from {{ entry.date|date:'j M Y' }}">
+                                        <img src="{% static 'journal/icons/edit.svg' %}" alt="" width="18" height="18">
+                                    </a>
+                                    <button class="icon-button icon-button-delete" type="button" aria-label="Delete entry from {{ entry.date|date:'j M Y' }}" data-delete-url="{% url 'journal:delete_entry' entry.pk %}">
+                                        <img src="{% static 'journal/icons/trash.svg' %}" alt="" width="18" height="18">
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <p class="entry-height">
+                            <strong>{{ entry.height_cm|floatformat:"-2" }} cm</strong>
+                            <span>{% if entry.height_change is None %}First entry{% else %}{% if entry.height_change >= 0 %}+{% endif %}{{ entry.height_change|floatformat:"-2" }} cm since last entry{% endif %}</span>
+                        </p>
+
+                        <p class="entry-note">{{ entry.observation|linebreaksbr }}</p>
+
+                        {% if entry.photos.all %}
+                        <div class="entry-photos">
+                            {% for photo in entry.photos.all %}
+                                <img src="{{ photo.src }}" alt="Photo {{ forloop.counter }} of {{ planting.display_name }} on {{ entry.date|date:'j M Y' }}" loading="lazy">
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </article>
+                </li>
+                {% endfor %}
+            </ol>
+            {% else %}
+            <div class="empty-card">
+                <span class="empty-icon">
+                    <img src="{% static 'journal/icons/sprout.svg' %}" alt="" width="26" height="26">
+                </span>
+                <h3>No entries yet</h3>
+                <p>{% if is_owner %}Log the first entry for {{ planting.display_name }} to start its timeline.{% else %}{{ grower_name }} hasn't logged anything for {{ planting.display_name }} yet. Check back later to see how it grows.{% endif %}</p>
+                {% if is_owner %}
+                    <a class="pill-button" href="{% url 'journal:create_plant_entry' planting.pk %}">
+                        <img src="{% static 'journal/icons/plus.svg' %}" alt="" width="18" height="18">
+                        New Entry
+                    </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </section>
+        
+        <aside class="journal-sidebar">
+            <section class="side-card">
+                <h2>About this plant</h2>
+                <dl class="plant-facts">
+                    <div>
+                        <dt>Garden</dt>
+                        <dd>{{ planting.garden.name }}</dd>
+                    </div>
+                    <div>
+                        <dt>Started on</dt>
+                        <dd>{% if started_on %}{{ started_on|date:"j M Y" }}{% else %}Not yet{% endif %}</dd>
+                    </div>
+                    <div>
+                        <dt>Days growing</dt>
+                        <dd>{% if days_growing is not None %}{{ days_growing }} day{{ days_growing|pluralize }}{% else %}Not yet{% endif %}</dd>
+                    </div>
+                    <div>
+                        <dt>Entries</dt>
+                        <dd>{{ entries|length }}</dd>
+                    </div>
+                </dl>
+                {% if is_owner %}
+                    <a class="outline-button" href="{% url 'gardens:planting_detail' planting.garden.pk planting.pk %}">View in My gardens</a>
+                {% elif garden_url %}
+                    <a class="outline-button" href="{{ garden_url }}">View {{ grower_name }}'s garden</a>
+                {% endif %}
+            </section>
+
+            <section class="side-card">
+                <h2>Growth stage</h2>
+                <ol class="stage-steps">
+                    {% for step in stage_steps %}
+                    <li class="stage-step" data-status="{{ step.status }}">
+                        <div class="step-rail" aria-hidden="true">
+                            <span class="step-mark">
+                                {% if step.status == 'done' %}
+                                    <img src="{% static 'journal/icons/check.svg' %}" alt="" width="16" height="16">
+                                {% elif step.status == 'current' %}
+                                    <img src="{% static 'journal/icons/stage-current.svg' %}" alt="" width="32" height="32">
+                                {% endif %}
+                            </span>
+                            <span class="step-line"></span>
+                        </div>
+                        <div class="step-text">
+                            <span class="step-label">{{ step.label }}</span>
+                            <span class="step-date">
+                                {% if step.status == 'next' %}
+                                    Not yet
+                                {% elif step.date %}
+                                    {{ step.date|date:"j M Y" }}{% if step.status == 'current' %} · Current stage{% endif %}
+                                {% endif %}
+                            </span>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ol>
+            </section>
+        </aside>
+    </div>
+    {% else %}
+        <div class="empty-card">
+            <span class="empty-icon">
+                <img src="{% static 'journal/icons/lock.svg' %}" alt="" width="26" height="26">
+            </span>
+            <h2>This journal is private</h2>
+            <p>{{ grower_name }} keeps the journal for {{ planting.display_name }} private, so its entries can't be shown. You can still see the other plants in {{ grower_name }}'s garden.</p>
+        </div>
+    {% endif %}
+
+    {% if is_owner %}
+        {% include 'journal/delete_dialog.html' with title='Delete this entry?' message="This entry and its photos will be removed. This can't be undone." confirm_label='Delete entry' error_title="Couldn't delete this entry" %}
+    {% endif %}
+</div>
+
+{% endblock content %}

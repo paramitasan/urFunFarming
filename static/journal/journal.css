@@ -1,0 +1,1725 @@
+/* Plant Progress Journal */
+
+/* Colors the site doesn't have yet, from the Figma stage and health styles */
+.journal {
+    --stage-seedling-text: #3B641C;
+    --stage-seedling-fill: #ECF5DF;
+    --stage-seedling-border: #D3E7BC;
+    --stage-vegetative-text: #1C5E43;
+    --stage-vegetative-fill: #DDF0E6;
+    --stage-vegetative-border: #BEDFCD;
+    --stage-flowering-text: #8A2D57;
+    --stage-flowering-fill: #F9E6EE;
+    --stage-flowering-border: #EFC9D9;
+    --stage-fruiting-text: #86460E;
+    --stage-fruiting-fill: #FDEBD8;
+    --stage-fruiting-border: #F4D0AC;
+    --stage-harvested-text: #4A3A8A;
+    --stage-harvested-fill: #ECE8F7;
+    --stage-harvested-border: #D5CEEE;
+    --stage-seedling-dot: #7FB24A;
+    --stage-vegetative-dot: #2F8F63;
+    --stage-flowering-dot: #D2668F;
+    --stage-fruiting-dot: #E08A36;
+    --stage-harvested-dot: #7C68C4;
+    --health-healthy-text: #125133;
+    --health-healthy-fill: #D9EDDF;
+    --health-healthy-border: #BDD7C7;
+    --health-healthy-dot: #21C37E;
+    --health-attention-text: #6E5100;
+    --health-attention-fill: #FFF2C6;
+    --health-attention-border: #EBDBAA;
+    --health-attention-dot: #D9A300;
+    --health-pest-text: #B5452F;
+    --health-pest-fill: #F8E3DE;
+    --health-pest-border: #EFCDC5;
+    --health-pest-dot: #B5452F;
+
+
+    max-width: 1164px;
+    margin: 0 auto;
+    padding: 132px 16px 72px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+
+/* Growers have the subnav above the page, which already clears the fixed navbar */
+.subnav-row + .journal {
+    padding-top: 40px;
+}
+
+
+/* Back link */
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    align-self: flex-start;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+    text-underline-offset: 4px;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+
+/* Page header */
+.journal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.journal-title-block {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.journal-eyebrow {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: normal;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--color-deep);
+}
+
+.journal-title-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+}
+
+.journal-title {
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.68px;
+    color: var(--color-forest);
+}
+
+.journal-subtitle {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-deep);
+}
+
+.journal-header .pill-button {
+    flex-shrink: 0;
+}
+
+
+/* Stage tag: one color set per growth stage */
+.stage-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border: 1px solid;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: normal;
+    white-space: nowrap;
+}
+
+.stage-tag[data-stage="seedling"] { color: var(--stage-seedling-text); background-color: var(--stage-seedling-fill); border-color: var(--stage-seedling-border); }
+.stage-tag[data-stage="vegetative"] { color: var(--stage-vegetative-text); background-color: var(--stage-vegetative-fill); border-color: var(--stage-vegetative-border); }
+.stage-tag[data-stage="flowering"] { color: var(--stage-flowering-text); background-color: var(--stage-flowering-fill); border-color: var(--stage-flowering-border); }
+.stage-tag[data-stage="fruiting"] { color: var(--stage-fruiting-text); background-color: var(--stage-fruiting-fill); border-color: var(--stage-fruiting-border); }
+.stage-tag[data-stage="harvested"] { color: var(--stage-harvested-text); background-color: var(--stage-harvested-fill); border-color: var(--stage-harvested-border); }
+
+
+/* Health tag: dot plus label, with a border like the stage tag */
+.health-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border: 1px solid;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: normal;
+    white-space: nowrap;
+}
+
+.health-tag::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    /* The dot is the same color as the text */
+    background-color: currentColor;
+}
+
+.health-tag[data-health="healthy"] { color: var(--health-healthy-text); background-color: var(--health-healthy-fill); border-color: var(--health-healthy-border); }
+.health-tag[data-health="attention"] { color: var(--health-attention-text); background-color: var(--health-attention-fill); border-color: var(--health-attention-border); }
+.health-tag[data-health="pest"] { color: var(--health-pest-text); background-color: var(--health-pest-fill); border-color: var(--health-pest-border); }
+
+
+/* Round icon buttons (edit, delete) */
+.icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border: 1px solid var(--color-field);
+    border-radius: 999px;
+    background-color: var(--color-surface);
+    cursor: pointer;
+}
+
+.icon-button:hover {
+    background-color: var(--color-band);
+}
+
+.icon-button-delete {
+    background-color: var(--health-pest-fill);
+    border-color: #F5CFCA;
+}
+
+.icon-button-delete:hover {
+    background-color: #F5CFCA;
+}
+
+.icon-button:focus-visible {
+    outline: 2px solid var(--color-forest);
+    outline-offset: 2px;
+}
+
+
+/* Timeline and sidebar side by side */
+.journal-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+}
+
+.timeline {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.section-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    line-height: normal;
+}
+
+.section-heading h2 {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.18px;
+    color: var(--color-forest);
+}
+
+.section-heading span {
+    font-size: 12.5px;
+    color: var(--color-deep);
+}
+
+
+/* "Newest first" / "Oldest first" link next to the timeline heading */
+.order-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 12.5px;
+    color: var(--color-deep);
+    text-decoration: none;
+    /* A see-through line under the text and the arrow, so showing it on hover doesn't move anything */
+    border-bottom: 1px solid transparent;
+}
+
+.order-toggle:hover {
+    border-bottom-color: currentColor;
+}
+
+
+/* The icon is a left arrow, so a quarter turn makes it point up, and the other way makes it point down */
+.order-arrow {
+    transform: rotate(90deg);
+}
+
+.order-arrow.is-down {
+    transform: rotate(-90deg);
+}
+
+
+/* One entry: rail with dot and line on the left, card on the right */
+.timeline-entry {
+    display: flex;
+    gap: 18px;
+}
+
+.timeline-rail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 20px;
+    flex-shrink: 0;
+    padding-top: 24px;
+}
+
+.timeline-dot {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    border: 3px solid var(--color-surface);
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px #D5D9D2;
+}
+
+.timeline-dot[data-stage="seedling"] { background-color: var(--stage-seedling-dot); }
+.timeline-dot[data-stage="vegetative"] { background-color: var(--stage-vegetative-dot); }
+.timeline-dot[data-stage="flowering"] { background-color: var(--stage-flowering-dot); }
+.timeline-dot[data-stage="fruiting"] { background-color: var(--stage-fruiting-dot); }
+.timeline-dot[data-stage="harvested"] { background-color: var(--stage-harvested-dot); }
+
+.timeline-line {
+    flex: 1;
+    width: 2px;
+    background-color: var(--color-field);
+}
+
+.timeline-entry:last-child .timeline-line {
+    display: none;
+}
+
+.entry-card {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 20px;
+    padding: 22px 24px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-hairline);
+    border-radius: 16px;
+}
+
+.entry-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.entry-when {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    line-height: normal;
+}
+
+.entry-date {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-forest);
+}
+
+.entry-time,
+.entry-height span {
+    font-size: 12.5px;
+    color: var(--color-deep);
+}
+
+.entry-tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.entry-height {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    line-height: normal;
+}
+
+.entry-height strong {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.52px;
+    color: var(--color-forest);
+}
+
+.entry-note {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--color-forest);
+    overflow-wrap: anywhere;
+}
+
+.entry-photos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.entry-photos img {
+    display: block;
+    width: 132px;
+    height: 100px;
+    object-fit: cover;
+    border: 1px solid var(--color-field);
+    border-radius: 10px;
+}
+
+
+/* Sidebar cards */
+.journal-sidebar {
+    width: 320px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.side-card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-hairline);
+    border-radius: 16px;
+}
+
+.side-card h2 {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: normal;
+    letter-spacing: -0.18px;
+    color: var(--color-forest);
+}
+
+.plant-facts {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    line-height: normal;
+}
+
+.plant-facts div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.plant-facts dt {
+    font-size: 12.5px;
+    color: var(--color-deep);
+}
+
+.plant-facts dd {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-forest);
+    text-align: right;
+}
+
+.side-card .outline-button {
+    width: 100%;
+}
+
+
+/* Growth stage stepper */
+.stage-steps {
+    display: flex;
+    flex-direction: column;
+}
+
+.stage-step {
+    display: flex;
+    gap: 14px;
+    min-height: 60px;
+}
+
+.step-rail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.step-mark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    border-radius: 50%;
+}
+
+.stage-step[data-status="done"] .step-mark {
+    background-color: #2E6B3F;
+}
+
+.stage-step[data-status="next"] .step-mark {
+    background-color: var(--color-surface);
+    border: 2px solid #D5D9D2;
+}
+
+.step-line {
+    flex: 1;
+    width: 2px;
+    background-color: #DDE2DA;
+}
+
+.stage-step[data-status="done"] .step-line {
+    background-color: #2E6B3F;
+}
+
+.stage-step:last-child .step-line {
+    display: none;
+}
+
+.step-text {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding-bottom: 16px;
+    line-height: normal;
+}
+
+.step-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-forest);
+}
+
+.stage-step[data-status="current"] .step-label {
+    color: #86460E;
+}
+
+.stage-step[data-status="next"] .step-label {
+    color: var(--color-deep);
+}
+
+.step-date {
+    font-size: 12.5px;
+    color: var(--color-deep);
+}
+
+
+/* Empty state card */
+.empty-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 56px 24px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-hairline);
+    border-radius: 16px;
+    text-align: center;
+}
+
+.empty-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: var(--color-band);
+}
+
+.empty-card h3 {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: normal;
+    letter-spacing: -0.18px;
+    color: var(--color-forest);
+}
+
+.empty-card p {
+    max-width: 440px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--color-deep);
+}
+
+.empty-card .pill-button {
+    margin-top: 2px;
+}
+
+
+/* Entry form */
+
+.journal-narrow {
+    max-width: 864px;
+}
+
+.form-card {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    padding: 32px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-hairline);
+    border-radius: 16px;
+}
+
+.plant-summary {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background-color: var(--color-band);
+    border-radius: 12px;
+    line-height: normal;
+}
+
+.plant-summary-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background-color: var(--color-surface);
+}
+
+.plant-summary strong {
+    display: block;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-forest);
+}
+
+.plant-summary span {
+    font-size: 12.5px;
+    color: var(--color-deep);
+}
+
+.form-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.form-fields-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.field-label {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.field input,
+.field select,
+.field textarea {
+    width: 100%;
+    padding: 0 14px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-field);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 15px;
+    color: var(--color-forest);
+}
+
+.field input,
+.field select {
+    height: 48px;
+}
+
+.field select {
+    appearance: none;
+    padding-right: 44px;
+    background-image: url('icons/chevron-down.svg');
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 18px 18px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.field textarea {
+    min-height: 140px;
+    padding: 12px 14px;
+    line-height: 1.6;
+    resize: vertical;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+    color: var(--color-deep);
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 0;
+    border-color: var(--color-accent);
+}
+
+/* Height input with "cm" inside it on the right */
+.input-suffix {
+    position: relative;
+}
+
+.input-suffix input {
+    padding-right: 48px;
+}
+
+.input-suffix span {
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    transform: translateY(-50%);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-deep);
+    pointer-events: none;
+}
+
+.field-hint {
+    font-size: 13px;
+    line-height: normal;
+    color: var(--color-deep);
+}
+
+.field-hint a {
+    color: var(--color-forest);
+    text-decoration: underline;
+}
+
+.form-footer {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 24px;
+    border-top: 1px solid var(--color-hairline);
+}
+
+.form-footer-split {
+    justify-content: space-between;
+}
+
+.form-footer-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+/* Danger button: white with a red border, from the Figma Button component */
+.danger-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px 22px;
+    background-color: var(--color-surface);
+    border: 1.5px solid #B5452F;
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: normal;
+    color: #B5452F;
+    cursor: pointer;
+}
+
+.danger-button:hover {
+    background-color: #F8E3DE;
+}
+
+.danger-button:focus-visible {
+    outline: 2px solid #B5452F;
+    outline-offset: 2px;
+}
+
+
+/* Groups of choices: stage and health chips, visibility cards */
+
+.choice-group {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.choice-group legend {
+    margin-bottom: 12px;
+    padding: 0;
+}
+
+.form-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* The real radio button stays in the page for keyboards and screen readers, but is invisible */
+.field .choice-group input[type="radio"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.form-chip,
+.choice-card {
+    position: relative;
+    cursor: pointer;
+}
+
+.chip-face {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 16px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-field);
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+    white-space: nowrap;
+}
+
+.chip-face::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--dot);
+}
+
+.chip-face[data-stage="seedling"] { --dot: var(--stage-seedling-dot); }
+.chip-face[data-stage="vegetative"] { --dot: var(--stage-vegetative-dot); }
+.chip-face[data-stage="flowering"] { --dot: var(--stage-flowering-dot); }
+.chip-face[data-stage="fruiting"] { --dot: var(--stage-fruiting-dot); }
+.chip-face[data-stage="harvested"] { --dot: var(--stage-harvested-dot); }
+.chip-face[data-health="healthy"] { --dot: var(--health-healthy-dot); }
+.chip-face[data-health="attention"] { --dot: var(--health-attention-dot); }
+.chip-face[data-health="pest"] { --dot: var(--health-pest-dot); }
+
+.form-chip:hover .chip-face,
+.choice-card:hover .card-face {
+    background-color: var(--color-band);
+}
+
+/* Selected: green tint and a 2px accent border, 1px less padding so nothing moves */
+.form-chip input:checked + .chip-face {
+    padding: 0 15px;
+    background-color: var(--color-band);
+    border: 2px solid var(--color-accent);
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.card-face {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 100%;
+    padding: 14px 16px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-field);
+    border-radius: 12px;
+    line-height: normal;
+}
+
+.card-face img {
+    flex-shrink: 0;
+}
+
+.card-face strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-forest);
+}
+
+.card-face small {
+    display: block;
+    margin-top: 2px;
+    font-size: 12.5px;
+    color: var(--color-deep);
+}
+
+.choice-card input:checked + .card-face {
+    padding: 13px 15px;
+    background-color: var(--color-band);
+    border: 2px solid var(--color-accent);
+}
+
+.form-chip input:focus-visible + .chip-face,
+.choice-card input:focus-visible + .card-face {
+    outline: 2px solid var(--color-forest);
+    outline-offset: 2px;
+}
+
+
+/* Photos: chosen photos, upload area and photo links */
+
+.photo-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.photo-list:empty {
+    display: none;
+}
+
+/* While the dropzone shows, the JS hides the row of photos */
+.photo-list[hidden] {
+    display: none;
+}
+
+.photo-slot {
+    position: relative;
+    width: 132px;
+    height: 100px;
+}
+
+.photo-slot > img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 1px solid var(--color-field);
+    border-radius: 10px;
+}
+
+.photo-remove {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background-color: var(--color-surface);
+    border: 1px solid #F5CFCA;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.photo-remove:hover {
+    background-color: var(--health-pest-fill);
+}
+
+/* Edit page: a saved photo whose remove box is ticked is hidden, and leaves when the form is saved */
+.photo-slot input[type="checkbox"],
+.photo-slot:has(input:checked) {
+    display: none;
+}
+
+/* Edit page: the dashed tile after the photos opens the file picker */
+.photo-add {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 132px;
+    height: 100px;
+    background-color: var(--color-surface);
+    border: 1.5px dashed var(--color-sage);
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-forest);
+    cursor: pointer;
+}
+
+.photo-add:hover {
+    background-color: var(--color-band);
+}
+
+.photo-add.is-dragging {
+    background-color: var(--color-band);
+    border-color: var(--color-accent);
+}
+
+.photo-add:focus-within {
+    outline: 2px solid var(--color-forest);
+    outline-offset: 2px;
+}
+
+.photo-add input[type="file"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+/* At 5 photos the ways of adding more are hidden */
+.dropzone[hidden],
+.photo-add[hidden],
+.photo-link[hidden] {
+    display: none;
+}
+
+.dropzone {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 32px 20px;
+    background-color: var(--color-surface);
+    border: 1.5px dashed var(--color-sage);
+    border-radius: 14px;
+    text-align: center;
+    line-height: normal;
+}
+
+.dropzone.is-dragging {
+    background-color: var(--color-band);
+    border-color: var(--color-accent);
+}
+
+.dropzone-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-forest);
+}
+
+.dropzone-or,
+.dropzone-hint {
+    font-size: 13px;
+    color: var(--color-deep);
+}
+
+/* The real file input stays for keyboards and screen readers, "Choose files" and "Add photo" open it */
+.dropzone input[type="file"],
+[data-photo-box] > input[type="file"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+/* Tabbing to the hidden input outlines whichever button is showing */
+[data-photo-box]:has(> input[type="file"]:focus-visible) :is(.dropzone .small-button, .photo-add) {
+    outline: 2px solid var(--color-forest);
+    outline-offset: 2px;
+}
+
+.photo-link {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.photo-link-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.photo-link-row input {
+    flex: 1;
+    min-width: 0;
+}
+
+.small-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    padding: 8px 16px;
+    background-color: var(--color-surface);
+    border: 1.5px solid var(--color-forest);
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-forest);
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.small-button:hover {
+    background-color: var(--color-band);
+}
+
+.photo-remove:focus-visible,
+.small-button:focus-visible {
+    outline: 2px solid var(--color-forest);
+    outline-offset: 2px;
+}
+
+
+/* Journal list: filter card, table and page buttons */
+
+.journal-list {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+.journal-results {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+.empty-card h2 {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: normal;
+    letter-spacing: -0.18px;
+    color: var(--color-forest);
+}
+
+.filter-card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-hairline);
+    border-radius: 16px;
+}
+
+.search-input {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 48px;
+    padding: 0 16px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-field);
+    border-radius: 10px;
+}
+
+.search-input:focus-within {
+    outline: 2px solid var(--color-accent);
+    border-color: var(--color-accent);
+}
+
+.search-input input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    background: none;
+    border: 0;
+    outline: none;
+    font-family: inherit;
+    font-size: 15px;
+    color: var(--color-forest);
+}
+
+.search-input input::placeholder {
+    color: var(--color-deep);
+}
+
+.filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.filter-dropdowns,
+.filter-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.filter-select select {
+    appearance: none;
+    width: 160px;
+    height: 40px;
+    padding: 0 40px 0 14px;
+    background-color: var(--color-surface);
+    background-image: url('icons/chevron-down.svg');
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 18px 18px;
+    border: 1px solid var(--color-field);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-forest);
+    cursor: pointer;
+}
+
+.filter-select-wide select {
+    width: 220px;
+}
+
+/* A filter other than "All" gets the green tint and accent border */
+.filter-select.is-active select {
+    background-color: var(--color-band);
+    border: 1.5px solid var(--color-accent);
+}
+
+/* The open list: white options, and the chosen one in the green tint */
+.filter-select option {
+    background-color: var(--color-surface);
+    color: var(--color-forest);
+}
+
+.filter-select option:checked {
+    background-color: var(--color-band);
+    font-weight: 600;
+}
+
+.filter-select select:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 0;
+}
+
+.filter-actions .small-button {
+    text-decoration: none;
+}
+
+.count-badge {
+    display: flex;
+    align-items: center;
+    height: 40px;
+    padding: 0 14px;
+    background-color: var(--color-band);
+    border: 1px solid var(--color-field);
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-forest);
+    white-space: nowrap;
+}
+
+/* On phones the table keeps its columns and the card scrolls sideways */
+.table-card {
+    overflow-x: auto;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-hairline);
+    border-radius: 16px;
+}
+
+.journal-table {
+    width: 100%;
+    min-width: 1100px;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.journal-table th {
+    height: 52px;
+    padding: 0 7px;
+    background-color: var(--color-forest);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.72px;
+    text-transform: uppercase;
+    color: #C9E2C4;
+    white-space: nowrap;
+}
+
+.journal-table td {
+    padding: 18px 7px;
+    vertical-align: middle;
+    font-size: 14px;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.journal-table th:first-child,
+.journal-table td:first-child {
+    padding-left: 20px;
+}
+
+.journal-table th:last-child,
+.journal-table td:last-child {
+    padding-right: 20px;
+}
+
+.journal-table tbody tr + tr td {
+    border-top: 1px solid var(--color-hairline);
+}
+
+.cell-no {
+    width: 44px;
+    font-weight: 600;
+    color: var(--color-deep);
+}
+
+.cell-strong {
+    display: block;
+    font-weight: 600;
+    color: var(--color-forest);
+}
+
+.cell-time,
+.cell-muted {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 3px;
+    font-size: 12.5px;
+    color: var(--color-deep);
+}
+
+.plant-link {
+    text-decoration: none;
+}
+
+.plant-link:hover {
+    text-decoration: underline;
+}
+
+.cell-note {
+    min-width: 200px;
+    line-height: 1.55;
+}
+
+.visibility-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 4px;
+    background: none;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.visibility-button:hover {
+    background-color: var(--color-band);
+}
+
+.visibility-button:focus-visible {
+    outline: 2px solid var(--color-forest);
+}
+
+/* Both locks are in the button, data-public decides which one shows */
+.visibility-button[data-public="true"] .icon-private,
+.visibility-button[data-public="false"] .icon-public {
+    display: none;
+}
+
+.row-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.icon-button-view {
+    background-color: var(--color-band);
+}
+
+.no-results {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 56px 24px;
+    font-size: 13px;
+    color: var(--color-deep);
+    text-align: center;
+}
+
+.no-results .no-results-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-forest);
+}
+
+.no-results .small-button {
+    text-decoration: none;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.page-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-field);
+    border-radius: 50%;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-forest);
+    text-decoration: none;
+}
+
+a.page-button:hover {
+    background-color: var(--color-band);
+}
+
+a.page-button:focus-visible {
+    outline: 2px solid var(--color-forest);
+    outline-offset: 2px;
+}
+
+.page-button.is-current {
+    background-color: var(--color-forest);
+    border-color: var(--color-forest);
+    color: #C9E2C4;
+}
+
+.page-button.is-disabled {
+    opacity: 0.4;
+}
+
+/* The chevron points down, so it is turned to point left or right */
+.page-arrow-previous {
+    transform: rotate(90deg);
+}
+
+.page-arrow-next {
+    transform: rotate(-90deg);
+}
+
+
+/* Delete dialog: a popover over the whole page, like the tutorial's delete modal */
+
+.delete-dialog {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 16px;
+    background: transparent;
+    border: 0;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-dialog:popover-open {
+    display: flex;
+}
+
+.delete-dialog-backdrop {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    background-color: rgba(11, 46, 29, 0.45);
+    border: 0;
+    cursor: default;
+}
+
+.delete-dialog-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: min(100%, 460px);
+    padding: 28px;
+    background-color: var(--color-surface);
+    border: 1px solid rgba(18, 81, 51, 0.12);
+    border-radius: 16px;
+    box-shadow: 0 16px 20px rgba(11, 46, 29, 0.18);
+}
+
+.delete-dialog-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.delete-dialog-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    background-color: var(--health-pest-fill);
+    border-radius: 50%;
+}
+
+.delete-dialog-title {
+    margin-bottom: 6px;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.18px;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.delete-dialog-message {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--color-deep);
+}
+
+.delete-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.danger-button:disabled {
+    opacity: 0.7;
+    cursor: progress;
+}
+
+
+
+/* Toasts: bottom center, 24px from the bottom, one color set per type */
+
+.toast-area {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: min(360px, calc(100% - 32px));
+    transform: translateX(-50%);
+}
+
+.toast[data-type="success"] { --toast-surface: #EEF7F0; --toast-border: #BFDDC8; --toast-text: #125133; --toast-circle: #D3EBDA; --toast-detail: #2F6650; }
+.toast[data-type="error"] { --toast-surface: #FDF1EE; --toast-border: #EDC3B9; --toast-text: #8A2E1C; --toast-circle: #F8DDD6; --toast-detail: #9E3A27; }
+.toast[data-type="info"] { --toast-surface: #EEF4FB; --toast-border: #C5D7EC; --toast-text: #1E4A73; --toast-circle: #DAE6F5; --toast-detail: #33608A; }
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px 10px 10px;
+    background-color: var(--toast-surface);
+    border: 1px solid var(--toast-border);
+    border-radius: 12px;
+    box-shadow: 0 8px 12px rgba(11, 46, 29, 0.14);
+    color: var(--toast-text);
+    line-height: normal;
+    /* Slides up from the bottom when it appears */
+    animation: toast-slide-up 0.25s ease-out;
+}
+
+/* Added by JS just before the toast is removed, so it slides back down first */
+.toast.is-leaving {
+    animation: toast-slide-down 0.2s ease-in forwards;
+}
+
+@keyframes toast-slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+}
+
+@keyframes toast-slide-down {
+    to {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+}
+
+
+.toast-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    background-color: var(--toast-circle);
+    border-radius: 50%;
+}
+
+.toast-text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.toast-message {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.toast-detail {
+    font-size: 12px;
+    color: var(--toast-detail);
+}
+
+.toast-action,
+.toast-close {
+    flex-shrink: 0;
+    padding: 0;
+    background: none;
+    border: 0;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: inherit;
+    cursor: pointer;
+}
+
+.toast-close {
+    display: flex;
+}
+
+.toast-action:focus-visible,
+.toast-close:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
+
+
+/* Errors: the banner at the top of the form and the message under each field */
+
+.form-error-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background-color: #F8E3DE;
+    border: 1px solid #B5452F;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: normal;
+    color: #B5452F;
+}
+
+.form-error-banner img,
+.field-error img {
+    flex-shrink: 0;
+}
+
+.field-error {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    line-height: normal;
+    color: #B5452F;
+}
+
+.field-error[hidden] {
+    display: none;
+}
+
+.field input[aria-invalid="true"],
+.field select[aria-invalid="true"],
+.field textarea[aria-invalid="true"] {
+    border-color: #B5452F;
+}
+
+
+@media (max-width: 900px) {
+    .journal-body {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .journal-sidebar {
+        width: 100%;
+    }
+}
+
+@media (max-width: 639px) {
+    .journal-header {
+        flex-direction: column;
+    }
+
+    .journal-title {
+        font-size: 28px;
+    }
+
+    .timeline-entry {
+        gap: 10px;
+    }
+
+    .entry-card {
+        padding: 18px 16px;
+    }
+
+    .entry-head {
+        flex-direction: column;
+    }
+
+    .entry-tags {
+        justify-content: flex-start;
+    }
+    
+    .form-card {
+        padding: 20px 16px;
+    }
+
+    .form-fields,
+    .form-fields-3 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .form-footer-actions,
+    .form-footer .pill-button,
+    .form-footer .outline-button,
+    .form-footer .danger-button {
+        flex: 1;
+    }
+    
+    .cards {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

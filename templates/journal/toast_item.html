@@ -1,0 +1,20 @@
+{% load static %}
+<div class="toast" data-type="{{ type }}" role="{% if type == 'error' %}alert{% else %}status{% endif %}">
+    <span class="toast-icon">
+        {% if type == 'success' %}
+            <img src="{% static 'journal/icons/toast-check.svg' %}" alt="" width="18" height="18">
+        {% elif type == 'error' %}
+            <img src="{% static 'journal/icons/alert.svg' %}" alt="" width="18" height="18">
+        {% else %}
+            <img src="{% static 'journal/icons/toast-info.svg' %}" alt="" width="18" height="18">
+        {% endif %}
+    </span>
+    <div class="toast-text">
+        <p class="toast-message" data-toast-message>{{ message }}</p>
+        <p class="toast-detail" data-toast-detail{% if not detail %} hidden{% endif %}>{{ detail|default:"" }}</p>
+    </div>
+    <button class="toast-action" type="button" data-toast-action hidden></button>
+    <button class="toast-close" type="button" aria-label="Close" data-toast-close>
+        <img src="{% static 'journal/icons/close-'|add:type|add:'.svg' %}" alt="" width="16" height="16">
+    </button>
+</div>

@@ -1,4 +1,5 @@
-{% load static %}
+{% load static journal_tags %}
+{% journal_for planting as journal %}
 {% url 'gardens:planting_detail' garden_pk planting.pk as plant_url %}
 <article class="planting-card">
     {% if planting.photo %}
@@ -28,9 +29,8 @@
             <span class="garden-method-tag">{{ planting.method_name }}</span>
         </p>
         <div class="garden-card-footer">
-            <a class="gardens-text-link" href="{{ plant_url }}">Open journal {% include 'svg/icons/arrow.svg' %}</a>
-            {# Module 3: swap in the plant's journal entry count #}
-            <span class="garden-added">No journal yet</span>
+            <a class="gardens-text-link" href="{{ journal.url }}">Open journal {% include 'svg/icons/arrow.svg' %}</a>
+            <span class="garden-added">{% if journal.entries %}{{ journal.entries|length }} entr{{ journal.entries|length|pluralize:"y,ies" }}{% else %}No journal yet{% endif %}</span>
         </div>
     </div>
 </article>
