@@ -6,7 +6,6 @@ from django.db.models import Q
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from accounts.models import Profile
@@ -138,8 +137,9 @@ def plant_detail(request, planting_id):
             entry.height_change = None
 
     started_on = planting.planting_date
-    days_growing = (timezone.localdate() - started_on).days
-    
+    # Same count as the "Day N" badge in Gardens, so a planned (future) date shows 0, not a negative
+    days_growing = planting.day_number
+
     # First date each stage was reached, going from the oldest entry up
     first_reached = {}
     for entry in reversed(entries):

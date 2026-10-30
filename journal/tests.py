@@ -1,7 +1,7 @@
 import io
 import shutil
 import tempfile
-from datetime import date, time
+from datetime import date, time, timedelta
 from unittest import mock
 
 from django.contrib.auth.models import User
@@ -177,6 +177,16 @@ class PlantDetailTest(JournalTestCase):
         self.assertEqual(response.context['started_on'], date(2026, 9, 5))
         expected_days = (timezone.localdate() - date(2026, 9, 5)).days
         self.assertEqual(response.context['days_growing'], expected_days)
+
+    def test_days_growing_is_never_negative(self):
+        # A plant planned for next week hasn't started growing yet
+        self.tomato.planting_date = timezone.localdate() + timedelta(days=5)
+        self.tomato.save()
+        self.client.force_login(self.grower)
+        response = self.client.get(self.detail_url(self.tomato))
+        self.assertEqual(response.context['days_growing'], 0)
+        self.assertContains(response, '0 days')
+        self.assertNotContains(response, '-5 day')
 
     def test_stage_steps(self):
         self.client.force_login(self.grower)
