@@ -231,6 +231,9 @@ def create_entry(request, planting_id=None):
         # Started from the + on the journal list: go back to the list
         if request.GET.get('from') == 'list':
             return redirect('journal:index')
+        # Started from a plant opened on the garden page: keep its "Back to garden" link
+        if request.GET.get('from') == 'garden':
+            return redirect(reverse('journal:plant_detail', kwargs={'planting_id': entry.planting.pk}) + '?from=garden')
         return redirect('journal:plant_detail', planting_id=entry.planting.pk)
 
     # Bad upload: show the "Couldn't upload your photo" toast as well as the field error
@@ -244,6 +247,7 @@ def create_entry(request, planting_id=None):
         'missing_required': has_missing_required(form),
         'nav_active': 'home',
         'from_list': request.GET.get('from') == 'list',
+        'from_garden': request.GET.get('from') == 'garden',
         # entry-form.js ticks Public or Private to match the plant picked in the dropdown
         'public_plant_ids': list(PlantJournal.objects.filter(
             planting__garden__owner=request.user, is_public=True,
@@ -281,6 +285,8 @@ def edit_entry(request, entry_id):
             delete_photos(form.cleaned_data['remove_photos'])
             save_new_photos(entry, form)
             messages.success(request, 'Changes saved')
+        if request.GET.get('from') == 'garden':
+            return redirect(reverse('journal:plant_detail', kwargs={'planting_id': entry.planting.pk}) + '?from=garden')
         return redirect('journal:plant_detail', planting_id=entry.planting.pk)
 
     if PHOTO_ERROR in form.errors.get('photos', []):
@@ -294,6 +300,7 @@ def edit_entry(request, entry_id):
         'original_time': original_time,
         'missing_required': has_missing_required(form),
         'nav_active': 'home',
+        'from_garden': request.GET.get('from') == 'garden',
     }
     return render(request, 'journal/entry_form.html', context)
 
