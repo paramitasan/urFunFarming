@@ -20,7 +20,7 @@
 
 <div class="journal journal-narrow">
     {% include 'journal/toast.html' %}
-    <a class="back-link" href="{{ back_url }}">
+    <a class="back-link" href="{{ back_url }}{% if from_garden %}?from=garden{% endif %}">
         <img src="{% static 'journal/icons/arrow-left.svg' %}" alt="" width="18" height="18">
         {% if planting and not from_list %}Back{% else %}Back to journal{% endif %}
     </a>
@@ -231,7 +231,7 @@
                 </button>
             {% endif %}
             <div class="form-footer-actions">
-                <a class="outline-button" href="{{ back_url }}">Cancel</a>
+                <a class="outline-button" href="{{ back_url }}{% if from_garden %}?from=garden{% endif %}">Cancel</a>
                 <button class="pill-button" type="submit">{% if entry %}Save Changes{% else %}Save Entry{% endif %}</button>
             </div>
         </div>

@@ -42,7 +42,8 @@ if (deleteDialog) {
             } else if (response.ok) {
                 // On the Edit page the entry is gone, so go back to its plant and show the toast there
                 sessionStorage.setItem('journalToast', result.message);
-                window.location.href = result.plant_url;
+                // Keep the ?from=garden of the Edit page, so the plant page still links back to the garden
+                window.location.href = result.plant_url + window.location.search;
             } else {
                 showToast('error', deleteDialog.dataset.errorTitle, result.message || 'Something went wrong. Try again.');
             }
