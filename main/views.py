@@ -32,7 +32,8 @@ def get_public_garden_cards(limit=3):
     return Garden.objects.filter(is_public=True, owner__is_active=True).annotate(
         planting_count=Count('plantings', distinct=True),
     ).order_by('name', 'id').values(
-        'id', 'name', 'location', 'growing_method', 'public_summary', 'planting_count',
+        'id', 'name', 'location', 'growing_method', 'public_summary',
+        'planting_count', 'photo', 'photo_url',
         'owner__username', 'owner__profile__display_name',
     )[:limit]
 
