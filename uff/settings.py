@@ -27,7 +27,8 @@ SECRET_KEY = 'django-insecure-vk0lknzp1&=si1m-bpnmu)db!wou3amv&gk8_4@^i2wp$g7b@n
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "paramita-santoso-urfunfarming.pws.cs.ui.ac.id"]
+# 10.0.2.2 is how the Android emulator reaches the host machine's localhost
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "10.0.2.2", "paramita-santoso-urfunfarming.pws.cs.ui.ac.id"]
 PRODUCTION = os.getenv('PRODUCTION', 'False').lower() == 'true'
 
 # Application definition
@@ -39,6 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'rest_framework.authtoken',
     'main',
     'accounts',
     'marketplace',
@@ -78,6 +81,15 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'uff.wsgi.application'
+
+# Django REST framework: the Flutter app sends "Authorization: Token <token>".
+# Session auth stays as a fallback so the browsable API works for a logged-in browser.
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+}
 
 
 # Database config
