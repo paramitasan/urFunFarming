@@ -205,7 +205,13 @@
                 {% if forloop.first %}
                     <article class="garden-big">
                         <div class="placeholder parallax" data-speed="-20">
-                            <img src="{% static 'img/no-image.png' %}" alt="No photo yet">
+                            {% if garden.photo %}
+                                <img class="garden-photo" src="{% get_media_prefix %}{{ garden.photo }}" alt="">
+                            {% elif garden.photo_url %}
+                                <img class="garden-photo" src="{{ garden.photo_url }}" alt="">
+                            {% else %}
+                                <img src="{% static 'img/no-image.png' %}" alt="No photo yet">
+                            {% endif %}
                         </div>
                         <h3><a href="{% url 'gardens:public_detail' garden.id %}">{{ garden.name }}</a></h3>
                         {% if garden.public_summary %}
@@ -219,7 +225,13 @@
                     {% if forloop.counter == 2 %}<div class="garden-list">{% endif %}
                     <article class="garden-small">
                     <div class="placeholder parallax" data-speed="-10">
-                        <img src="{% static 'img/no-image.png' %}" alt="No photo yet">
+                        {% if garden.photo %}
+                            <img class="garden-photo" src="{% get_media_prefix %}{{ garden.photo }}" alt="">
+                        {% elif garden.photo_url %}
+                            <img class="garden-photo" src="{{ garden.photo_url }}" alt="">
+                        {% else %}
+                            <img src="{% static 'img/no-image.png' %}" alt="No photo yet">
+                        {% endif %}
                     </div>
                     <div>
                         <h3><a href="{% url 'gardens:public_detail' garden.id %}">{{ garden.name }}</a></h3>
