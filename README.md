@@ -190,7 +190,11 @@ Open http://127.0.0.1:8000/. Without the `PRODUCTION` environment variable the a
 python manage.py seed_demo
 ```
 
-**On PWS**, set the `DEMO_PASSWORD` environment variable first, then run the same command wherever you run `migrate` for the deployment. Add `--force` if `DEBUG` is off there.
+**On PWS**, set the `DEMO_PASSWORD` environment variable first, then run the command with `--force` wherever you run `migrate` for the deployment. `DEBUG` is off on PWS, and without `--force` the command refuses:
+
+```
+python manage.py seed_demo --force
+```
 
 | Flag | What it does |
 | --- | --- |
@@ -239,7 +243,22 @@ The app is deployed on PWS: https://paramita-santoso-urfunfarming.pws.cs.ui.ac.i
 
 - `uff/settings.py` switches database by the `PRODUCTION` environment variable: SQLite in development, PostgreSQL on PWS (`DB_NAME`, `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `SCHEMA`).
 - Database credentials are set as PWS environment variables and are never committed.
-- Static files are served by WhiteNoise after `collectstatic`.
+- `DEBUG` and `SECRET_KEY` also come from the environment. With `PRODUCTION=true`, `DEBUG` is off unless `DEBUG=true` is set, and the app refuses to start without `SECRET_KEY`. Locally both have safe defaults, so nothing needs to be set.
+- Static files are served by WhiteNoise after `collectstatic`. With `DEBUG` off, a page fails if `collectstatic` has not run, so it must run on every deploy.
+- Uploaded photos in `media/` are served by Django itself (`serve_media` in `main/views.py`), because PWS has no separate file server.
+
+PWS environment variables:
+
+| Variable | Value |
+| --- | --- |
+| `PRODUCTION` | `true` |
+| `SECRET_KEY` | A new random key, never the one that used to be in `settings.py`. Make one with `python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"` |
+| `DB_NAME`, `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` | The PostgreSQL details from PWS |
+| `SCHEMA` | The PostgreSQL schema (defaults to `public`) |
+| `DEMO_PASSWORD` | The shared password for the `seed_demo` accounts |
+| `DEBUG` | Optional. Leave unset. Set `true` only to look at an error for a moment, then remove it. |
+| `SECURE_COOKIES` | Optional. Defaults to `true` in production. |
+| `BMKG_DEFAULT_ADM4` | Optional. The BMKG village code for profiles without an area (defaults to `31.71.03.1001`). |
 - Only `main` is deployed. A feature reaches `main` through a reviewed pull request with passing CI.
 
 ## Git Workflow

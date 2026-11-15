@@ -1,9 +1,12 @@
 import datetime
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.shortcuts import redirect, render
 from django.utils import timezone
+from django.views.decorators.http import require_safe
+from django.views.static import serve
 
 from accounts.models import Profile
 from gardens.models import Garden
@@ -117,3 +120,10 @@ def filter_listings(request):
         'active': active,
     }
     return render(request, 'partials/listing_filter.html', context)
+
+
+@require_safe
+def serve_media(request, path):
+    # Uploaded photos, also when DEBUG is off: static() only works with DEBUG on,
+    # and PWS has no separate file server. serve() refuses paths outside MEDIA_ROOT.
+    return serve(request, path, document_root=settings.MEDIA_ROOT)

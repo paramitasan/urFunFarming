@@ -15,9 +15,10 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.conf import settings
-from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
+
+from main.views import serve_media
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -32,5 +33,7 @@ urlpatterns = [
     path('api/forum/', include('forum.api_urls')),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Uploaded photos, served by Django with or without DEBUG (see serve_media)
+urlpatterns += [
+    re_path(r'^%s(?P<path>.*)$' % settings.MEDIA_URL.lstrip('/'), serve_media, name='media'),
+]
