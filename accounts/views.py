@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from accounts.forms import LoginForm, PasswordForm, ProfileForm, RegisterForm
+from accounts.forms import DeleteAccountForm, LoginForm, PasswordForm, ProfileForm, RegisterForm
 from accounts.models import Profile
 
 
@@ -198,3 +198,26 @@ def profile(request):
         'password_form': password_form,
     }
     return render(request, 'accounts/profile.html', context)
+
+
+@login_required(login_url='/login')
+@require_POST
+def delete_account(request):
+    # Always deletes request.user; the form carries only the password, never a user id
+    form = DeleteAccountForm(request.user, request.POST)
+    is_fetch = request.headers.get('X-Requested-With') == 'fetch'
+
+    if not form.is_valid():
+        if is_fetch:
+            return JsonResponse({'status': 'error', 'errors': form_errors(form)}, status=400)
+        # Without JavaScript: show the profile page again with the error under the password
+        user_profile, _ = Profile.objects.get_or_create(user=request.user, defaults={'display_name': request.user.username})
+        context = {
+            'profile': user_profile,
+            'profile_form': ProfileForm(instance=user_profile),
+            'password_form': PasswordForm(request.user),
+            'delete_form': form,
+        }
+        return render(request, 'accounts/profile.html', context, status=400)
+
+    raise NotImplementedError('The deletion itself is added in Stage 3')

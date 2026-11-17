@@ -113,3 +113,32 @@ class PasswordForm(PasswordChangeForm):
         self.fields['new_password1'].widget.attrs['placeholder'] = '8+ characters'
         self.fields['new_password2'].widget.attrs['placeholder'] = 'Type it again'
         self.fields['new_password2'].label = 'Confirm new password'
+
+
+class DeleteAccountForm(forms.Form):
+    password = forms.CharField(
+        label='Current password',
+        strip=False,
+        widget=forms.PasswordInput(attrs={'placeholder': 'Your current password', 'autocomplete': 'current-password'}),
+    )
+
+    def __init__(self, user, *args, **kwargs):
+        # Always the signed-in user, never one picked from the request
+        self.user = user
+        super().__init__(*args, **kwargs)
+
+    def clean_password(self):
+        password = self.cleaned_data['password']
+        if not self.user.check_password(password):
+            raise forms.ValidationError("That password isn't right. Nothing was deleted.")
+        return password
+
+    def clean(self):
+        cleaned_data = super().clean()
+        # Someone has to be able to sign in to /admin, so the last superuser can't leave
+        others = User.objects.filter(is_superuser=True, is_active=True).exclude(pk=self.user.pk)
+        if self.user.is_superuser and not others.exists():
+            raise forms.ValidationError(
+                "You're the only admin. Make someone else a superuser before deleting this account."
+            )
+        return cleaned_data
