@@ -5,6 +5,8 @@ from django.contrib import messages
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.files.storage import default_storage
+from django.db import transaction
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -13,6 +15,9 @@ from django.views.decorators.http import require_POST
 
 from accounts.forms import DeleteAccountForm, LoginForm, PasswordForm, ProfileForm, RegisterForm
 from accounts.models import Profile
+from forum.models import Forum
+from gardens.models import Garden, Planting
+from journal.models import EntryPhoto
 
 
 def register(request):
@@ -220,4 +225,41 @@ def delete_account(request):
         }
         return render(request, 'accounts/profile.html', context, status=400)
 
-    raise NotImplementedError('The deletion itself is added in Stage 3')
+    user = request.user
+    file_names = uploaded_file_names(user)
+    with transaction.atomic():
+        user.delete()
+        # Only once the delete is committed; a rollback would otherwise leave rows pointing at missing files
+        transaction.on_commit(lambda: delete_uploaded_files(file_names))
+
+    # Ends this session and rotates the session key, like the logout view
+    logout(request)
+    message = 'Your account was deleted. Thanks for growing with us.'
+    # The login page is the first one that shows messages, so the goodbye is seen right away
+    if is_fetch:
+        response = JsonResponse({'status': 'success', 'message': message, 'redirect': reverse('accounts:login')})
+    else:
+        messages.success(request, message)
+        response = HttpResponseRedirect(reverse('accounts:login'))
+    response.delete_cookie('last_login')
+    return response
+
+
+def uploaded_file_names(user):
+    # Every file this user uploaded, in all apps, so none is left behind in media/
+    names = []
+    for queryset, field in (
+        (Garden.objects.filter(owner=user), 'photo'),
+        (Planting.objects.filter(garden__owner=user), 'photo'),
+        (EntryPhoto.objects.filter(entry__planting__garden__owner=user), 'image'),
+        (Forum.objects.filter(author=user), 'image'),
+    ):
+        names.extend(queryset.exclude(**{field: ''}).exclude(**{f'{field}__isnull': True}).values_list(field, flat=True))
+    return names
+
+
+def delete_uploaded_files(names):
+    for name in names:
+        # Mirrors journal's delete_photos: missing files are ignored, never an error for the user
+        if default_storage.exists(name):
+            default_storage.delete(name)
