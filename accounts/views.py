@@ -236,11 +236,12 @@ def delete_account(request):
     # Ends this session and rotates the session key, like the logout view
     logout(request)
     message = 'Your account was deleted. Thanks for growing with us.'
-    # The login page is the first one that shows messages, so the goodbye is seen right away
+    # The login page is the first one that shows messages, so the goodbye is seen right away.
+    # Queued on both paths: the fetch path navigates to the login page too, and the message rides along in the cookie
+    messages.success(request, message)
     if is_fetch:
         response = JsonResponse({'status': 'success', 'message': message, 'redirect': reverse('accounts:login')})
     else:
-        messages.success(request, message)
         response = HttpResponseRedirect(reverse('accounts:login'))
     response.delete_cookie('last_login')
     return response

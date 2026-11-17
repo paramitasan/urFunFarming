@@ -480,6 +480,8 @@ class DeleteAccountTest(AccountTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['status'], 'success')
         self.assertEqual(response.json()['redirect'], reverse('accounts:login'))
+        # The page the JavaScript goes to next shows the goodbye too
+        self.assertContains(self.client.get(reverse('accounts:login')), 'Your account was deleted')
 
         self.assertFalse(User.objects.filter(username='idris_k').exists())
         self.assertFalse(Profile.objects.filter(user__username='idris_k').exists())
@@ -568,6 +570,6 @@ class DeleteAccountTest(AccountTestCase):
     def test_profile_page_shows_danger_card_and_closed_dialog(self):
         response = self.client.get(reverse('accounts:profile'))
         self.assertContains(response, 'danger-card')
-        self.assertContains(response, 'id="account-delete-dialog" class="garden-delete-dialog account-delete-dialog" popover')
+        self.assertContains(response, 'id="account-delete-dialog" class="account-delete-dialog" popover')
         self.assertContains(response, reverse('accounts:delete_account'))
         self.assertNotContains(response, 'account-delete-dialog is-open')

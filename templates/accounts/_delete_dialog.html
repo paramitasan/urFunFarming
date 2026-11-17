@@ -1,21 +1,22 @@
 {% load static %}
-{# Confirm overlay for Delete account. Follows gardens/_delete_dialog.html: a native popover the card button opens, no JavaScript needed. #}
-{# When the form came back with errors and JavaScript is off, it is drawn open (no popover attribute) so the error is visible. #}
-<div id="account-delete-dialog" class="garden-delete-dialog account-delete-dialog{% if delete_form.errors %} is-open{% endif %}"{% if not delete_form.errors %} popover{% endif %} role="dialog" aria-modal="true" aria-labelledby="account-delete-dialog-title" aria-describedby="account-delete-dialog-text">
+{# Confirm overlay for Delete account. Same shape as gardens/_delete_dialog.html, styled in profile.css (gardens.css is only loaded on gardens pages). #}
+{# A native popover the card button opens, no JavaScript needed. When the form came back with errors and JavaScript is off, #}
+{# it is drawn open (no popover attribute, is-open class) so the error is visible. #}
+<div id="account-delete-dialog" class="account-delete-dialog{% if delete_form.errors %} is-open{% endif %}"{% if not delete_form.errors %} popover{% endif %} role="dialog" aria-modal="true" aria-labelledby="account-delete-dialog-title" aria-describedby="account-delete-dialog-text">
     {% if delete_form.errors %}
-    <a class="garden-delete-dialog-backdrop" href="{% url 'accounts:profile' %}" aria-label="Cancel"></a>
+    <a class="account-delete-backdrop" href="{% url 'accounts:profile' %}" aria-label="Cancel"></a>
     {% else %}
-    <button class="garden-delete-dialog-backdrop" type="button" popovertarget="account-delete-dialog" popovertargetaction="hide" aria-label="Cancel"></button>
+    <button class="account-delete-backdrop" type="button" popovertarget="account-delete-dialog" popovertargetaction="hide" aria-label="Cancel"></button>
     {% endif %}
-    <form class="garden-delete-dialog-card account-delete-form" method="POST" action="{% url 'accounts:delete_account' %}" data-profile-form data-error-field="password">
+    <form class="account-delete-card" method="POST" action="{% url 'accounts:delete_account' %}" data-profile-form data-error-field="password">
         {% csrf_token %}
-        <div class="garden-delete-dialog-content">
-            <span class="garden-delete-dialog-icon">
+        <div class="account-delete-content">
+            <span class="account-delete-icon">
                 <img src="{% static 'img/gardens/trash-dialog.svg' %}" alt="" width="20" height="20">
             </span>
             <div>
-                <h2 id="account-delete-dialog-title" class="garden-delete-dialog-title">Delete your account?</h2>
-                <p id="account-delete-dialog-text" class="garden-delete-dialog-message">This permanently removes your account and everything below. This can&rsquo;t be undone.</p>
+                <h2 id="account-delete-dialog-title" class="account-delete-title">Delete your account?</h2>
+                <p id="account-delete-dialog-text" class="account-delete-message">This permanently removes your account and everything below. This can&rsquo;t be undone.</p>
             </div>
         </div>
 
@@ -39,13 +40,13 @@
 
         {% include 'accounts/field.html' with field=delete_form.password toggle=True %}
 
-        <div class="garden-delete-dialog-actions">
+        <div class="account-delete-actions">
             {% if delete_form.errors %}
             <a class="outline-button" href="{% url 'accounts:profile' %}">Cancel</a>
             {% else %}
             <button class="outline-button" type="button" popovertarget="account-delete-dialog" popovertargetaction="hide">Cancel</button>
             {% endif %}
-            <button class="pill-button gardens-danger" type="submit" name="delete_account" value="1">Delete my account</button>
+            <button class="pill-button danger-button" type="submit" name="delete_account" value="1">Delete my account</button>
         </div>
     </form>
 </div>

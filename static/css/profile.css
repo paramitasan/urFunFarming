@@ -390,21 +390,121 @@
     color: var(--color-danger);
 }
 
-/* Delete account dialog: the gardens dialog plus the list of what goes and the password field */
+/* Red variants of the shared pill buttons */
 
-.account-delete-dialog .garden-delete-dialog-card {
-    width: min(100%, 520px);
-    gap: 20px;
+.danger-outline-button {
+    border-color: var(--color-danger);
+    color: var(--color-danger);
+}
+
+.danger-button {
+    background-color: var(--color-danger);
+    color: var(--color-light);
+}
+
+@media (hover: hover) {
+    .danger-outline-button:hover {
+        background-color: var(--color-danger-bg);
+    }
+
+    .danger-button:hover {
+        background-color: var(--color-danger-text);
+    }
+}
+
+.danger-outline-button:focus-visible,
+.danger-button:focus-visible {
+    outline: 2px solid var(--color-danger);
+    outline-offset: 2px;
+}
+
+/* Delete account dialog: the gardens confirm overlay, restyled here because gardens.css only loads on gardens pages */
+
+.account-delete-dialog {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 16px;
+    background: transparent;
+    border: 0;
+    align-items: center;
+    justify-content: center;
+    /* A native popover scrolls when the card is taller than the screen; so must the server-drawn copy */
+    overflow: auto;
+}
+
+.account-delete-dialog:popover-open {
+    display: flex;
 }
 
 /* Drawn open by the server when the form came back with errors and JavaScript is off */
 .account-delete-dialog.is-open {
     display: flex;
-    z-index: 50;
+    /* Above the fixed header (z-index 100), like a native popover's top layer */
+    z-index: 200;
 }
 
-.account-delete-dialog .auth-alerts:empty {
-    display: none;
+.account-delete-backdrop {
+    /* Fixed, not absolute: stays over the whole screen while a tall dialog scrolls */
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    background-color: rgba(11, 46, 29, 0.45);
+    border: 0;
+    cursor: default;
+}
+
+.account-delete-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: min(100%, 520px);
+    /* Centred, but never pushed off the top edge on a short screen (unlike align-items: center alone) */
+    margin: auto;
+    padding: 28px;
+    background-color: var(--color-surface);
+    border: 1px solid rgba(18, 81, 51, 0.12);
+    border-radius: 16px;
+    box-shadow: 0 16px 20px rgba(11, 46, 29, 0.18);
+}
+
+.account-delete-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.account-delete-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    background-color: var(--color-danger-bg);
+    border-radius: 50%;
+}
+
+.account-delete-title {
+    margin-bottom: 6px;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.18px;
+    line-height: normal;
+    color: var(--color-forest);
+}
+
+.account-delete-message {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--color-deep);
 }
 
 .account-delete-list {
@@ -429,6 +529,8 @@
     gap: 8px;
     margin: 0;
     padding-left: 18px;
+    /* The global reset drops list bullets; the Figma dialog has them */
+    list-style: disc;
     font-size: 14px;
     line-height: 1.55;
     color: var(--color-forest);
@@ -436,4 +538,10 @@
 
 .account-delete-list li::marker {
     color: var(--color-danger);
+}
+
+.account-delete-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
 }
