@@ -370,3 +370,70 @@
         align-items: stretch;
     }
 }
+
+/* Danger zone: the Delete account card, same shape as the other settings cards in the danger palette */
+
+.danger-card {
+    border-color: #EBC4BA;
+}
+
+.danger-card .card-heading h2 {
+    color: var(--color-danger-text);
+}
+
+.danger-eyebrow {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    line-height: normal;
+    color: var(--color-danger);
+}
+
+/* Delete account dialog: the gardens dialog plus the list of what goes and the password field */
+
+.account-delete-dialog .garden-delete-dialog-card {
+    width: min(100%, 520px);
+    gap: 20px;
+}
+
+/* Drawn open by the server when the form came back with errors and JavaScript is off */
+.account-delete-dialog.is-open {
+    display: flex;
+    z-index: 50;
+}
+
+.account-delete-dialog .auth-alerts:empty {
+    display: none;
+}
+
+.account-delete-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px 18px;
+    background-color: rgba(248, 227, 222, 0.5);
+    border-radius: 14px;
+}
+
+.account-delete-list-title {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: normal;
+    color: var(--color-danger-text);
+}
+
+.account-delete-list ul {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    padding-left: 18px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--color-forest);
+}
+
+.account-delete-list li::marker {
+    color: var(--color-danger);
+}

@@ -126,6 +126,12 @@ document.querySelectorAll('[data-profile-form]').forEach((form) => {
             return;
         }
 
+        // Account deleted: the session is gone, so go where the server says (the login page)
+        if (data.status === 'success' && data.redirect) {
+            window.location.assign(data.redirect);
+            return;
+        }
+
         button.disabled = false;
         showErrors(form, data.status === 'success' ? {} : data.errors);
 

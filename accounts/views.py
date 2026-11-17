@@ -201,6 +201,7 @@ def profile(request):
         'profile': user_profile,
         'profile_form': profile_form,
         'password_form': password_form,
+        'delete_form': DeleteAccountForm(request.user),
     }
     return render(request, 'accounts/profile.html', context)
 

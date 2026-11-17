@@ -11,7 +11,8 @@
 {% endblock head %}
 
 {% block content %}
-<div class="profile-page">
+{# With JavaScript off, a failed delete draws the dialog open over the page, so the page behind it is inert like care's #}
+<div class="profile-page"{% if delete_form.errors %} inert{% endif %}>
     <div class="profile-heading">
         <h1>Your profile</h1>
         <p>Choose how neighbors see you, and keep your account secure.</p>
@@ -140,7 +141,19 @@
                     <button type="submit" class="outline-button" name="change_password" value="1">Update password</button>
                 </div>
             </form>
+
+            <section class="settings-card danger-card" aria-labelledby="danger-heading">
+                <div class="card-heading">
+                    <p class="danger-eyebrow">Danger zone</p>
+                    <h2 id="danger-heading">Delete account</h2>
+                    <p>Permanently removes your account and everything you&rsquo;ve added to UrFunFarming. This can&rsquo;t be undone.</p>
+                </div>
+                <div class="password-actions">
+                    <button type="button" class="garden-danger-button" popovertarget="account-delete-dialog">Delete account&hellip;</button>
+                </div>
+            </section>
         </div>
     </div>
 </div>
+{% include 'accounts/_delete_dialog.html' %}
 {% endblock content %}
