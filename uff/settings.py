@@ -12,23 +12,28 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-vk0lknzp1&=si1m-bpnmu)db!wou3amv&gk8_4@^i2wp$g7b@n'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "paramita-santoso-urfunfarming.pws.cs.ui.ac.id"]
 PRODUCTION = os.getenv('PRODUCTION', 'False').lower() == 'true'
+
+# DEBUG is on locally and off on PWS unless the DEBUG variable says otherwise
+DEBUG = os.getenv('DEBUG', str(not PRODUCTION)).lower() == 'true'
+
+# PWS must set SECRET_KEY. The fallback is only for local work and tests.
+SECRET_KEY = os.getenv('SECRET_KEY', '')
+if not SECRET_KEY:
+    if PRODUCTION:
+        raise ImproperlyConfigured('Set the SECRET_KEY environment variable on PWS.')
+    SECRET_KEY = 'django-insecure-local-only-never-use-this-key-in-production'
+
+# 10.0.2.2 is how the Android emulator reaches the host machine's localhost
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "10.0.2.2", "paramita-santoso-urfunfarming.pws.cs.ui.ac.id"]
 
 # Application definition
 
@@ -39,6 +44,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'rest_framework.authtoken',
     'main',
     'accounts',
     'marketplace',
@@ -78,6 +85,15 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'uff.wsgi.application'
+
+# Django REST framework: the Flutter app sends "Authorization: Token <token>".
+# Session auth stays as a fallback so the browsable API works for a logged-in browser.
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+}
 
 
 # Database config
