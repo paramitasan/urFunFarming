@@ -25,7 +25,8 @@ function addAlert(alerts, message) {
 
 // Same banner and field errors as the server-rendered error state
 function showErrors(form, errors) {
-    const alerts = document.querySelector('.auth-alerts');
+    // A form drawn in a dialog carries its own alerts, so the banner is not hidden behind the overlay
+    const alerts = form.querySelector('.auth-alerts') || document.querySelector('.auth-alerts');
     alerts.innerHTML = '';
     form.querySelectorAll('.field-error').forEach((p) => p.remove());
     form.querySelectorAll('.has-error').forEach((field) => field.classList.remove('has-error'));

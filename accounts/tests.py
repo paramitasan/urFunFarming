@@ -1,8 +1,19 @@
+import datetime
+import shutil
+import tempfile
+
 from django.contrib.auth.models import User
-from django.test import Client, TestCase
+from django.core.files.storage import default_storage
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from accounts.models import Profile
+from care.models import CareSettings, CareTask
+from forum.models import Forum, ForumVote, Reply
+from gardens.models import Garden, Planting
+from journal.models import EntryPhoto, JournalEntry, PlantJournal
+from marketplace.models import HarvestListing
 
 
 class AccountTestCase(TestCase):
@@ -373,3 +384,192 @@ class ProfilePageTest(AccountTestCase):
         self.profile.refresh_from_db()
         self.assertEqual(other_profile.display_name, 'Sekar')
         self.assertEqual(self.profile.display_name, 'Idris K')
+
+
+class DeleteAccountTest(AccountTestCase):
+    """Delete account from the profile page: password-checked, always request.user, cascades everywhere."""
+
+    PASSWORD = 'tomato-Balcony-42'
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.media_root = tempfile.mkdtemp()
+        cls.media_override = override_settings(MEDIA_ROOT=cls.media_root)
+        cls.media_override.enable()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.media_override.disable()
+        shutil.rmtree(cls.media_root, ignore_errors=True)
+        super().tearDownClass()
+
+    def setUp(self):
+        super().setUp()
+        self.other = User.objects.create_user('sekar_a', password=self.PASSWORD)
+        Profile.objects.create(user=self.other, display_name='Sekar', is_grower=True)
+        self.files = self.add_data(self.user, replier=self.other)
+        self.other_files = self.add_data(self.other, replier=self.user)
+        self.client.login(username='idris_k', password=self.PASSWORD)
+
+    @staticmethod
+    def add_data(user, replier):
+        # One of everything a member can own, with an uploaded file wherever a model takes one
+        image = lambda name: SimpleUploadedFile(name, b'not really a jpeg', content_type='image/jpeg')
+        garden = Garden.objects.create(owner=user, name='Balcony', location='Tebet', growing_method='Pots', photo=image('g.jpg'))
+        planting = Planting.objects.create(garden=garden, crop='Chili', planting_date=datetime.date(2026, 10, 1), photo=image('p.jpg'))
+        PlantJournal.objects.create(planting=planting)
+        entry = JournalEntry.objects.create(
+            planting=planting, date=datetime.date(2026, 10, 2), time=datetime.time(7, 30), height_cm=3, observation='Sprouted',
+        )
+        photo = EntryPhoto.objects.create(entry=entry, image=image('j.jpg'))
+        CareTask.objects.create(owner=user, planting=planting, title='Water', target_date=datetime.date(2026, 10, 3))
+        CareSettings.for_user(user)
+        HarvestListing.objects.create(
+            owner=user, title='Chili', description='Hot', category='vegetables', quantity=1, unit='kg', price=10000, area='Tebet',
+        )
+        question = Forum.objects.create(author=user, title='Aphids?', description='Help', image=image('f.jpg'))
+        Reply.objects.create(forum=question, author=replier, body='Try neem oil')
+        ForumVote.objects.create(forum=question, user=replier)
+        return [garden.photo.name, planting.photo.name, photo.image.name, question.image.name]
+
+    def delete(self, password=PASSWORD, **extra):
+        return self.client.post(reverse('accounts:delete_account'), {'password': password}, **extra)
+
+    def assert_owns_everything(self, user):
+        self.assertTrue(User.objects.filter(pk=user.pk).exists())
+        self.assertTrue(Profile.objects.filter(user=user).exists())
+        self.assertTrue(Garden.objects.filter(owner=user).exists())
+        self.assertTrue(Planting.objects.filter(garden__owner=user).exists())
+        self.assertTrue(JournalEntry.objects.filter(planting__garden__owner=user).exists())
+        self.assertTrue(CareTask.objects.filter(owner=user).exists())
+        self.assertTrue(HarvestListing.objects.filter(owner=user).exists())
+        self.assertTrue(Forum.objects.filter(author=user).exists())
+
+    def test_login_required(self):
+        self.client.logout()
+        response = self.delete()
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/login', response.url)
+        self.assert_owns_everything(self.user)
+
+    def test_get_is_rejected(self):
+        response = self.client.get(reverse('accounts:delete_account'))
+        self.assertEqual(response.status_code, 405)
+        self.assert_owns_everything(self.user)
+
+    def test_wrong_password_deletes_nothing(self):
+        response = self.delete('wrong', HTTP_X_REQUESTED_WITH='fetch')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()['status'], 'error')
+        self.assertIn('password', response.json()['errors'])
+        self.assert_owns_everything(self.user)
+        for name in self.files:
+            self.assertTrue(default_storage.exists(name))
+        self.assertTrue(response.wsgi_request.user.is_authenticated)
+
+    def test_wrong_password_without_javascript_shows_dialog_open(self):
+        response = self.delete('wrong')
+        self.assertEqual(response.status_code, 400)
+        self.assertContains(response, 'account-delete-dialog is-open', status_code=400)
+        self.assertContains(response, "That password isn&#x27;t right", status_code=400)
+        self.assert_owns_everything(self.user)
+
+    def test_correct_password_deletes_user_and_data_in_every_module(self):
+        response = self.delete(HTTP_X_REQUESTED_WITH='fetch')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['status'], 'success')
+        self.assertEqual(response.json()['redirect'], reverse('accounts:login'))
+        # The page the JavaScript goes to next shows the goodbye too
+        self.assertContains(self.client.get(reverse('accounts:login')), 'Your account was deleted')
+
+        self.assertFalse(User.objects.filter(username='idris_k').exists())
+        self.assertFalse(Profile.objects.filter(user__username='idris_k').exists())
+        self.assertFalse(Garden.objects.filter(owner__username='idris_k').exists())
+        self.assertFalse(Planting.objects.filter(garden__owner__username='idris_k').exists())
+        self.assertFalse(PlantJournal.objects.filter(planting__garden__owner__username='idris_k').exists())
+        self.assertFalse(JournalEntry.objects.filter(planting__garden__owner__username='idris_k').exists())
+        self.assertFalse(EntryPhoto.objects.filter(entry__planting__garden__owner__username='idris_k').exists())
+        self.assertFalse(CareTask.objects.filter(owner__username='idris_k').exists())
+        self.assertFalse(CareSettings.objects.filter(user__username='idris_k').exists())
+        self.assertFalse(HarvestListing.objects.filter(owner__username='idris_k').exists())
+        self.assertFalse(Forum.objects.filter(author__username='idris_k').exists())
+        # Answers other members wrote on this user's questions go with the questions
+        self.assertFalse(Reply.objects.filter(forum__author__username='idris_k').exists())
+        self.assertFalse(Reply.objects.filter(author__username='idris_k').exists())
+        self.assertFalse(ForumVote.objects.filter(user__username='idris_k').exists())
+
+    def test_uploaded_files_are_removed_from_storage(self):
+        for name in self.files:
+            self.assertTrue(default_storage.exists(name))
+        # The files go in transaction.on_commit, which only runs once the delete is committed
+        with self.captureOnCommitCallbacks(execute=True):
+            response = self.delete()
+        self.assertEqual(response.status_code, 302)
+        for name in self.files:
+            self.assertFalse(default_storage.exists(name), name)
+
+    def test_another_users_data_is_untouched(self):
+        with self.captureOnCommitCallbacks(execute=True):
+            self.delete()
+        self.assert_owns_everything(self.other)
+        self.assertTrue(Profile.objects.filter(user=self.other, display_name='Sekar').exists())
+        self.assertTrue(CareSettings.objects.filter(user=self.other).exists())
+        # The other user's question stays, even though the deleted user had answered and voted on it
+        self.assertTrue(Forum.objects.filter(author=self.other).exists())
+        self.assertFalse(Reply.objects.filter(forum__author=self.other).exists())
+        for name in self.other_files:
+            self.assertTrue(default_storage.exists(name), name)
+
+    def test_session_is_ended(self):
+        response = self.delete()
+        self.assertRedirects(response, reverse('accounts:login'), fetch_redirect_response=False)
+        self.assertNotIn('_auth_user_id', self.client.session)
+        self.assertEqual(response.cookies['last_login']['max-age'], 0)
+        response = self.client.get(reverse('accounts:profile'))
+        self.assertEqual(response.status_code, 302)
+
+    def test_deleted_username_can_no_longer_log_in(self):
+        self.delete()
+        self.assertFalse(self.client.login(username='idris_k', password=self.PASSWORD))
+        response = self.client.post(reverse('accounts:login'), {'username': 'idris_k', 'password': self.PASSWORD})
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.wsgi_request.user.is_authenticated)
+
+    def test_success_message_shows_on_login_page(self):
+        response = self.delete(follow=True)
+        self.assertRedirects(response, reverse('accounts:login'))
+        self.assertContains(response, 'Your account was deleted')
+
+    def test_only_deletes_the_signed_in_user_whatever_the_form_sends(self):
+        response = self.client.post(
+            reverse('accounts:delete_account'),
+            {'password': self.PASSWORD, 'user': self.other.pk, 'username': 'sekar_a', 'id': self.other.pk},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(User.objects.filter(pk=self.user.pk).exists())
+        self.assert_owns_everything(self.other)
+
+    def test_last_superuser_cannot_delete_their_account(self):
+        self.user.is_superuser = True
+        self.user.save()
+        response = self.delete(HTTP_X_REQUESTED_WITH='fetch')
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('only admin', response.json()['errors']['__all__'][0])
+        self.assert_owns_everything(self.user)
+
+    def test_superuser_can_delete_when_another_superuser_remains(self):
+        self.user.is_superuser = True
+        self.user.save()
+        self.other.is_superuser = True
+        self.other.save()
+        response = self.delete()
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(User.objects.filter(pk=self.user.pk).exists())
+
+    def test_profile_page_shows_danger_card_and_closed_dialog(self):
+        response = self.client.get(reverse('accounts:profile'))
+        self.assertContains(response, 'danger-card')
+        self.assertContains(response, 'id="account-delete-dialog" class="account-delete-dialog" popover')
+        self.assertContains(response, reverse('accounts:delete_account'))
+        self.assertNotContains(response, 'account-delete-dialog is-open')

@@ -83,6 +83,7 @@ One account can be both a grower and a buyer (`accounts.Profile` has `is_grower`
 - Landing page with real marketplace listings and a category filter (`/`, `/listings/`), plus a signed-in home page (`/home/`).
 - Register (choose grower, buyer or both), login with "remember me", and logout (`/register/`, `/login/`, `/logout/`). Register and login also work through AJAX endpoints.
 - Profile page to edit display name, bio, area, city, phone and contact email (`/profile/`).
+- Delete account from the profile page (`/profile/delete/`): asks for the current password, then removes the account and everything it owns in every module, including uploaded photos, and ends the session. The last remaining superuser can't delete their own account.
 - JSON endpoints: `/auth/me/json/` and `/profile/json/<username>/`.
 
 ### Module 2: Gardens and Plantings (Azkal)
@@ -222,13 +223,14 @@ coverage run --source=accounts,main,marketplace,forum,gardens,journal manage.py 
 coverage report
 ```
 
-Result on 30 Oct 2026: **505 tests, all passing**. Coverage was 98% across the six apps at the last full measurement (430 tests, before `seed_demo` and its tests). Tests cover valid and invalid forms, full CRUD, owner checks, login-only data, private records, filters and pagination, JSON endpoints, CSRF, input escaping, weather API failures (mocked) and the seed commands.
+Result on 17 Nov 2026: **603 tests, all passing**. Coverage was 98% across the six apps at the last full measurement (430 tests, before `seed_demo` and its tests). Tests cover valid and invalid forms, full CRUD, owner checks, login-only data, private records, filters and pagination, JSON endpoints, CSRF, input escaping, weather API failures (mocked), the seed commands and account deletion.
 
 GitHub Actions (`.github/workflows/django-tests.yml`) runs on every pull request and on pushes to `main` and feature branches. It runs `manage.py check`, checks that no migrations are missing, runs `collectstatic`, then runs the tests with a minimum coverage of 80% (`.coveragerc`).
 
 ## Security and Quality Notes
 
 - **Owner checks on the server:** every edit and delete view checks that the logged-in user owns the record. Hiding the buttons is only for looks; a direct POST from someone else is refused.
+- **Account deletion is self-only:** the delete view ignores any user id in the request and always deletes the signed-in user, after checking their password. The user is deleted in one transaction and uploaded files are removed only after it commits, so a failed delete never leaves records pointing at missing files.
 - **Private data never reaches the page:** private gardens, private notes and private plant journals are filtered out in the database query. Grower contact details are left out of both the HTML and the JSON for visitors.
 - **CSRF:** every form uses `{% csrf_token %}`, and every `fetch` call sends the `X-CSRFToken` header.
 - **XSS:** templates use Django's auto-escaping. JavaScript shows user text with `textContent`, and any HTML loaded with `fetch` is rendered and escaped by Django on the server first.

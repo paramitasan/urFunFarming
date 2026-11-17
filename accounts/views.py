@@ -5,14 +5,19 @@ from django.contrib import messages
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.files.storage import default_storage
+from django.db import transaction
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from accounts.forms import LoginForm, PasswordForm, ProfileForm, RegisterForm
+from accounts.forms import DeleteAccountForm, LoginForm, PasswordForm, ProfileForm, RegisterForm
 from accounts.models import Profile
+from forum.models import Forum
+from gardens.models import Garden, Planting
+from journal.models import EntryPhoto
 
 
 def register(request):
@@ -196,5 +201,67 @@ def profile(request):
         'profile': user_profile,
         'profile_form': profile_form,
         'password_form': password_form,
+        'delete_form': DeleteAccountForm(request.user),
     }
     return render(request, 'accounts/profile.html', context)
+
+
+@login_required(login_url='/login')
+@require_POST
+def delete_account(request):
+    # Always deletes request.user; the form carries only the password, never a user id
+    form = DeleteAccountForm(request.user, request.POST)
+    is_fetch = request.headers.get('X-Requested-With') == 'fetch'
+
+    if not form.is_valid():
+        if is_fetch:
+            return JsonResponse({'status': 'error', 'errors': form_errors(form)}, status=400)
+        # Without JavaScript: show the profile page again with the error under the password
+        user_profile, _ = Profile.objects.get_or_create(user=request.user, defaults={'display_name': request.user.username})
+        context = {
+            'profile': user_profile,
+            'profile_form': ProfileForm(instance=user_profile),
+            'password_form': PasswordForm(request.user),
+            'delete_form': form,
+        }
+        return render(request, 'accounts/profile.html', context, status=400)
+
+    user = request.user
+    file_names = uploaded_file_names(user)
+    with transaction.atomic():
+        user.delete()
+        # Only once the delete is committed; a rollback would otherwise leave rows pointing at missing files
+        transaction.on_commit(lambda: delete_uploaded_files(file_names))
+
+    # Ends this session and rotates the session key, like the logout view
+    logout(request)
+    message = 'Your account was deleted. Thanks for growing with us.'
+    # The login page is the first one that shows messages, so the goodbye is seen right away.
+    # Queued on both paths: the fetch path navigates to the login page too, and the message rides along in the cookie
+    messages.success(request, message)
+    if is_fetch:
+        response = JsonResponse({'status': 'success', 'message': message, 'redirect': reverse('accounts:login')})
+    else:
+        response = HttpResponseRedirect(reverse('accounts:login'))
+    response.delete_cookie('last_login')
+    return response
+
+
+def uploaded_file_names(user):
+    # Every file this user uploaded, in all apps, so none is left behind in media/
+    names = []
+    for queryset, field in (
+        (Garden.objects.filter(owner=user), 'photo'),
+        (Planting.objects.filter(garden__owner=user), 'photo'),
+        (EntryPhoto.objects.filter(entry__planting__garden__owner=user), 'image'),
+        (Forum.objects.filter(author=user), 'image'),
+    ):
+        names.extend(queryset.exclude(**{field: ''}).exclude(**{f'{field}__isnull': True}).values_list(field, flat=True))
+    return names
+
+
+def delete_uploaded_files(names):
+    for name in names:
+        # Mirrors journal's delete_photos: missing files are ignored, never an error for the user
+        if default_storage.exists(name):
+            default_storage.delete(name)
