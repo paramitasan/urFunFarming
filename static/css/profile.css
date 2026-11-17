@@ -1,8 +1,13 @@
 /* Profile page, on top of auth.css */
 
-.profile-page {
+/* auth.css sets these on .auth-page only. The delete dialog sits outside .profile-page, so it needs them too */
+.profile-page,
+.account-delete-dialog {
     --color-error: #B5452F;
     --color-error-bg: #F8E3DE;
+}
+
+.profile-page {
     max-width: 1440px;
     margin: 0 auto;
     padding: 140px 80px 120px;
