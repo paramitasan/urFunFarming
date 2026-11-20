@@ -4,8 +4,6 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import BadRequest
-from django.core.paginator import Paginator
-from django.db.models import Q
 from django.forms.models import model_to_dict
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -15,7 +13,8 @@ from django.views.decorators.http import require_GET, require_http_methods
 
 from accounts.views import form_errors
 from marketplace.dates import jakarta_today
-from marketplace.forms import ListingFilterForm, ListingForm, PickupWeatherForm
+from marketplace.catalog import catalog_page, listings
+from marketplace.forms import ListingForm, PickupWeatherForm
 from marketplace.models import HarvestListing
 from marketplace.weather import WeatherUnavailable, filter_pickup_times, forecast
 
@@ -41,43 +40,12 @@ def _member(request, api=False, grower=False):
     return None
 
 
-def _listings():
-    return HarvestListing.objects.select_related('owner', 'owner__profile')
-
-
 def _visible(request, pk):
-    return get_object_or_404(_listings().visible_to(request.user), pk=pk)
+    return get_object_or_404(listings().visible_to(request.user), pk=pk)
 
 
 def _catalog(request, mine=False):
-    params = request.GET.copy()
-    params.setdefault('availability', 'any' if mine else 'now')
-    params.setdefault('sort', 'newest')
-    form = ListingFilterForm(params)
-    queryset = _listings().filter(owner=request.user) if mine else _listings().public()
-    if form.is_valid():
-        values = form.cleaned_data
-        if values['q']:
-            text = values['q']
-            queryset = queryset.filter(Q(title__icontains=text) | Q(description__icontains=text) | Q(area__icontains=text) | Q(owner__profile__display_name__icontains=text))
-        for field in ('category', 'city', 'area'):
-            if values[field]:
-                queryset = queryset.filter(**{field: values[field]})
-        if values['grower']:
-            queryset = queryset.filter(owner__username=values['grower'])
-        if values['availability'] == 'now':
-            queryset = queryset.available_now()
-        if values['price_type'] == 'free':
-            queryset = queryset.filter(price=0)
-        elif values['price_type'] == 'paid':
-            queryset = queryset.filter(price__gt=0)
-        if values['max_price'] is not None:
-            queryset = queryset.filter(price__lte=values['max_price'])
-        order = {'price_asc': ('price', '-created_at', '-id'), 'price_desc': ('-price', '-created_at', '-id'), 'title': ('title', '-id')}.get(values['sort'], ('-created_at', '-id'))
-        queryset = queryset.order_by(*order)
-    else:
-        queryset = queryset.none()
-    page = Paginator(queryset, 6).get_page(request.GET.get('page'))
+    form, page = catalog_page(request.GET, request.user, mine=mine)
     query = request.GET.copy()
     query.pop('page', None)
     return {
@@ -172,7 +140,7 @@ def edit(request, pk):
     denied = _member(request)
     if denied is not None:
         return denied
-    listing = get_object_or_404(_listings(), pk=pk, owner=request.user)
+    listing = get_object_or_404(listings(), pk=pk, owner=request.user)
     if request.method == 'POST':
         return _save(request, listing)
     return render(request, 'marketplace/form.html', {'form': ListingForm(instance=listing), 'listing': listing})
@@ -193,7 +161,7 @@ def delete(request, pk):
     denied = _member(request)
     if denied is not None:
         return denied
-    listing = get_object_or_404(_listings(), pk=pk, owner=request.user)
+    listing = get_object_or_404(listings(), pk=pk, owner=request.user)
     if request.method == 'POST':
         return _delete(request, listing)
     return render(request, 'marketplace/delete.html', {'listing': listing})
@@ -245,7 +213,7 @@ def listing_json(request, pk):
     denied = _member(request, api=True)
     if denied is not None:
         return denied
-    listing = _listings().filter(pk=pk, owner=request.user).first()
+    listing = listings().filter(pk=pk, owner=request.user).first()
     if listing is None:
         return _json_error('Harvest listing not found.', 404)
     if request.method == 'DELETE':
