@@ -246,7 +246,7 @@ The app is deployed on PWS: https://paramita-santoso-urfunfarming.pws.cs.ui.ac.i
 - `uff/settings.py` switches database by the `PRODUCTION` environment variable: SQLite in development, PostgreSQL on PWS (`DB_NAME`, `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `SCHEMA`).
 - Database credentials are set as PWS environment variables and are never committed.
 - `DEBUG` and `SECRET_KEY` also come from the environment. With `PRODUCTION=true`, `DEBUG` is off unless `DEBUG=true` is set, and the app refuses to start without `SECRET_KEY`. Locally both have safe defaults, so nothing needs to be set.
-- Static files are served by WhiteNoise after `collectstatic`. With `DEBUG` off, a page fails if `collectstatic` has not run, so it must run on every deploy.
+- Static files are served by WhiteNoise after `collectstatic`. PWS has no build step, so uff/wsgi.py runs collectstatic every time the app starts in production (a file lock keeps the gunicorn workers from running it at the same time).
 - Uploaded photos in `media/` are served by Django itself (`serve_media` in `main/views.py`), because PWS has no separate file server.
 
 PWS environment variables:
